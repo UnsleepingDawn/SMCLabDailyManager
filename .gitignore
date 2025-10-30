@@ -1,0 +1,12 @@
+.idea
+.DS_Store
+
+# 特定文件夹下内容
+.vscode/**
+__pycache__/**
+
+# 特定文件类型
+*.xlsx
+
+# 特定文件
+Readmeysy.md
