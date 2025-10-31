@@ -4,9 +4,11 @@
 # 特定文件夹下内容
 .vscode/**
 __pycache__/**
+old_repo/**
 
 # 特定文件类型
 *.xlsx
+*.json
 
 # 特定文件
 Readmeysy.md
