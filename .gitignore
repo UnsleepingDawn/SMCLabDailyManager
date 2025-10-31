@@ -9,6 +9,7 @@ old_repo/**
 # 特定文件类型
 *.xlsx
 *.json
+*.pyc
 
 # 特定文件
 Readmeysy.md
