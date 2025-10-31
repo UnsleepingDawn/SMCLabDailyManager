@@ -6,7 +6,11 @@ from lark_oapi.api.bitable.v1 import *
 import lark_oapi.api.bitable.v1.resource as base_rsc
 import lark_oapi.api.drive.v1.resource as drive_rsc
 
-from utils import get_year_semester
+from ..utils import get_year_semester
+
+ABS_PATH = os.path.abspath(__file__)         # SMCLabDailyManager\source_code\SMCLabCrawler\MdtableCrawler.py
+CURRENT_PATH = os.path.dirname(ABS_PATH)     # SMCLabDailyManager\source_code\SMCLabCrawler
+PARENT_PATH = os.path.dirname(CURRENT_PATH)  # SMCLabDailyManager\source_code
 
 # 父类
 class SMCLabClient(object):
@@ -41,7 +45,7 @@ class SMCLabClient(object):
         assert self._client.drive.v1.media is not None
         return self._client.drive.v1.media
 
-    def _get_app_tokens(self, tokens_json_file: str = "../app_tokens.json"):
+    def _get_app_tokens(self, tokens_json_file: str = os.path.join(PARENT_PATH, "app_tokens.json")):
         """
         从json中获取应用的app_id, app_secret
         input:
@@ -55,7 +59,7 @@ class SMCLabClient(object):
         app_info = data["SMCLab_Manager"]
         return app_info
 
-    def _get_tenant_access_token(self, app_id: str, app_secret: str):
+    def _get_tenant_access_token(self, app_id: str, app_secret: str, tokens_json_file: str = os.path.join(CURRENT_PATH, "last_tenant_access.json")):
         """
         修改自: https://open.feishu.cn/document/server-docs/authentication-management/access-token/tenant_access_token_internal
         通过自建应用的id和secret获取tenant_access_token, 用于查询表格记录
@@ -66,24 +70,27 @@ class SMCLabClient(object):
             tenant_access_token
         """
         # 检查本地是否有上次的应用身份权限tenant_access_token记录，且是否还有效
-        if os.path.exists("last_tenant_access.json"):
-            with open("last_tenant_access.json", "r", encoding="utf-8") as f:
+
+        if os.path.exists(tokens_json_file):
+            with open(tokens_json_file, "r", encoding="utf-8") as f:
                 last_tenant_access_info = json.load(f)
             last_token_time = last_tenant_access_info.get("time_stamp", 0)
             expire = last_tenant_access_info.get("expire", 0)
             tenant_access_token = last_tenant_access_info.get("tenant_access_token")
             # 如果上次的应用身份权限还在有效期内，则直接返回
-            if time.time() - last_token_time < expire and tenant_access_token:
-                print("上次应用身份权限依然有效, 复用之前的tenant_access_token")
+            # TODO: 有关expire还没写好
+            if time.time() - last_token_time < 7200 and tenant_access_token:
+                print("上次应用身份权限依然有效, 复用...")
                 return tenant_access_token
 
+        print("申请应用身份权限")
         url = "https://open.feishu.cn/open-apis/auth/v3/tenant_access_token/internal/"  # 自建应用通过此接口获取
         payload = {"app_id": app_id, "app_secret": app_secret}
         response = requests.post(url, json=payload).json()
         expire = response["expire"]
         tenant_access_token = response["tenant_access_token"]
 
-        with open("last_tenant_access.json", 'w', encoding='utf-8') as f:
+        with open(tokens_json_file, 'w', encoding='utf-8') as f:
             time_now = time.time()
             json.dump({"time_stamp": time_now, 
                        "time_stamp_readable": time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(time_now)),
@@ -96,7 +103,15 @@ class SMCLabClient(object):
     def get_raw_records(self):
         raise NotImplementedError("Not implemented yet!")
     
-    def print_info(self):
+    def assert_resp(self, resp):
+        assert resp.code == 0
+        assert resp.msg == "success"
+        assert resp.data is not None
+        assert resp.data.has_more is not None
+        assert resp.data.items is not None
+        # assert not resp.data.has_more # 如果还有更多
+    
+    def print_basic_info(self):
         print("Year Semester:", self._year_semester)
         print("Tenant Access Token:", self._tenant_access_token)
     
@@ -109,25 +124,42 @@ class SMCLabWeeklyReportCrawler(SMCLabClient):
         self.wr_app_token = wr_app_token
         self.wr_table_id = wr_table_id
 
-    def _get_table_tokens(self, tokens_json_file: str = "table_tokens.json"):
+    def _get_table_tokens(self, tokens_json_file: str = os.path.join(CURRENT_PATH, "table_tokens.json")):
         with open(tokens_json_file, "r", encoding="utf-8") as f:
             data = json.load(f)
         table_info = data["weekly_report_table"]
         wr_app_token = data["weekly_report_table"]["app_token"]
         wr_table_id = data["weekly_report_table"]["table_id"][self._year_semester]
+        return table_info, wr_app_token, wr_table_id
 
     def get_raw_records(self):
-
         # 参考: https://open.feishu.cn/api-explorer?apiName=search&from=op_doc&project=bitable&resource=app.table.record&version=v1
 
         request: SearchAppTableRecordRequest = SearchAppTableRecordRequest.builder() \
             .app_token("bascnNZHLLxh0ZKJ9zOvhtTaMAb") \
             .table_id("tblhrAOhccTHJauv") \
             .page_size(20) \
-            .request_body(SearchAppTableRecordRequestBody.builder()
+            .request_body( \
+                SearchAppTableRecordRequestBody.builder()
                 .build()) \
             .build()
+        
+        # 发起请求
+        resp: SearchAppTableRecordResponse = self.app_table_record.search(request)
+        self.assert_resp(resp)
 
-if __name__ == "__main__":
-    smclab_client = SMCLabClient()
+        resp_json = lark.JSON.marshal(resp.data, indent=4)
+
+        temp_resp_path = os.path.join(CURRENT_PATH, "temp_resp_"+resp.data.page_token+".json")
+        with open(temp_resp_path, 'w', encoding='utf-8') as f:
+            f.write(resp_json)
+
+    def print_basic_info(self):
+        print("Year Semester:", self._year_semester)
+        print("Tenant Access Token:", self._tenant_access_token)
+        print("Weekly Report Token:", self.wr_app_token)
+        print("Weekly Report Table ID:", self.wr_table_id)
+
+# if __name__ == "__main__":
+    # smclab_client = SMCLabClient()
     # smclab_client.print_info()
