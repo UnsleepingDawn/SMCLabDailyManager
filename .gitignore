@@ -11,5 +11,8 @@ old_repo/**
 *.json
 *.pyc
 
+# 不忽略
+!table_tokens.json
+
 # 特定文件
 Readmeysy.md
