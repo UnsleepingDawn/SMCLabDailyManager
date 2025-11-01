@@ -19,3 +19,8 @@
 <a href="https://github.com/UnsleepingDawn/SMCLabDailyManager/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=UnsleepingDawn/SMCLabDailyManager" />
 </a>
+
+## 开发准备
+```bash
+pip install lark-oapi -U
+```
