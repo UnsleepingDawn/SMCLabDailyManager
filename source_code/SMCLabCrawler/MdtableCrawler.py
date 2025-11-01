@@ -25,7 +25,7 @@ class SMCLabClient(object):
             lark.Client.builder()
             .app_id(app_info["app_id"])
             .app_secret(app_info["app_secret"])
-            .log_level(lark.LogLevel.DEBUG)
+            # .log_level(lark.LogLevel.DEBUG)
             .build()
         )
         self._client = client
@@ -103,7 +103,7 @@ class SMCLabClient(object):
     def get_raw_records(self):
         raise NotImplementedError("Not implemented yet!")
     
-    def assert_resp(self, resp):
+    def _assert_resp(self, resp):
         assert resp.code == 0
         assert resp.msg == "success"
         assert resp.data is not None
@@ -117,12 +117,14 @@ class SMCLabClient(object):
     
 
 class SMCLabWeeklyReportCrawler(SMCLabClient):
-    def __init__(self):
+    def __init__(self, 
+                 page_size: int = 20):
         super().__init__()
         table_info, wr_app_token, wr_table_id = self._get_table_tokens()
         self.table_info = table_info
         self.wr_app_token = wr_app_token
         self.wr_table_id = wr_table_id
+        self.page_size = page_size
 
     def _get_table_tokens(self, tokens_json_file: str = os.path.join(CURRENT_PATH, "table_tokens.json")):
         with open(tokens_json_file, "r", encoding="utf-8") as f:
@@ -132,27 +134,48 @@ class SMCLabWeeklyReportCrawler(SMCLabClient):
         wr_table_id = data["weekly_report_table"]["table_id"][self._year_semester]
         return table_info, wr_app_token, wr_table_id
 
-    def get_raw_records(self):
+    def get_raw_records(self,
+                        raw_data_path: str = os.path.join(CURRENT_PATH, "weekly_report_raw_data")):
         # 参考: https://open.feishu.cn/api-explorer?apiName=search&from=op_doc&project=bitable&resource=app.table.record&version=v1
 
-        request: SearchAppTableRecordRequest = SearchAppTableRecordRequest.builder() \
-            .app_token("bascnNZHLLxh0ZKJ9zOvhtTaMAb") \
-            .table_id("tblhrAOhccTHJauv") \
-            .page_size(20) \
-            .request_body( \
-                SearchAppTableRecordRequestBody.builder()
-                .build()) \
-            .build()
-        
-        # 发起请求
-        resp: SearchAppTableRecordResponse = self.app_table_record.search(request)
-        self.assert_resp(resp)
+        # TODO: 分页下载
+        # 按照分页, 一页页下载
+        has_more = True
+        page_token = None
+        page_cnt = 0
+        while(has_more):
+            print(f"第{page_cnt}次请求...")
+            if page_cnt:
+                request: SearchAppTableRecordRequest = SearchAppTableRecordRequest.builder() \
+                    .app_token(self.wr_app_token) \
+                    .table_id(self.wr_table_id) \
+                    .page_size(self.page_size) \
+                    .page_token(page_token) \
+                    .request_body( \
+                        SearchAppTableRecordRequestBody.builder()
+                        .build()) \
+                    .build()
+            else:
+                request: SearchAppTableRecordRequest = SearchAppTableRecordRequest.builder() \
+                    .app_token(self.wr_app_token) \
+                    .table_id(self.wr_table_id) \
+                    .page_size(self.page_size) \
+                    .request_body( \
+                        SearchAppTableRecordRequestBody.builder()
+                        .build()) \
+                    .build()
+            # 发起请求
+            resp: SearchAppTableRecordResponse = self.app_table_record.search(request)
+            self._assert_resp(resp) # 响应的合法性检查
+            # 更新循环状态
+            has_more = resp.data.has_more
+            page_token = resp.data.page_token
+            page_cnt += 1
 
-        resp_json = lark.JSON.marshal(resp.data, indent=4)
-
-        temp_resp_path = os.path.join(CURRENT_PATH, "temp_resp_"+resp.data.page_token+".json")
-        with open(temp_resp_path, 'w', encoding='utf-8') as f:
-            f.write(resp_json)
+            resp_json = lark.JSON.marshal(resp.data, indent=4)
+            resp_page_path = os.path.join(raw_data_path, f"resp_page_{str(page_cnt)}_{page_token}.json")
+            with open(resp_page_path, 'w', encoding='utf-8') as f:
+                f.write(resp_json)
 
     def print_basic_info(self):
         print("Year Semester:", self._year_semester)
