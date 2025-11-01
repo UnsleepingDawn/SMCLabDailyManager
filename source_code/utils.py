@@ -1,5 +1,6 @@
 import time
 
+# TODO: 使该函数更加鲁棒
 def get_year_semester(
         print_info=False
 ):

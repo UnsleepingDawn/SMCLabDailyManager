@@ -1,0 +1,19 @@
+{
+    "weekly_report_table":{
+        "app_token": "bascnNZHLLxh0ZKJ9zOvhtTaMAb",
+        "table_id":{
+            "2025-Fall": "tblhrAOhccTHJauv",
+            "2025-Spring": "tblR6hiO28MRPBvg"
+        }
+    },
+    "group_meeting_table":{
+        "app_token": "L5ZAbqlF4aG1EQsRszbcAa2JnWc",
+        "table_id": "tbl3n3I1oKuO0KPT&view=vew4SqBurs"
+    },
+    "reading_list_table":{
+        "app_token": "Dr2Hb6qrAajFBKszm2KckZtpnHf",
+        "table_id": "tblTBDnVFw33kriz"
+    },
+    "help": "https://open.feishu.cn/document/server-docs/docs/bitable-v1/bitable-overview",
+    "caption": "来源于多维表格链接中的两个id, 第一个app_token(因为多维表格被飞书视为一种app), 第二个是table_id, 是数据表id"
+}

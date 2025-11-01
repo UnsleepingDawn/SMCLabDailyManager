@@ -115,7 +115,7 @@ class SMCLabClient(object):
         print("Year Semester:", self._year_semester)
         print("Tenant Access Token:", self._tenant_access_token)
     
-
+# 转用于爬取组会名单统计, 用于汇总人员信息, 记录组会信息
 class SMCLabWeeklyReportCrawler(SMCLabClient):
     def __init__(self, 
                  page_size: int = 20):
@@ -143,6 +143,8 @@ class SMCLabWeeklyReportCrawler(SMCLabClient):
         has_more = True
         page_token = None
         page_cnt = 0
+        if not os.path.exists(raw_data_path):
+            os.mkdir(raw_data_path)
         while(has_more):
             print(f"第{page_cnt}次请求...")
             if page_cnt:
@@ -164,24 +166,98 @@ class SMCLabWeeklyReportCrawler(SMCLabClient):
                         SearchAppTableRecordRequestBody.builder()
                         .build()) \
                     .build()
-            # 发起请求
+            # 发起请求, 接受相应
             resp: SearchAppTableRecordResponse = self.app_table_record.search(request)
             self._assert_resp(resp) # 响应的合法性检查
-            # 更新循环状态
-            has_more = resp.data.has_more
-            page_token = resp.data.page_token
-            page_cnt += 1
 
+            # 保存页面
             resp_json = lark.JSON.marshal(resp.data, indent=4)
             resp_page_path = os.path.join(raw_data_path, f"resp_page_{str(page_cnt)}_{page_token}.json")
             with open(resp_page_path, 'w', encoding='utf-8') as f:
                 f.write(resp_json)
+
+            # 更新循环状态
+            has_more = resp.data.has_more
+            page_token = resp.data.page_token
+            page_cnt += 1
 
     def print_basic_info(self):
         print("Year Semester:", self._year_semester)
         print("Tenant Access Token:", self._tenant_access_token)
         print("Weekly Report Token:", self.wr_app_token)
         print("Weekly Report Table ID:", self.wr_table_id)
+
+class SMCLabGourpMeetingCrawler(SMCLabClient):
+    def __init__(self, 
+                 page_size: int = 20):
+        super().__init__()
+        table_info, gm_app_token, gm_table_id = self._get_table_tokens()
+        self.table_info = table_info
+        self.gm_app_token = gm_app_token
+        self.gm_table_id = gm_table_id
+        self.page_size = page_size
+
+    def _get_table_tokens(self, tokens_json_file: str = os.path.join(CURRENT_PATH, "table_tokens.json")):
+        with open(tokens_json_file, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        table_info = data["group_meeting_table"]
+        gm_app_token = data["group_meeting_table"]["app_token"]
+        gm_table_id = data["group_meeting_table"]["table_id"]
+        return table_info, gm_app_token, gm_table_id
+
+    def get_raw_records(self,
+                        raw_data_path: str = os.path.join(CURRENT_PATH, "group_meeting_raw_data")):
+        # 参考: https://open.feishu.cn/api-explorer?apiName=search&from=op_doc&project=bitable&resource=app.table.record&version=v1
+
+        # TODO: 分页下载
+        # 按照分页, 一页页下载
+        has_more = True
+        page_token = None
+        page_cnt = 0
+        if not os.path.exists(raw_data_path):
+            os.mkdir(raw_data_path)
+        while(has_more):
+            print(f"第{page_cnt}次请求...")
+            if page_cnt:
+                request: SearchAppTableRecordRequest = SearchAppTableRecordRequest.builder() \
+                    .app_token(self.gm_app_token) \
+                    .table_id(self.gm_table_id) \
+                    .page_size(self.page_size) \
+                    .page_token(page_token) \
+                    .request_body( \
+                        SearchAppTableRecordRequestBody.builder()
+                        .build()) \
+                    .build()
+            else:
+                request: SearchAppTableRecordRequest = SearchAppTableRecordRequest.builder() \
+                    .app_token(self.gm_app_token) \
+                    .table_id(self.gm_table_id) \
+                    .page_size(self.page_size) \
+                    .request_body( \
+                        SearchAppTableRecordRequestBody.builder()
+                        .build()) \
+                    .build()
+            # 发起请求, 接受相应
+            resp: SearchAppTableRecordResponse = self.app_table_record.search(request)
+            self._assert_resp(resp) # 响应的合法性检查 TODO: 这里会出错, resp.code == 0
+
+            # 保存页面
+            resp_json = lark.JSON.marshal(resp.data, indent=4)
+            resp_page_path = os.path.join(raw_data_path, f"resp_page_{str(page_cnt)}_{page_token}.json")
+            with open(resp_page_path, 'w', encoding='utf-8') as f:
+                f.write(resp_json)
+
+            # 更新循环状态
+            has_more = resp.data.has_more
+            page_token = resp.data.page_token
+            page_cnt += 1
+
+    def print_basic_info(self):
+        print("Year Semester:", self._year_semester)
+        print("Tenant Access Token:", self._tenant_access_token)
+        print("Group Meeting Token:", self.gm_app_token)
+        print("Group Meeting Table ID:", self.gm_table_id)
+
 
 # if __name__ == "__main__":
     # smclab_client = SMCLabClient()
