@@ -8,12 +8,15 @@ import lark_oapi.api.drive.v1.resource as drive_rsc
 
 from ..utils import get_year_semester
 
-ABS_PATH = os.path.abspath(__file__)         # SMCLabDailyManager\source_code\SMCLabCrawler\MdtableCrawler.py
-CURRENT_PATH = os.path.dirname(ABS_PATH)     # SMCLabDailyManager\source_code\SMCLabCrawler
+ABS_PATH = os.path.abspath(__file__)        # SMCLabDailyManager\source_code\SMCLabCrawler\MdtableCrawler.py
+CURRENT_PATH = os.path.dirname(ABS_PATH)    # SMCLabDailyManager\source_code\SMCLabCrawler
+SRC_PATH = os.path.dirname(CURRENT_PATH)    # SMCLabDailyManager\source_code
+REPO_PATH = os.path.dirname(SRC_PATH)       # SMCLabDailyManager
+RAW_DATA_PATH = os.path.join(REPO_PATH, "data_raw")
+
 TABLE_TOKENS_JSON_FILE = os.path.join(CURRENT_PATH, "table_tokens.json") # SMCLabDailyManager\source_code\SMCLabCrawler\table_tokens.json
 TANENT_JSON_FILE = os.path.join(CURRENT_PATH, "last_tenant_access.json") # SMCLabDailyManager\source_code\SMCLabCrawler\table_tokens.json
-PARENT_PATH = os.path.dirname(CURRENT_PATH)  # SMCLabDailyManager\source_code
-APP_TOKENS_JSON_FILE = os.path.join(PARENT_PATH, "app_tokens.json")
+APP_TOKENS_JSON_FILE = os.path.join(SRC_PATH, "app_tokens.json")
 # 父类
 class SMCLabClient(object):
     def __init__(self) -> None:
@@ -131,7 +134,7 @@ class SMCLabMdtCrawler(SMCLabClient):
 
         # table_token_name 仅用于索引已知表格
         self.table_token_name = None
-        self.raw_data_path = os.path.join(CURRENT_PATH, "temp_raw_data")
+        self.raw_data_path = os.path.join(RAW_DATA_PATH, "temp_raw_data")
         if table_name:
             self._set_table_name()
             self._set_table_tokens()
@@ -141,13 +144,13 @@ class SMCLabMdtCrawler(SMCLabClient):
             raise NotImplementedError(f"不允许空的多维表格")
         elif self.table_name == "Weekly Report":
             self.table_token_name = "weekly_report_table"
-            self.raw_data_path = os.path.join(CURRENT_PATH, "weekly_report_raw_data")
+            self.raw_data_path = os.path.join(RAW_DATA_PATH, "weekly_report_raw_data")
         elif self.table_name == "Group Meeting":
             self.table_token_name = "group_meeting_table"
-            self.raw_data_path = os.path.join(CURRENT_PATH, "group_meeting_raw_data")
+            self.raw_data_path = os.path.join(RAW_DATA_PATH, "group_meeting_raw_data")
         elif self.table_name == "Schedule":
             self.table_token_name = "schedule_table"
-            self.raw_data_path = os.path.join(CURRENT_PATH, "schedule_raw_data")
+            self.raw_data_path = os.path.join(RAW_DATA_PATH, "schedule_raw_data")
         else:
             raise NotImplementedError(f"还没有适配该多维表格: {self.table_name}")
 
