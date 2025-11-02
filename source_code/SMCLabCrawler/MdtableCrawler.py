@@ -10,8 +10,10 @@ from ..utils import get_year_semester
 
 ABS_PATH = os.path.abspath(__file__)         # SMCLabDailyManager\source_code\SMCLabCrawler\MdtableCrawler.py
 CURRENT_PATH = os.path.dirname(ABS_PATH)     # SMCLabDailyManager\source_code\SMCLabCrawler
+TABLE_TOKENS_JSON_FILE = os.path.join(CURRENT_PATH, "table_tokens.json") # SMCLabDailyManager\source_code\SMCLabCrawler\table_tokens.json
+TANENT_JSON_FILE = os.path.join(CURRENT_PATH, "last_tenant_access.json") # SMCLabDailyManager\source_code\SMCLabCrawler\table_tokens.json
 PARENT_PATH = os.path.dirname(CURRENT_PATH)  # SMCLabDailyManager\source_code
-
+APP_TOKENS_JSON_FILE = os.path.dirname(PARENT_PATH, "app_tokens.json")
 # 父类
 class SMCLabClient(object):
     def __init__(self) -> None:
@@ -45,7 +47,7 @@ class SMCLabClient(object):
         assert self._client.drive.v1.media is not None
         return self._client.drive.v1.media
 
-    def _get_app_tokens(self, tokens_json_file: str = os.path.join(PARENT_PATH, "app_tokens.json")):
+    def _get_app_tokens(self):
         """
         从json中获取应用的app_id, app_secret
         input:
@@ -54,12 +56,12 @@ class SMCLabClient(object):
             app_info: 含有键app_id, app_secret的字典
             table_info: 含有键app_token, app_secret的字典
         """
-        with open(tokens_json_file, "r", encoding="utf-8") as f:
+        with open(APP_TOKENS_JSON_FILE, "r", encoding="utf-8") as f:
             data = json.load(f)
         app_info = data["SMCLab_Manager"]
         return app_info
 
-    def _get_tenant_access_token(self, app_id: str, app_secret: str, tokens_json_file: str = os.path.join(CURRENT_PATH, "last_tenant_access.json")):
+    def _get_tenant_access_token(self, app_id: str, app_secret: str):
         """
         修改自: https://open.feishu.cn/document/server-docs/authentication-management/access-token/tenant_access_token_internal
         通过自建应用的id和secret获取tenant_access_token, 用于查询表格记录
@@ -71,8 +73,8 @@ class SMCLabClient(object):
         """
         # 检查本地是否有上次的应用身份权限tenant_access_token记录，且是否还有效
 
-        if os.path.exists(tokens_json_file):
-            with open(tokens_json_file, "r", encoding="utf-8") as f:
+        if os.path.exists(TANENT_JSON_FILE):
+            with open(TANENT_JSON_FILE, "r", encoding="utf-8") as f:
                 last_tenant_access_info = json.load(f)
             last_token_time = last_tenant_access_info.get("time_stamp", 0)
             expire = last_tenant_access_info.get("expire", 0)
@@ -90,7 +92,7 @@ class SMCLabClient(object):
         expire = response["expire"]
         tenant_access_token = response["tenant_access_token"]
 
-        with open(tokens_json_file, 'w', encoding='utf-8') as f:
+        with open(TANENT_JSON_FILE, 'w', encoding='utf-8') as f:
             time_now = time.time()
             json.dump({"time_stamp": time_now, 
                        "time_stamp_readable": time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(time_now)),
@@ -117,48 +119,54 @@ class SMCLabClient(object):
     
 class SMCLabMdtCrawler(SMCLabClient):
     def __init__(self, *args,
+                 table_name: str = None,
                  app_token: str = None,
                  table_id: str = None,
-                 table_name: str = None,
                  page_size: int = 20):
         super().__init__(*args)
-        table_info, wr_app_token, wr_table_id = self._get_table_tokens()
-        self.table_info = table_info
+        self.table_name = table_name
         self.app_token = app_token
         self.table_id = table_id
-        self.table_name = table_name
         self.page_size = page_size
 
+        self.table_token_name = None
+        if not table_name:
+            self._set_table_name()
+            self._set_table_tokens()
+        self.raw_data_path = os.path.join(CURRENT_PATH, "temp_raw_data")
+    
     def _set_table_name(self):
-        if self.table_name:
-            print("here")
+        if self.table_name == None:
+            raise NotImplementedError(f"不允许空的多维表格")
+        elif self.table_name == "Weekly Report":
+            self.table_token_name = "weekly_report_table"
+        elif self.table_name == "Group Meeting":
+            self.table_token_name = "group_meeting_table"
+        else:
+            raise NotImplementedError(f"还没有适配该多维表格: {self.table_name}")
 
-
-# 转用于爬取组会名单统计, 用于汇总人员信息, 记录组会信息
-class SMCLabWeeklyReportCrawler(SMCLabClient):
-    def __init__(self, 
-                 page_size: int = 20):
-        super().__init__()
-        table_info, wr_app_token, wr_table_id = self._get_table_tokens()
-        self.table_info = table_info
-        self.wr_app_token = wr_app_token
-        self.wr_table_id = wr_table_id
-        self.page_size = page_size
-
-    def _get_table_tokens(self, tokens_json_file: str = os.path.join(CURRENT_PATH, "table_tokens.json")):
-        with open(tokens_json_file, "r", encoding="utf-8") as f:
+    def _set_table_tokens(self):
+        with open(TABLE_TOKENS_JSON_FILE, "r", encoding="utf-8") as f:
             data = json.load(f)
-        table_info = data["weekly_report_table"]
-        wr_app_token = data["weekly_report_table"]["app_token"]
-        wr_table_id = data["weekly_report_table"]["table_id"][self._year_semester]
-        return table_info, wr_app_token, wr_table_id
+        table_info = data[self.table_token_name]
+        self.app_token = table_info["app_token"]
+        if self.table_name == "Weekly Report":
+            self.table_id = table_info["table_id"][self._year_semester]
+        else:
+            self.table_id = table_info["table_id"]
+        
+    def print_basic_info(self):
+        print("Year Semester:", self._year_semester)
+        print("Tenant Access Token:", self._tenant_access_token)
+        print("Mdt Name:", self.table_name)
+        print("Mdt Token:", self.app_token)
+        print("Mdt Table ID:", self.table_id)
 
-    def get_raw_records(self,
-                        raw_data_path: str = os.path.join(CURRENT_PATH, "weekly_report_raw_data")):
+    def get_raw_records(self):
         # 参考: https://open.feishu.cn/api-explorer?apiName=search&from=op_doc&project=bitable&resource=app.table.record&version=v1
 
-        # TODO: 分页下载
         # 按照分页, 一页页下载
+        raw_data_path = self.raw_data_path
         has_more = True
         page_token = None
         page_cnt = 0
@@ -168,8 +176,8 @@ class SMCLabWeeklyReportCrawler(SMCLabClient):
             print(f"请求下载第{page_cnt}页...")
             if page_cnt:
                 request: SearchAppTableRecordRequest = SearchAppTableRecordRequest.builder() \
-                    .app_token(self.wr_app_token) \
-                    .table_id(self.wr_table_id) \
+                    .app_token(self.app_token) \
+                    .table_id(self.table_id) \
                     .page_size(self.page_size) \
                     .page_token(page_token) \
                     .request_body( \
@@ -178,8 +186,8 @@ class SMCLabWeeklyReportCrawler(SMCLabClient):
                     .build()
             else:
                 request: SearchAppTableRecordRequest = SearchAppTableRecordRequest.builder() \
-                    .app_token(self.wr_app_token) \
-                    .table_id(self.wr_table_id) \
+                    .app_token(self.app_token) \
+                    .table_id(self.table_id) \
                     .page_size(self.page_size) \
                     .request_body( \
                         SearchAppTableRecordRequestBody.builder()
@@ -200,87 +208,21 @@ class SMCLabWeeklyReportCrawler(SMCLabClient):
             page_token = resp.data.page_token
             page_cnt += 1
         print("下载完成")
-        
 
-    def print_basic_info(self):
-        print("Year Semester:", self._year_semester)
-        print("Tenant Access Token:", self._tenant_access_token)
-        print("Weekly Report Token:", self.wr_app_token)
-        print("Weekly Report Table ID:", self.wr_table_id)
+# 转用于爬取组会名单统计, 用于汇总人员信息, 记录组会信息
+class SMCLabWeeklyReportCrawler(SMCLabMdtCrawler):
+    def __init__(self, *args):
+        super().__init__(*args)
+        self.table_name = "Weekly Report"
+        self._set_table_name()
+        self._set_table_tokens()
+        self.raw_data_path = os.path.join(CURRENT_PATH, "weekly_report_raw_data")  
 
-class SMCLabGourpMeetingCrawler(SMCLabClient):
-    def __init__(self, 
-                 page_size: int = 20):
-        super().__init__()
-        table_info, gm_app_token, gm_table_id = self._get_table_tokens()
-        self.table_info = table_info
-        self.gm_app_token = gm_app_token
-        self.gm_table_id = gm_table_id
-        self.page_size = page_size
+class SMCLabGourpMeetingCrawler(SMCLabMdtCrawler):
+    def __init__(self, *args):
+        super().__init__(*args)
+        self.table_name = "Group Meeting"
+        self._set_table_name()
+        self._set_table_tokens()
+        self.raw_data_path = os.path.join(CURRENT_PATH, "group_meeting_raw_data")  
 
-    def _get_table_tokens(self, tokens_json_file: str = os.path.join(CURRENT_PATH, "table_tokens.json")):
-        with open(tokens_json_file, "r", encoding="utf-8") as f:
-            data = json.load(f)
-        table_info = data["group_meeting_table"]
-        gm_app_token = data["group_meeting_table"]["app_token"]
-        gm_table_id = data["group_meeting_table"]["table_id"]
-        return table_info, gm_app_token, gm_table_id
-
-    def get_raw_records(self,
-                        raw_data_path: str = os.path.join(CURRENT_PATH, "group_meeting_raw_data")):
-        # 参考: https://open.feishu.cn/api-explorer?apiName=search&from=op_doc&project=bitable&resource=app.table.record&version=v1
-
-        # TODO: 分页下载
-        # 按照分页, 一页页下载
-        has_more = True
-        page_token = None
-        page_cnt = 0
-        if not os.path.exists(raw_data_path):
-            os.mkdir(raw_data_path)
-        while(has_more):
-            print(f"请求下载第{page_cnt}页...")
-            if page_cnt:
-                request: SearchAppTableRecordRequest = SearchAppTableRecordRequest.builder() \
-                    .app_token(self.gm_app_token) \
-                    .table_id(self.gm_table_id) \
-                    .page_size(self.page_size) \
-                    .page_token(page_token) \
-                    .request_body( \
-                        SearchAppTableRecordRequestBody.builder()
-                        .build()) \
-                    .build()
-            else:
-                request: SearchAppTableRecordRequest = SearchAppTableRecordRequest.builder() \
-                    .app_token(self.gm_app_token) \
-                    .table_id(self.gm_table_id) \
-                    .page_size(self.page_size) \
-                    .request_body( \
-                        SearchAppTableRecordRequestBody.builder()
-                        .build()) \
-                    .build()
-            # 发起请求, 接受相应
-            resp: SearchAppTableRecordResponse = self.app_table_record.search(request)
-            self._assert_resp(resp) # 响应的合法性检查 TODO: 这里会出错, resp.code == 0
-
-            # 保存页面
-            resp_json = lark.JSON.marshal(resp.data, indent=4)
-            resp_page_path = os.path.join(raw_data_path, f"resp_page_{str(page_cnt)}.json")
-            with open(resp_page_path, 'w', encoding='utf-8') as f:
-                f.write(resp_json)
-
-            # 更新循环状态
-            has_more = resp.data.has_more
-            page_token = resp.data.page_token
-            page_cnt += 1
-        print("下载完成")
-
-    def print_basic_info(self):
-        print("Year Semester:", self._year_semester)
-        print("Tenant Access Token:", self._tenant_access_token)
-        print("Group Meeting Token:", self.gm_app_token)
-        print("Group Meeting Table ID:", self.gm_table_id)
-
-
-# if __name__ == "__main__":
-    # smclab_client = SMCLabClient()
-    # smclab_client.print_info()
