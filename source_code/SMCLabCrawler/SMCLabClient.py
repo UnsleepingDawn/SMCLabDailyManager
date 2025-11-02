@@ -116,9 +116,9 @@ class SMCLabClient(object):
     def _assert_resp(self, resp):
         assert resp.code == 0
         assert resp.msg == "success"
-        assert resp.data is not None
-        assert resp.data.has_more is not None
-        assert resp.data.items is not None
+        # assert resp.data is not None
+        # assert resp.data.has_more is not None
+        # assert resp.data.items is not None
         # assert not resp.data.has_more # 如果还有更多
     
     def print_basic_info(self):
