@@ -3,7 +3,7 @@ import json
 import lark_oapi as lark
 from lark_oapi.api.bitable.v1 import *
 
-from SMCLabClient import SMCLabClient
+from .SMCLabClient import SMCLabClient
 
 ABS_PATH = os.path.abspath(__file__)        # SMCLabDailyManager\source_code\SMCLabCrawler\MdtableCrawler.py
 CURRENT_PATH = os.path.dirname(ABS_PATH)    # SMCLabDailyManager\source_code\SMCLabCrawler
@@ -72,32 +72,22 @@ class SMCLabMdtCrawler(SMCLabClient):
         # 按照分页, 一页页下载
         raw_data_path = self.raw_data_path
         has_more = True
-        page_token = None
+        page_token = ""
         page_cnt = 0
         if not os.path.exists(raw_data_path):
-            os.mkdir(raw_data_path)
+            os.makedirs(raw_data_path, exist_ok=True)
         while(has_more):
             print(f"请求下载第{page_cnt}页...")
-            if page_cnt:
-                request: SearchAppTableRecordRequest = SearchAppTableRecordRequest.builder() \
-                    .app_token(self.app_token) \
-                    .table_id(self.table_id) \
-                    .page_size(self.page_size) \
-                    .page_token(page_token) \
-                    .request_body( \
-                        SearchAppTableRecordRequestBody.builder()
-                        .build()) \
-                    .build()
-            else:
-                request: SearchAppTableRecordRequest = SearchAppTableRecordRequest.builder() \
-                    .app_token(self.app_token) \
-                    .table_id(self.table_id) \
-                    .page_size(self.page_size) \
-                    .request_body( \
-                        SearchAppTableRecordRequestBody.builder()
-                        .build()) \
-                    .build()
-            # 发起请求, 接受相应
+            request: SearchAppTableRecordRequest = SearchAppTableRecordRequest.builder() \
+                .app_token(self.app_token) \
+                .table_id(self.table_id) \
+                .page_size(self.page_size) \
+                .page_token(page_token) \
+                .request_body( \
+                    SearchAppTableRecordRequestBody.builder()
+                    .build()) \
+                .build()
+            # 发起请求, 接受响应
             resp: SearchAppTableRecordResponse = self.app_table_record.search(request)
             self._assert_resp(resp) # 响应的合法性检查
 
