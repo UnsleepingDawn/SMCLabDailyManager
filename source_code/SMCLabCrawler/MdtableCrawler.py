@@ -115,6 +115,25 @@ class SMCLabClient(object):
         print("Year Semester:", self._year_semester)
         print("Tenant Access Token:", self._tenant_access_token)
     
+class SMCLabMdtCrawler(SMCLabClient):
+    def __init__(self, *args,
+                 app_token: str = None,
+                 table_id: str = None,
+                 table_name: str = None,
+                 page_size: int = 20):
+        super().__init__(*args)
+        table_info, wr_app_token, wr_table_id = self._get_table_tokens()
+        self.table_info = table_info
+        self.app_token = app_token
+        self.table_id = table_id
+        self.table_name = table_name
+        self.page_size = page_size
+
+    def _set_table_name(self):
+        if self.table_name:
+            print("here")
+
+
 # 转用于爬取组会名单统计, 用于汇总人员信息, 记录组会信息
 class SMCLabWeeklyReportCrawler(SMCLabClient):
     def __init__(self, 
@@ -146,7 +165,7 @@ class SMCLabWeeklyReportCrawler(SMCLabClient):
         if not os.path.exists(raw_data_path):
             os.mkdir(raw_data_path)
         while(has_more):
-            print(f"第{page_cnt}次请求...")
+            print(f"请求下载第{page_cnt}页...")
             if page_cnt:
                 request: SearchAppTableRecordRequest = SearchAppTableRecordRequest.builder() \
                     .app_token(self.wr_app_token) \
@@ -172,7 +191,7 @@ class SMCLabWeeklyReportCrawler(SMCLabClient):
 
             # 保存页面
             resp_json = lark.JSON.marshal(resp.data, indent=4)
-            resp_page_path = os.path.join(raw_data_path, f"resp_page_{str(page_cnt)}_{page_token}.json")
+            resp_page_path = os.path.join(raw_data_path, f"resp_page_{str(page_cnt)}.json")
             with open(resp_page_path, 'w', encoding='utf-8') as f:
                 f.write(resp_json)
 
@@ -180,6 +199,8 @@ class SMCLabWeeklyReportCrawler(SMCLabClient):
             has_more = resp.data.has_more
             page_token = resp.data.page_token
             page_cnt += 1
+        print("下载完成")
+        
 
     def print_basic_info(self):
         print("Year Semester:", self._year_semester)
@@ -217,7 +238,7 @@ class SMCLabGourpMeetingCrawler(SMCLabClient):
         if not os.path.exists(raw_data_path):
             os.mkdir(raw_data_path)
         while(has_more):
-            print(f"第{page_cnt}次请求...")
+            print(f"请求下载第{page_cnt}页...")
             if page_cnt:
                 request: SearchAppTableRecordRequest = SearchAppTableRecordRequest.builder() \
                     .app_token(self.gm_app_token) \
@@ -243,7 +264,7 @@ class SMCLabGourpMeetingCrawler(SMCLabClient):
 
             # 保存页面
             resp_json = lark.JSON.marshal(resp.data, indent=4)
-            resp_page_path = os.path.join(raw_data_path, f"resp_page_{str(page_cnt)}_{page_token}.json")
+            resp_page_path = os.path.join(raw_data_path, f"resp_page_{str(page_cnt)}.json")
             with open(resp_page_path, 'w', encoding='utf-8') as f:
                 f.write(resp_json)
 
@@ -251,6 +272,7 @@ class SMCLabGourpMeetingCrawler(SMCLabClient):
             has_more = resp.data.has_more
             page_token = resp.data.page_token
             page_cnt += 1
+        print("下载完成")
 
     def print_basic_info(self):
         print("Year Semester:", self._year_semester)
