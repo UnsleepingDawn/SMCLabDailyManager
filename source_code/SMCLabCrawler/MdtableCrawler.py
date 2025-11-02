@@ -13,7 +13,7 @@ CURRENT_PATH = os.path.dirname(ABS_PATH)     # SMCLabDailyManager\source_code\SM
 TABLE_TOKENS_JSON_FILE = os.path.join(CURRENT_PATH, "table_tokens.json") # SMCLabDailyManager\source_code\SMCLabCrawler\table_tokens.json
 TANENT_JSON_FILE = os.path.join(CURRENT_PATH, "last_tenant_access.json") # SMCLabDailyManager\source_code\SMCLabCrawler\table_tokens.json
 PARENT_PATH = os.path.dirname(CURRENT_PATH)  # SMCLabDailyManager\source_code
-APP_TOKENS_JSON_FILE = os.path.dirname(PARENT_PATH, "app_tokens.json")
+APP_TOKENS_JSON_FILE = os.path.join(PARENT_PATH, "app_tokens.json")
 # 父类
 class SMCLabClient(object):
     def __init__(self) -> None:
@@ -129,19 +129,25 @@ class SMCLabMdtCrawler(SMCLabClient):
         self.table_id = table_id
         self.page_size = page_size
 
+        # table_token_name 仅用于索引已知表格
         self.table_token_name = None
-        if not table_name:
+        self.raw_data_path = os.path.join(CURRENT_PATH, "temp_raw_data")
+        if table_name:
             self._set_table_name()
             self._set_table_tokens()
-        self.raw_data_path = os.path.join(CURRENT_PATH, "temp_raw_data")
     
     def _set_table_name(self):
         if self.table_name == None:
             raise NotImplementedError(f"不允许空的多维表格")
         elif self.table_name == "Weekly Report":
             self.table_token_name = "weekly_report_table"
+            self.raw_data_path = os.path.join(CURRENT_PATH, "weekly_report_raw_data")
         elif self.table_name == "Group Meeting":
             self.table_token_name = "group_meeting_table"
+            self.raw_data_path = os.path.join(CURRENT_PATH, "group_meeting_raw_data")
+        elif self.table_name == "Schedule":
+            self.table_token_name = "schedule_table"
+            self.raw_data_path = os.path.join(CURRENT_PATH, "schedule_raw_data")
         else:
             raise NotImplementedError(f"还没有适配该多维表格: {self.table_name}")
 
@@ -150,7 +156,7 @@ class SMCLabMdtCrawler(SMCLabClient):
             data = json.load(f)
         table_info = data[self.table_token_name]
         self.app_token = table_info["app_token"]
-        if self.table_name == "Weekly Report":
+        if self.table_name == "Weekly Report" or self.table_name == "Schedule":
             self.table_id = table_info["table_id"][self._year_semester]
         else:
             self.table_id = table_info["table_id"]
@@ -212,17 +218,12 @@ class SMCLabMdtCrawler(SMCLabClient):
 # 转用于爬取组会名单统计, 用于汇总人员信息, 记录组会信息
 class SMCLabWeeklyReportCrawler(SMCLabMdtCrawler):
     def __init__(self, *args):
-        super().__init__(*args)
-        self.table_name = "Weekly Report"
-        self._set_table_name()
-        self._set_table_tokens()
-        self.raw_data_path = os.path.join(CURRENT_PATH, "weekly_report_raw_data")  
+        super().__init__(*args, table_name = "Weekly Report")
 
 class SMCLabGourpMeetingCrawler(SMCLabMdtCrawler):
     def __init__(self, *args):
-        super().__init__(*args)
-        self.table_name = "Group Meeting"
-        self._set_table_name()
-        self._set_table_tokens()
-        self.raw_data_path = os.path.join(CURRENT_PATH, "group_meeting_raw_data")  
+        super().__init__(*args, table_name = "Group Meeting")
 
+class SMCLabScheduleCrawler(SMCLabMdtCrawler):
+    def __init__(self, *args):
+        super().__init__(*args, table_name = "Schedule")
