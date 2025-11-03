@@ -23,6 +23,7 @@
 ## 开发准备
 ```bash
 pip install lark-oapi -U
+pip install pandas
 ```
 
 ## 功能介绍
