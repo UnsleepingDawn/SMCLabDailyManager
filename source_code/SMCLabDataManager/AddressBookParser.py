@@ -91,8 +91,6 @@ class SMCLabAddressBookParser:
 
         # 更新已有行
         for idx, row in merged.iterrows():
-            if row["姓名_JSON"] == "张晓溪":
-                print("here")
             if not pd.notna(row["姓名_JSON"]) and pd.notna(row["姓名_Excel"]):
                 merged.at[idx, "姓名_JSON"] = row["姓名_Excel"]
             if not pd.notna(row["姓名_Excel"]) and pd.notna(row["姓名_JSON"]):
