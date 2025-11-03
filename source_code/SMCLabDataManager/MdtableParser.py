@@ -8,7 +8,7 @@ CURRENT_PATH = os.path.dirname(ABS_PATH)    # SMCLabDailyManager\source_code\SMC
 SRC_PATH = os.path.dirname(CURRENT_PATH)    # SMCLabDailyManager\source_code
 REPO_PATH = os.path.dirname(SRC_PATH)       # SMCLabDailyManager
 RAW_DATA_PATH = os.path.join(REPO_PATH, "data_raw") # SMCLabDailyManager\data_raw
-INCRE_DATA_PATH = os.path.join(REPO_PATH, "data_incremental") # SMCLabDailyManager\data_raw
+INCRE_DATA_PATH = os.path.join(REPO_PATH, "data_incremental") # SMCLabDailyManager\data_incremental
 
 class SMCLabMdtParser:
     def __init__(self, mdt_dir: str = None):
