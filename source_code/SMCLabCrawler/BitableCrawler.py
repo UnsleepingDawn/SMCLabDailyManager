@@ -5,7 +5,7 @@ from lark_oapi.api.bitable.v1 import *
 
 from .SMCLabClient import SMCLabClient
 
-ABS_PATH = os.path.abspath(__file__)        # SMCLabDailyManager\source_code\SMCLabCrawler\MdtableCrawler.py
+ABS_PATH = os.path.abspath(__file__)        # SMCLabDailyManager\source_code\SMCLabCrawler\BitableCrawler.py
 CURRENT_PATH = os.path.dirname(ABS_PATH)    # SMCLabDailyManager\source_code\SMCLabCrawler
 SRC_PATH = os.path.dirname(CURRENT_PATH)    # SMCLabDailyManager\source_code
 REPO_PATH = os.path.dirname(SRC_PATH)       # SMCLabDailyManager
@@ -15,7 +15,7 @@ RAW_DATA_PATH = os.path.join(REPO_PATH, "data_raw")
 TABLE_TOKENS_JSON_FILE = os.path.join(CURRENT_PATH, "table_tokens.json") 
 
 
-class SMCLabMdtCrawler(SMCLabClient):
+class SMCLabBitableCrawler(SMCLabClient):
     def __init__(self, *args,
                  table_name: str = None,
                  app_token: str = None,
@@ -62,9 +62,9 @@ class SMCLabMdtCrawler(SMCLabClient):
     def print_basic_info(self):
         print("Year Semester:", self._year_semester)
         print("Tenant Access Token:", self._tenant_access_token)
-        print("Mdt Name:", self.table_name)
-        print("Mdt Token:", self.app_token)
-        print("Mdt Table ID:", self.table_id)
+        print("Bitable Name:", self.table_name)
+        print("Bitable Token:", self.app_token)
+        print("Bitable Table ID:", self.table_id)
 
     def get_raw_records(self):
         # 参考: https://open.feishu.cn/api-explorer?apiName=search&from=op_doc&project=bitable&resource=app.table.record&version=v1
@@ -104,14 +104,14 @@ class SMCLabMdtCrawler(SMCLabClient):
         print("下载完成")
 
 # 转用于爬取组会名单统计, 用于汇总人员信息, 记录组会信息
-class SMCLabWeeklyReportCrawler(SMCLabMdtCrawler):
+class SMCLabWeeklyReportCrawler(SMCLabBitableCrawler):
     def __init__(self, *args):
         super().__init__(*args, table_name = "Weekly Report")
 
-class SMCLabGourpMeetingCrawler(SMCLabMdtCrawler):
+class SMCLabGourpMeetingCrawler(SMCLabBitableCrawler):
     def __init__(self, *args):
         super().__init__(*args, table_name = "Group Meeting")
 
-class SMCLabScheduleCrawler(SMCLabMdtCrawler):
+class SMCLabScheduleCrawler(SMCLabBitableCrawler):
     def __init__(self, *args):
         super().__init__(*args, table_name = "Schedule")

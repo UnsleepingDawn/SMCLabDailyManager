@@ -3,17 +3,17 @@ import os
 from glob import glob
 from openpyxl import Workbook
 
-ABS_PATH = os.path.abspath(__file__)        # SMCLabDailyManager\source_code\SMCLabDataManager\MdtableParser.py
+ABS_PATH = os.path.abspath(__file__)        # SMCLabDailyManager\source_code\SMCLabDataManager\BitableParser.py
 CURRENT_PATH = os.path.dirname(ABS_PATH)    # SMCLabDailyManager\source_code\SMCLabDataManager
 SRC_PATH = os.path.dirname(CURRENT_PATH)    # SMCLabDailyManager\source_code
 REPO_PATH = os.path.dirname(SRC_PATH)       # SMCLabDailyManager
 RAW_DATA_PATH = os.path.join(REPO_PATH, "data_raw") # SMCLabDailyManager\data_raw
 INCRE_DATA_PATH = os.path.join(REPO_PATH, "data_incremental") # SMCLabDailyManager\data_incremental
 
-class SMCLabMdtParser:
-    def __init__(self, mdt_dir: str = None):
-        self.mdt_dir = mdt_dir
-        self.raw_data_file = os.path.join(RAW_DATA_PATH, mdt_dir)
+class SMCLabBitableParser:
+    def __init__(self, bitable_dir: str = None):
+        self.bitable_dir = bitable_dir
+        self.raw_data_file = os.path.join(RAW_DATA_PATH, bitable_dir)
         self.file_list = sorted(glob(os.path.join(self.raw_data_file, "resp_page_*.json")))
         self.output_path = None
 
@@ -32,9 +32,9 @@ class SMCLabMdtParser:
         except (KeyError, IndexError, TypeError):
             return ""
 
-class SMCLabMemberInfoParser(SMCLabMdtParser):
+class SMCLabMemberInfoParser(SMCLabBitableParser):
     def __init__(self):
-        super().__init__(mdt_dir="group_meeting_raw_data")
+        super().__init__(bitable_dir="group_meeting_raw_data")
         if not self.file_list:
             raise FileNotFoundError(f"未在 {self.raw_data_file} 中找到任何 resp_page_*.json 文件")
         self.output_path = os.path.join(INCRE_DATA_PATH, "SMCLab学生基本信息.xlsx")
