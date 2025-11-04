@@ -13,6 +13,7 @@ old_repo/**
 
 # 不忽略
 !table_tokens.json
+!user_stats_fields.json
 
 # 特定文件
 Readmeysy.md
