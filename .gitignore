@@ -15,6 +15,7 @@ old_repo/**
 !table_tokens.json
 !user_stats_fields.json
 !sysu_schedule.json
+!sysu_semesters.json
 
 # 特定文件
 Readmeysy.md
