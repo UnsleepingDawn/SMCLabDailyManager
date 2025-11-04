@@ -19,6 +19,21 @@ class SMCLabInfoManager:
     def map_fields(self, field1: str, field2: str):
         """
         建立两个字段之间的映射关系。
+        字段包括: 
+        - 姓名	
+        - 年级	
+        - 导师	
+        - 培养类型(该项还没做好一致性检查)
+        - 在读情况	
+        - 飞书账号: ou_1df99022ddb02b52947cd7a76f42df3b
+        - 学号	
+        - union_id	
+        - user_id
+        - 邮箱	
+        - 电话
+        - 导师user_id	
+        - 部门
+
         返回：
             mapping_dict: {field1_value: field2_value}
             missing_names: list[姓名]
@@ -52,6 +67,8 @@ class SMCLabInfoManager:
                 mapping_dict[val1] = val2
 
         return mapping_dict, missing_names, one2one_flag
+    
+
 
 if __name__ == "__main__":
     manager = SMCLabInfoManager()

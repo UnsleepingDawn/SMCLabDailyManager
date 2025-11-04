@@ -14,7 +14,10 @@ INCRE_DATA_PATH = os.path.join(REPO_PATH, "data_incremental") # SMCLabDailyManag
 class SMCLabAddressBookParser:
     def __init__(self):
         self.excel_path = os.path.join(INCRE_DATA_PATH, "SMCLab学生基本信息.xlsx")
-        self.address_book_path = os.path.join(RAW_DATA_PATH, "address_book_raw_data", "address_book.json")
+        self.raw_data_path = os.path.join(RAW_DATA_PATH, "address_book_raw_data")
+        if not os.path.exists(self.raw_data_path):
+            os.makedirs(self.raw_data_path, exist_ok=True)
+        self.address_book_path = os.path.join(self.raw_data_path, "address_book.json")
         self.output_path = os.path.join(INCRE_DATA_PATH, "SMCLab学生扩展信息.xlsx")
         self.df = self._read_excel()
         self.json_data = self._read_json()

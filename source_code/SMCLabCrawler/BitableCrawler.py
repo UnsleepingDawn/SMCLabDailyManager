@@ -89,7 +89,7 @@ class SMCLabBitableCrawler(SMCLabClient):
                 .build()
             # 发起请求, 接受响应
             resp: SearchAppTableRecordResponse = self.app_table_record.search(request)
-            self._assert_resp(resp) # 响应的合法性检查
+            self._check_resp_1(resp) # 响应的合法性检查
 
             # 保存页面
             resp_json = lark.JSON.marshal(resp.data, indent=4)
