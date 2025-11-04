@@ -4,6 +4,7 @@ from collections import defaultdict
 from pathlib import Path
 
 from ..utils import get_year_semester
+from ..SMCLabCrawler.BitableCrawler import SMCLabScheduleCrawler
 
 ABS_PATH = os.path.abspath(__file__)        # SMCLabDailyManager\source_code\SMCLabDataManager\ScheduleParser.py
 CURRENT_PATH = os.path.dirname(ABS_PATH)    # SMCLabDailyManager\source_code\SMCLabDataManager
@@ -16,6 +17,9 @@ class SMCLabScheduleParser:
     def __init__(self):
         raw_data_path = os.path.join(RAW_DATA_PATH, "schedule_raw_data")
         raw_json_path = os.path.join(raw_data_path, "resp_page_0.json")
+        if not os.path.exists(raw_json_path):
+            client = SMCLabScheduleCrawler()
+            client.get_raw_records() 
         with open(raw_json_path, 'r', encoding='utf-8') as f:
             self.data = json.load(f)["items"]
         self.time_table = self._build_time_table()

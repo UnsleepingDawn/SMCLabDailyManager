@@ -1,4 +1,4 @@
-import os
+import os, glob
 import json
 import lark_oapi as lark
 # from lark_oapi.api.bitable.v1 import *
@@ -165,6 +165,10 @@ class SMCLabAttendanceCrawler(SMCLabClient):
         # 检查路径存在性
         if not os.path.exists(raw_data_path):
             os.makedirs(raw_data_path, exist_ok=True)
+        else:
+            search_pattern = os.path.join(raw_data_path, "**", "last_week*.json")
+            for file_path in glob.glob(search_pattern, recursive=True):
+                os.remove(file_path)
         # 构造请求对象
         request: QueryUserStatsDataRequest = QueryUserStatsDataRequest.builder() \
             .employee_type("employee_id") \

@@ -1,4 +1,4 @@
-import os
+import os, glob
 import json
 import lark_oapi as lark
 from lark_oapi.api.bitable.v1 import *
@@ -75,7 +75,11 @@ class SMCLabBitableCrawler(SMCLabClient):
         page_token = ""
         page_cnt = 0
         if not os.path.exists(raw_data_path):
-            os.makedirs(raw_data_path, exist_ok=True)
+            os.makedirs(raw_data_path, exist_ok=True)        
+        else:
+            search_pattern = os.path.join(raw_data_path, "**", "resp_page_*.json")
+            for file_path in glob.glob(search_pattern, recursive=True):
+                os.remove(file_path)
         while(has_more):
             print(f"请求下载第{page_cnt}页...")
             request: SearchAppTableRecordRequest = SearchAppTableRecordRequest.builder() \
