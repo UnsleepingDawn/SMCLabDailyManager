@@ -5,7 +5,7 @@ import lark_oapi as lark
 from lark_oapi.api.attendance.v1 import *
 
 from .SMCLabClient import SMCLabClient
-from ..utils import TimeParser
+from ..utils import TimeParser, get_semester_and_week
 from ..SMCLabDataManager.ExcelManager import SMCLabInfoManager
 
 ABS_PATH = os.path.abspath(__file__)        # SMCLabDailyManager\source_code\SMCLabCrawler\AttendanceCrawler.py
@@ -185,7 +185,8 @@ class SMCLabAttendanceCrawler(SMCLabClient):
 
         # 保存页面
         resp_json = lark.JSON.marshal(resp.data, indent=4)
-        resp_page_path = os.path.join(raw_data_path, f"last_week_attendance_raw.json")
+        sem, week = get_semester_and_week()
+        resp_page_path = os.path.join(raw_data_path, f"last_week({sem},{week-1})_attendance_raw.json")
         with open(resp_page_path, 'w', encoding='utf-8') as f:
             f.write(resp_json)
 
