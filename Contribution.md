@@ -30,3 +30,18 @@ build|构建系统或外部依赖的更改|build: 更新webpack配置/ build: �
 ci|持续集成相关的更改|ci: 在GitHub Actions中配置自动化测试
 chore|杂项事务（非src或test文件的修改）|chore: 更新package.json中的脚本命令
 revert|回滚之前的提交|revert: 回滚某次错误的提交
+
+## 代码文件的格式化要求
+1. 确保虚拟环境正确
+2. 在项目根目录执行以下命令
+```bash
+pip install pre-commit
+pre-commit install # 但是目前我们还未适配，所以先不用装
+```
+如果pip安装后依然无法运行 Pre-commit，请确认 PIP 安装地址已被添加到 PATH
+但是目前我们暂时还没有决定使用什么格式化工具，根据参考，理应是这些：
+文件类型|格式化工具
+---|---
+Json/Yaml|[Prettier](https://prettier.io/)
+MarkDown|[markdownlint](https://github.com/DavidAnson/markdownlint-cli2)
+接下来，每次提交时都将会自动运行格式化工具，来确保你的代码格式符合规范
