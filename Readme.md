@@ -37,16 +37,21 @@ pip install pandas
 1. 下载新生课表: `data_raw\schedule_raw_data`
 #### SMC通讯录
 1. 下载SMC通讯录: `data_raw\address_book_raw_data`的"address_book.json"
+#### 考勤
+1. 下载考勤原始数据(目前只实现了下载上周的元数据)
 
 ### 处理数据
 1. 从`data_raw/group_meeting_raw_data`中提取人员信息, 整理成"SMCLab学生基本信息.xlsx"
 2. 基于"SMCLab学生基本信息.xlsx"和"address_book.json", 增量更新, 并冲突合并为"SMCLab学生扩展信息.xlsx"
+3. 处理新生课表原始数据
+4. 处理考勤原始数据(统计上周每个人的上班无故缺勤次数)
 
-## 即将更新(悬赏)
-- 下载考勤原始数据(按周/月/学期/每周组会进行下载)
-- 处理新生课表原始数据(可视化, 形成一份全员时间表, 存为"SMCLab新生课表.xlsx". 每人按工作日存储上课时段, 存为"SMCLab新生课表.json")
-- 处理考勤原始数据(统计上周每个人的上班无故缺勤次数(即除开组会的缺勤), 支持向"SMCLab新生课表.json"查询"无故缺勤", 并Python作图可视化保存)
+## 未来更新(悬赏)
+- 消息发送系统(发送各种统计数据给指定用户)
+- 下载考勤原始数据(按特定周/月进行下载)
+- 处理新生课表原始数据(可视化)
+- 处理考勤原始数据(并Python作图可视化保存)
 - 处理周报的原始数据(根据"SMCLab学生扩展信息.xlsx", 按周/月/学期, 以及是否按导师划分sheet)
 - 将密钥和token进行索引导出、压缩, 以及解压、索引导入
-- 消息发送系统(发送各种统计数据给指定用户)
 - 在SMC服务器部署, 定时触发下载、自动统计和自动发送
+- 客户端部署, 简单的GUI开发([参考](https://deepwiki.com/MaaAssistantArknights/MaaAssistantArknights/5.1-wpf-gui-application))
