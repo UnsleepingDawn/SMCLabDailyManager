@@ -3,8 +3,8 @@ import pandas as pd
 from typing import List, Dict
 
 from ..utils import TimeParser, get_year_semester, get_semester_and_week
-from ..SMCLabCrawler.BitableCrawler import SMCLabScheduleCrawler
-from ..SMCLabDataManager.ScheduleParser import SMCLabScheduleParser
+from ..crawler.bitable import SMCLabScheduleCrawler
+from .schedule_parser import SMCLabScheduleParser
 
 ABS_PATH = os.path.abspath(__file__)        # SMCLabDailyManager\source_code\SMCLabDataManager\AttendanceParser.py
 CURRENT_PATH = os.path.dirname(ABS_PATH)    # SMCLabDailyManager\source_code\SMCLabDataManager

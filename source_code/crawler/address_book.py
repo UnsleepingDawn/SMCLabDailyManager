@@ -5,7 +5,7 @@ import lark_oapi as lark
 from lark_oapi.api.contact.v3 import *
 from lark_oapi.api.contact.v3.model.user import User
 
-from .SMCLabClient import SMCLabClient
+from .baseclient import SMCLabClient
 
 ABS_PATH = os.path.abspath(__file__)        # SMCLabDailyManager\source_code\SMCLabCrawler\AddressBookCrawler.py
 CURRENT_PATH = os.path.dirname(ABS_PATH)    # SMCLabDailyManager\source_code\SMCLabCrawler

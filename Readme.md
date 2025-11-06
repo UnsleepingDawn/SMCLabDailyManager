@@ -53,5 +53,6 @@ pip install pandas
 - 处理考勤原始数据(并Python作图可视化保存)
 - 处理周报的原始数据(根据"SMCLab学生扩展信息.xlsx", 按周/月/学期, 以及是否按导师划分sheet)
 - 将密钥和token进行索引导出、压缩, 以及解压、索引导入
+- 钩子检查
 - 在SMC服务器部署, 定时触发下载、自动统计和自动发送
 - 客户端部署, 简单的GUI开发([参考](https://deepwiki.com/MaaAssistantArknights/MaaAssistantArknights/5.1-wpf-gui-application))

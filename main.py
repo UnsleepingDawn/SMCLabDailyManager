@@ -1,18 +1,18 @@
-from source_code.SMCLabCrawler.BitableCrawler import (
+from source_code.crawler.bitable import (
     SMCLabWeeklyReportCrawler, 
     SMCLabGourpMeetingCrawler,
     SMCLabScheduleCrawler
 )
-from source_code.SMCLabCrawler.AddressBookCrawler import (
+from source_code.crawler.address_book import (
     SMCLabAddressBookCrawler
 )
-from source_code.SMCLabCrawler.AttendanceCrawler import (
+from source_code.crawler.attendance import (
     SMCLabAttendanceCrawler
 )
-from source_code.SMCLabDataManager.ScheduleParser import (
+from source_code.data_manager.schedule_parser import (
     SMCLabScheduleParser
 )
-from source_code.SMCLabDataManager.AttendanceParser import (
+from source_code.data_manager.attendance_parser import (
     SMCLabAttendanceParser
 )
 

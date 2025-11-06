@@ -4,9 +4,9 @@ import lark_oapi as lark
 # from lark_oapi.api.bitable.v1 import *
 from lark_oapi.api.attendance.v1 import *
 
-from .SMCLabClient import SMCLabClient
+from .baseclient import SMCLabClient
 from ..utils import TimeParser, get_semester_and_week
-from ..SMCLabDataManager.ExcelManager import SMCLabInfoManager
+from ..data_manager.excel_manager import SMCLabInfoManager
 
 ABS_PATH = os.path.abspath(__file__)        # SMCLabDailyManager\source_code\SMCLabCrawler\AttendanceCrawler.py
 CURRENT_PATH = os.path.dirname(ABS_PATH)    # SMCLabDailyManager\source_code\SMCLabCrawler

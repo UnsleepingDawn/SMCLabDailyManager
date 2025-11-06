@@ -3,7 +3,7 @@ import json
 import lark_oapi as lark
 from lark_oapi.api.bitable.v1 import *
 
-from .SMCLabClient import SMCLabClient
+from .baseclient import SMCLabClient
 
 ABS_PATH = os.path.abspath(__file__)        # SMCLabDailyManager\source_code\SMCLabCrawler\BitableCrawler.py
 CURRENT_PATH = os.path.dirname(ABS_PATH)    # SMCLabDailyManager\source_code\SMCLabCrawler
