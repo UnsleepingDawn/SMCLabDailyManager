@@ -1,12 +1,13 @@
-from source_code.crawler.bitable import (
+from source_code.common.baseclient import SMCLabClient
+from source_code.crawler.bitable_crawler import (
     SMCLabWeeklyReportCrawler, 
     SMCLabGourpMeetingCrawler,
     SMCLabScheduleCrawler
 )
-from source_code.crawler.address_book import (
+from source_code.crawler.address_book_crawler import (
     SMCLabAddressBookCrawler
 )
-from source_code.crawler.attendance import (
+from source_code.crawler.attendance_crawler import (
     SMCLabAttendanceCrawler
 )
 from source_code.data_manager.schedule_parser import (
@@ -39,6 +40,7 @@ def main_app():
     loop.close()
 
 if __name__ == "__main__":
+    client = SMCLabClient()
     # smclab_gm_client = SMCLabGourpMeetingCrawler()
     # smclab_gm_client.print_basic_info()
     # smclab_gm_client.get_raw_records()
@@ -58,12 +60,12 @@ if __name__ == "__main__":
     # smclab_s_parser.make_schedule_by_slot_json()
 
     # smclab_ab_client = SMCLabAddressBookCrawler()
-    # # smclab_ab_client.get_department_id()
     # smclab_ab_client.get_raw_records() 
 
     # smclab_a_client = SMCLabAttendanceCrawler()
     # smclab_a_client.get_last_week_record()
 
-    # smclab_a_parser = SMCLabAttendanceParser()
-    # smclab_a_parser.last_week_attendance_to_excel()
-    main_app()
+    smclab_a_parser = SMCLabAttendanceParser()
+    smclab_a_parser.last_week_attendance_to_excel(plot=True)
+
+    # main_app()

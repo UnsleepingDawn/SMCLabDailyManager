@@ -5,7 +5,7 @@
 .vscode/**
 __pycache__/**
 old_repo/**
-
+data_semester/**
 # 特定文件类型
 *.xlsx
 *.json

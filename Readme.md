@@ -28,6 +28,8 @@ pip install lark-oapi -U
 pip install pandas
 pip install PySide6-Fluent-Widgets
 pip install qasync
+pip install matplotlib
+pip install seaborn
 ```
 
 ## 功能介绍
@@ -68,7 +70,12 @@ pip install qasync
 - 处理新生课表原始数据(可视化)
 - 处理考勤原始数据(并Python作图可视化保存)
 - 处理周报的原始数据(根据"SMCLab学生扩展信息.xlsx", 按周/月/学期, 以及是否按导师划分sheet)
+- 输入拟安排的meeting排表, 根据课表情况将meeting的冲突单元格标红
 - 将密钥和token进行索引导出、压缩, 以及解压、索引导入
 - 钩子检查
 - 在SMC服务器部署, 定时触发下载、自动统计和自动发送
 - 客户端部署, 简单的GUI开发([参考](https://github.com/overflow65537/MFW-PyQt6))
+
+## 已知需要优化 & 已知Bug
+- 现在每次实例化爬虫client都要实例化一个单独的baseclient, 可以开发一个类似于from_pretrained方法, 全部的爬虫都指向同一个baseclient
+- 为所有发送和处理数据类的class的函数方法新增latest参数，用于强制下载。
