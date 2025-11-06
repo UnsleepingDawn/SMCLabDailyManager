@@ -4,7 +4,7 @@ import lark_oapi as lark
 # from lark_oapi.api.bitable.v1 import *
 from lark_oapi.api.attendance.v1 import *
 
-from .baseclient import SMCLabClient
+from ..common.baseclient import SMCLabClient
 from ..utils import TimeParser, get_semester_and_week
 from ..data_manager.excel_manager import SMCLabInfoManager
 

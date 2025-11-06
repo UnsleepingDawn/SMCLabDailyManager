@@ -5,7 +5,7 @@ import lark_oapi as lark
 from lark_oapi.api.contact.v3 import *
 from lark_oapi.api.contact.v3.model.user import User
 
-from .baseclient import SMCLabClient
+from ..common.baseclient import SMCLabClient
 
 ABS_PATH = os.path.abspath(__file__)        # SMCLabDailyManager\source_code\SMCLabCrawler\AddressBookCrawler.py
 CURRENT_PATH = os.path.dirname(ABS_PATH)    # SMCLabDailyManager\source_code\SMCLabCrawler
@@ -21,8 +21,7 @@ class SMCLabAddressBookCrawler(SMCLabClient):
         self.raw_data_path = os.path.join(RAW_DATA_PATH, "address_book_raw_data")
         self.department_id = {}
     
-    def get_department_id(self, 
-                          is_update = False):
+    def get_department_id(self, is_update = False):
         # 参考 https://open.feishu.cn/api-explorer/cli_a8cd4e246b70d013?apiName=children&from=op_doc&project=contact&resource=department&version=v3
         raw_data_path = self.raw_data_path
         data_path = os.path.join(raw_data_path, f"department_id.json")

@@ -4,7 +4,7 @@ from collections import defaultdict
 from pathlib import Path
 
 from ..utils import get_year_semester
-from ..crawler.bitable import SMCLabScheduleCrawler
+from ..crawler.bitable_crawler import SMCLabScheduleCrawler
 
 ABS_PATH = os.path.abspath(__file__)        # SMCLabDailyManager\source_code\SMCLabDataManager\ScheduleParser.py
 CURRENT_PATH = os.path.dirname(ABS_PATH)    # SMCLabDailyManager\source_code\SMCLabDataManager

@@ -1,9 +1,11 @@
 import json, os
 import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
 from typing import List, Dict
 
 from ..utils import TimeParser, get_year_semester, get_semester_and_week
-from ..crawler.bitable import SMCLabScheduleCrawler
+from ..crawler.bitable_crawler import SMCLabScheduleCrawler
 from .schedule_parser import SMCLabScheduleParser
 
 ABS_PATH = os.path.abspath(__file__)        # SMCLabDailyManager\source_code\SMCLabDataManager\AttendanceParser.py
@@ -141,7 +143,64 @@ class SMCLabAttendanceParser:
         print(f"已更新课表缺卡修正文件：{self.updated_path}")
         return weekly_summary
 
-    def last_week_attendance_to_excel(self):
+    def _plot_attendance(self, df):
+                
+        # 设置中文字体
+        plt.rcParams['font.sans-serif'] = ['SimHei', 'Microsoft YaHei']  # 用来正常显示中文标签
+        plt.rcParams['axes.unicode_minus'] = False  # 用来正常显示负号
+        bar_color = ["#C268C8", "#6BD6D8"]
+
+        # 取前15个同学
+        top_15 = df.head(15)
+        # 对满足条件的同学姓名进行匿名化处理
+        for i in range(len(top_15)):
+            if top_15.iloc[i]['缺卡次数'] == 0 and top_15.iloc[i]['迟到次数'] < 3:
+                top_15.iloc[i, top_15.columns.get_loc('姓名')] = '***'
+        # 创建图形
+        fig, ax = plt.subplots(figsize=(5.5, 3), dpi=600)
+        
+        # 设置柱状图的位置和宽度
+        x = range(len(top_15))
+        bar_width = 0.35
+        
+        # 绘制柱状图
+        bars1 = ax.bar([i - bar_width/2 for i in x], 
+                       top_15['缺卡次数'], 
+                       bar_width, 
+                       label='缺卡次数', 
+                       hatch='xx',
+                       edgecolor='black',
+                       color=bar_color[0], 
+                       alpha=0.7)
+        bars2 = ax.bar([i + bar_width/2 for i in x], 
+                       top_15['迟到次数'], 
+                       bar_width, 
+                       label='迟到次数', 
+                       hatch='///', 
+                       edgecolor='black',
+                       color=bar_color[1], 
+                       alpha=0.7)
+        
+        # 设置图表属性
+        # ax.set_xlabel('姓名', fontsize=15)
+        ax.set_ylabel('次数', fontsize=15)
+        ax.set_ylim(0, 6)
+        ax.set_yticks(np.arange(0, 6, 1))
+        ax.set_title('缺卡和迟到次数统计(前15名)(已排除上课)', fontsize=16, fontweight='bold')
+        ax.set_xticks(x)
+        ax.set_xticklabels(top_15['姓名'], rotation=45, ha='right')
+        ax.legend(loc='upper center', ncol=2)
+        ax.grid(True, axis='y', alpha=0.5, linestyle='--', linewidth=0.5)
+
+        # 调整布局
+        plt.tight_layout()
+        
+        # 保存图片
+        plot_path = self.excel_path.replace('.xlsx', '.png')
+        plt.savefig(plot_path, dpi=600, bbox_inches='tight')
+        print(f"图表已保存: {plot_path}")
+
+    def last_week_attendance_to_excel(self, plot = True):
         """简化版的考勤转换函数"""
         updated_path = self.updated_path
         excel_path = self.excel_path
@@ -175,5 +234,9 @@ class SMCLabAttendanceParser:
         df = pd.DataFrame(table_data)
         df_sorted = df.sort_values(by=['缺卡次数', '迟到次数'], ascending=[False, False])
         df_sorted.to_excel(excel_path, index=False)
-        print(f"文件已保存: {excel_path}")
+        print(f"表格文件已保存: {excel_path}")
+
+        if plot:
+            self._plot_attendance(df_sorted)
         return df
+    

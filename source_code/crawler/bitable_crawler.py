@@ -3,7 +3,7 @@ import json
 import lark_oapi as lark
 from lark_oapi.api.bitable.v1 import *
 
-from .baseclient import SMCLabClient
+from ..common.baseclient import SMCLabClient
 
 ABS_PATH = os.path.abspath(__file__)        # SMCLabDailyManager\source_code\SMCLabCrawler\BitableCrawler.py
 CURRENT_PATH = os.path.dirname(ABS_PATH)    # SMCLabDailyManager\source_code\SMCLabCrawler
@@ -16,12 +16,12 @@ TABLE_TOKENS_JSON_FILE = os.path.join(CURRENT_PATH, "table_tokens.json")
 
 
 class SMCLabBitableCrawler(SMCLabClient):
-    def __init__(self, *args,
+    def __init__(self,
                  table_name: str = None,
                  app_token: str = None,
                  table_id: str = None,
                  page_size: int = 50):
-        super().__init__(*args)
+        super().__init__()
         self.table_name = table_name
         self.app_token = app_token
         self.table_id = table_id
