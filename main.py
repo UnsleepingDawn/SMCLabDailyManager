@@ -16,6 +16,28 @@ from source_code.data_manager.attendance_parser import (
     SMCLabAttendanceParser
 )
 
+from source_code.app.view.main_window import MainWindow
+
+from qasync import QEventLoop, asyncio
+from PySide6.QtCore import Qt
+from PySide6.QtWidgets import QApplication
+
+import os, sys
+
+def main_app():
+    # create application
+    app = QApplication(sys.argv)
+    app.setAttribute(Qt.ApplicationAttribute.AA_DontCreateNativeWidgetSiblings)
+    loop = QEventLoop(app)
+    asyncio.set_event_loop(loop)
+
+    w = MainWindow()
+    w.show()
+
+    with loop:
+        loop.run_forever()
+    loop.close()
+
 if __name__ == "__main__":
     # smclab_gm_client = SMCLabGourpMeetingCrawler()
     # smclab_gm_client.print_basic_info()
@@ -42,5 +64,6 @@ if __name__ == "__main__":
     # smclab_a_client = SMCLabAttendanceCrawler()
     # smclab_a_client.get_last_week_record()
 
-    smclab_a_parser = SMCLabAttendanceParser()
-    smclab_a_parser.last_week_attendance_to_excel()
+    # smclab_a_parser = SMCLabAttendanceParser()
+    # smclab_a_parser.last_week_attendance_to_excel()
+    main_app()
