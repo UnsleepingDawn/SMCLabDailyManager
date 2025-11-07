@@ -16,6 +16,8 @@ class SMCLabMessageSender(SMCLabClient):
     def __init__(self):
         super().__init__()
         self.info_manager = SMCLabInfoManager()
+        name_account, _, _ = self.info_manager.map_fields("姓名", "飞书账号")
+        self.name_account = name_account
 
     def weekly_generate_attendance(self, 
                                    professor: str = ""):
@@ -48,15 +50,48 @@ class SMCLabMessageSender(SMCLabClient):
         return
     
     def send_weekly_summary(self,
-                            to_who: str = "陈旭"):
-        name_account, _, _ = self.info_manager.map_fields("姓名", "飞书账号")
-        assert to_who in name_account.keys(), f"没有找到该用户: {to_who}"
-        receive_name = to_who
-        receive_id = name_account[to_who]
-        
+                            user: str = "梁涵"):
+        name_account = self.name_account
+        assert user in name_account.keys(), f"没有找到该用户: {user}"
+        receive_name = user
+        receive_id = name_account[user]
+
+        # 构造请求对象
+        request: CreateMessageRequest = CreateMessageRequest.builder() \
+            .receive_id_type("open_id") \
+            .request_body(CreateMessageRequestBody.builder()
+                .receive_id("receive_id")
+                .msg_type("text")
+                .content("{\"text\":\"test content\"}")
+                .build()) \
+            .build()
         return
 
+    def send_text(self,
+                  user: str,
+                  message: str):
+        # 参考: https://open.feishu.cn/document/server-docs/im-v1/message-content-description/create_json#45e0953e
+        name_account = self.name_account
+        assert user in name_account.keys(), f"没有找到该用户: {user}"
+        receive_name = user
+        receive_id = name_account[user]
+        message = {
+            "text": message
+        }
+        message_string = json.dumps(message, ensure_ascii=False)
+
+        request: CreateMessageRequest = CreateMessageRequest.builder() \
+            .receive_id_type("open_id") \
+            .request_body(CreateMessageRequestBody.builder()
+                .receive_id("receive_id")
+                .msg_type("text")
+                .content(message_string)
+                .build()) \
+            .build()
         
+        resp: CreateMessageResponse = self._client.im.v1.message.create(request)
+        self._check_resp(resp)
+        print("发送成功")
 
 def main():
     # 创建client

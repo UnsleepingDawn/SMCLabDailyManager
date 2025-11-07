@@ -16,6 +16,9 @@ from source_code.data_manager.schedule_parser import (
 from source_code.data_manager.attendance_parser import (
     SMCLabAttendanceParser
 )
+from source_code.message.sender import (
+    SMCLabMessageSender
+)
 
 from source_code.app.view.main_window import MainWindow
 
@@ -65,7 +68,10 @@ if __name__ == "__main__":
     # smclab_a_client = SMCLabAttendanceCrawler()
     # smclab_a_client.get_last_week_record()
 
-    smclab_a_parser = SMCLabAttendanceParser()
-    smclab_a_parser.last_week_attendance_to_excel(plot=True)
+    # smclab_a_parser = SMCLabAttendanceParser()
+    # smclab_a_parser.last_week_attendance_to_excel(plot=True)
+
+    smclab_sender = SMCLabMessageSender()
+    smclab_sender.send_text("梁涵", "hahahaha")
 
     # main_app()
