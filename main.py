@@ -72,6 +72,6 @@ if __name__ == "__main__":
     # smclab_a_parser.last_week_attendance_to_excel(plot=True)
 
     smclab_sender = SMCLabMessageSender()
-    smclab_sender.send_text("梁涵", "hahahaha")
+    smclab_sender.send_image("梁涵", "D:\\【代码】\\SMCLabDailyManager\\data_semester\\2025-Fall\\week8\\SMCLab第8周考勤统计.png")
 
     # main_app()

@@ -4,26 +4,6 @@ from datetime import datetime, timedelta
 ABS_PATH = os.path.abspath(__file__)        # SMCLabDailyManager\source_code\utils.py
 CURRENT_PATH = os.path.dirname(ABS_PATH)    # SMCLabDailyManager\source_code
 
-# # TODO: 使该函数更加鲁棒
-# def get_year_semester(
-#         print_info=False
-#         ):
-#     current_timestamp = time.time()
-#     current_time = time.localtime(current_timestamp)
-#     # 提取年份和月份
-#     current_year = current_time.tm_year
-#     current_month = current_time.tm_mon
-#     if 2 <= current_month <= 8:
-#         semester = "Spring"
-#         academic_year = current_year
-#     else:
-#         semester = "Fall"
-#         academic_year = current_year
-#     year_semester = f"{academic_year}-{semester}"
-#     if print_info:
-#         print(year_semester)
-#     return year_semester
-
 def get_year_semester(print_info=True,
                               current_time: str = None):
     json_path = os.path.join(CURRENT_PATH, "sysu_semesters.json")
