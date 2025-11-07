@@ -113,7 +113,7 @@ class SMCLabClient(object):
     def get_raw_records(self):
         raise NotImplementedError("Not implemented yet!")
     
-    def _check_resp_1(self, resp):
+    def _check_resp(self, resp):
         # TODO: 请针对所有的子类响应信息进行子类函数实现
         assert resp.code == 0
         assert resp.msg == "success"

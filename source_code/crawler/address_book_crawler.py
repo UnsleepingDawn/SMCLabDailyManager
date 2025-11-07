@@ -47,7 +47,7 @@ class SMCLabAddressBookCrawler(SMCLabClient):
                 .build()
             # 发起请求
             resp: ChildrenDepartmentResponse = self._client.contact.v3.department.children(request)
-            self._check_resp_1(resp)
+            self._check_resp(resp)
 
             # 更新循环状态
             has_more = resp.data.has_more
@@ -87,7 +87,7 @@ class SMCLabAddressBookCrawler(SMCLabClient):
             
             # 发起请求
             resp: FindByDepartmentUserResponse = self._client.contact.v3.user.find_by_department(request)
-            self._check_resp_1(resp) # 响应的合法性检查
+            self._check_resp(resp) # 响应的合法性检查
             
             # # 保存页面
             # resp_json = lark.JSON.marshal(resp.data, indent=4)

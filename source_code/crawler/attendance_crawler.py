@@ -29,7 +29,7 @@ class SMCLabAttendanceCrawler(SMCLabClient):
         self.page_size = page_size
         self.info_manager = SMCLabInfoManager()
     
-    def _check_resp_1(self, resp: SearchGroupResponse):
+    def _check_resp(self, resp: SearchGroupResponse):
         assert resp.code == 0
         assert len(resp.data.group_list) != 0, "未查询到考勤组"
 
@@ -55,7 +55,7 @@ class SMCLabAttendanceCrawler(SMCLabClient):
             .build()
 
         resp: SearchGroupResponse = self._client.attendance.v1.group.search(request)
-        self._check_resp_1(resp)
+        self._check_resp(resp)
         self.group_id = resp.data.group_list[0].group_id
 
     def _get_group_list_user(self):
