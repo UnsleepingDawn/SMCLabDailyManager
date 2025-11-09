@@ -10,7 +10,8 @@ data_semester/**
 *.xlsx
 *.json
 *.pyc
-
+*.log
+*.pid
 # 不忽略
 !bitable_info.json
 !user_stats_fields.json
