@@ -20,7 +20,6 @@ class SMCLabAttendanceParser:
         sem, week = get_semester_and_week()
         self.raw_data_path = os.path.join(RAW_DATA_PATH, "attendance_raw_data")
         self.raw_data_file = os.path.join(self.raw_data_path, f"last_week({sem},{week-1})_attendance_raw.json")
-        assert os.path.exists(self.raw_data_file), "请先下载元数据"
         # 处理过程的中间数据
         self.simplified_path = self.raw_data_file.replace("_raw.json", "_simplified.json")
         self.weekly_summary_path = self.raw_data_file.replace("_raw.json", "_weekly_summary.json")
@@ -47,7 +46,7 @@ class SMCLabAttendanceParser:
         :return: 提取后的简化数据列表
         """
         # === 读取原始文件 ===
-
+        assert os.path.exists(self.raw_data_file), f"请先下载元数据: {self.raw_data_file}"
         with open(self.raw_data_file, "r", encoding="utf-8") as f:
             raw = json.load(f)
 
@@ -182,7 +181,7 @@ class SMCLabAttendanceParser:
         # 保存图片
         plot_path = self.weekly_output_path.replace('.xlsx', '.png')
         plt.savefig(plot_path, dpi=600, bbox_inches='tight')
-        print(f"图表已保存: {plot_path}")
+        print(f"图像已保存: {plot_path}")
 
     def last_week_attendance_to_excel(self, plot = True):
         """把上周的考勤存为表格和图"""
@@ -216,7 +215,7 @@ class SMCLabAttendanceParser:
         df = pd.DataFrame(table_data)
         df_sorted = df.sort_values(by=['缺卡次数', '迟到次数'], ascending=[False, False])
         df_sorted.to_excel(excel_path, index=False)
-        print(f"表格文件已保存: {excel_path}")
+        print(f"表格已保存: {excel_path}")
 
         if plot:
             self._plot_attendance(df_sorted)

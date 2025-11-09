@@ -82,9 +82,9 @@ class SMCLabBitableCrawler(SMCLabClient):
         has_more = True
         page_token = ""
         page_cnt = 0
-
+        print(f"正在下载{self.table_name}:")
         while(has_more):
-            print(f"请求下载第{page_cnt}页...")
+            print(f"\t请求下载第{page_cnt}页...")
             request: SearchAppTableRecordRequest = SearchAppTableRecordRequest.builder() \
                 .app_token(self.app_token) \
                 .table_id(self.table_id) \

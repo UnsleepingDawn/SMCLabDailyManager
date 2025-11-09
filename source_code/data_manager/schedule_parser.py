@@ -19,7 +19,7 @@ class SMCLabScheduleParser:
         raw_json_path = os.path.join(raw_data_path, "resp_page_0.json")
         if not os.path.exists(raw_json_path):
             client = SMCLabScheduleCrawler()
-            client.get_raw_records() 
+            client.get_raw_records()
         with open(raw_json_path, 'r', encoding='utf-8') as f:
             self.data = json.load(f)["items"]
         self.time_table = self._build_time_table()

@@ -61,6 +61,7 @@ class SMCLabAttendanceCrawler(SMCLabClient):
         self.group_id = resp.data.group_list[0].group_id
 
     def _get_group_list_user(self):   
+        # 下载考勤组成员
         # 参考：https://open.feishu.cn/document/attendance-v1/group/list_user
         if not self.group_id:
             self._get_group_id()
@@ -69,9 +70,9 @@ class SMCLabAttendanceCrawler(SMCLabClient):
         page_token = ""
         page_cnt = 0
         users_list = []
-
+        print(f"正在下载考勤组成员: ")
         while(has_more):
-            print(f"请求下载第{page_cnt}页...")
+            print(f"\t请求下载第{page_cnt}页...")
             # 构造请求对象
             request: ListUserGroupRequest = ListUserGroupRequest.builder() \
                 .group_id(self.group_id) \
@@ -101,7 +102,9 @@ class SMCLabAttendanceCrawler(SMCLabClient):
         search_pattern = os.path.join(self.raw_data_path, "last_week*.json")
         for file_path in glob.glob(search_pattern, recursive=True):
             os.remove(file_path)
-        os.remove(os.path.join(self.raw_data_path, "attendance_group_info.json"))
+        file1 = os.path.join(self.raw_data_path, "attendance_group_info.json")
+        if os.path.exists(file1):
+            os.remove(os.path.join(self.raw_data_path, "attendance_group_info.json"))
         return
 
     def get_group_info(self, update = False):
@@ -110,6 +113,7 @@ class SMCLabAttendanceCrawler(SMCLabClient):
         ''' 
         group_info_path = os.path.join(self.raw_data_path, "attendance_group_info.json")
         if not update and os.path.exists(group_info_path):
+            print("找到已有考勤组信息!")
             with open(group_info_path, "r", encoding="utf-8") as f:
                 group_info = json.load(f)
             self.group_name = group_info.get("group_name", "")
@@ -173,6 +177,7 @@ class SMCLabAttendanceCrawler(SMCLabClient):
         my_id = name_id_pair["梁涵"]
 
         # 构造请求对象
+        print("下载上周的考勤数据:")
         request: QueryUserStatsDataRequest = QueryUserStatsDataRequest.builder() \
             .employee_type("employee_id") \
             .request_body(QueryUserStatsDataRequestBody.builder()
@@ -197,4 +202,4 @@ class SMCLabAttendanceCrawler(SMCLabClient):
         with open(resp_page_path, 'w', encoding='utf-8') as f:
             f.write(resp_json)
 
-        print("下载完成")
+        print("下载完成!")

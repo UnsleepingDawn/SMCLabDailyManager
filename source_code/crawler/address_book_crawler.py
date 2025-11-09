@@ -34,8 +34,9 @@ class SMCLabAddressBookCrawler(SMCLabClient):
         has_more = True
         page_token = ""
         page_cnt = 0
+        print(f"正在下载部门id: ")
         while(has_more):
-            print(f"请求下载第{page_cnt}页...")
+            print(f"\t请求下载第{page_cnt}页...")
             request: ChildrenDepartmentRequest = ChildrenDepartmentRequest.builder() \
                 .department_id("0") \
                 .user_id_type("open_id") \

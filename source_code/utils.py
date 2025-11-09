@@ -4,8 +4,7 @@ from datetime import datetime, timedelta
 ABS_PATH = os.path.abspath(__file__)        # SMCLabDailyManager\source_code\utils.py
 CURRENT_PATH = os.path.dirname(ABS_PATH)    # SMCLabDailyManager\source_code
 
-def get_year_semester(print_info=True,
-                              current_time: str = None):
+def get_year_semester(current_time: str = None):
     json_path = os.path.join(CURRENT_PATH, "sysu_semesters.json")
     # 1. 读取JSON文件
     with open(json_path, 'r', encoding='utf-8') as f:
@@ -41,8 +40,6 @@ def get_year_semester(print_info=True,
 
     # 如果当前时间在最早的学期开始之前，则返回第一个学期
     assert current_semester is not None, "未找到对应学期"
-    if print_info:
-        print(current_semester)
     return current_semester
 
 def get_semester_and_week(print_info=True,
