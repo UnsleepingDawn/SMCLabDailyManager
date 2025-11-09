@@ -103,7 +103,7 @@ class SMCLabAttendanceParser:
     
     def _amend_class_absence(self, weekly_summary) -> Dict[str, Dict]:
         '''
-        根据课表, 把因为课表导致的缺勤标记为"上课"
+        根据课表, 把因为课表导致的缺勤/迟到标记为"上课"
         '''
         # === 读取课表 ===
         schedule_path = self.schedule_path
@@ -117,7 +117,7 @@ class SMCLabAttendanceParser:
         # === 遍历出勤数据并修改 ===
         for name, info in weekly_summary.items():
             for date, status in info["week"].items():
-                if status == "缺卡":
+                if status != "正常":
                     weekday_cn = TimeParser.get_weekday_iso(date)
                     # 检查是否在“上午”课表中
                     if weekday_cn and name in schedule.get(weekday_cn, {}).get("上午", []):
