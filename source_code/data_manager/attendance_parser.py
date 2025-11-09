@@ -19,23 +19,23 @@ class SMCLabAttendanceParser:
     def __init__(self):
         sem, week = get_semester_and_week()
         self.raw_data_path = os.path.join(RAW_DATA_PATH, "attendance_raw_data")
-        self.input_path = os.path.join(self.raw_data_path, f"last_week({sem},{week-1})_attendance_raw.json")
-        assert os.path.exists(self.input_path), "请先下载元数据"
-        self.output_path = self.input_path.replace("_raw.json", "_simplified.json")
-        self.weekly_summary_path = self.output_path.replace("_simplified.json", "_weekly_summary.json")
-        self.updated_path = self.weekly_summary_path.replace(".json", "_updated.json")
+        self.raw_data_file = os.path.join(self.raw_data_path, f"last_week({sem},{week-1})_attendance_raw.json")
+        assert os.path.exists(self.raw_data_file), "请先下载元数据"
+        # 处理过程的中间数据
+        self.simplified_path = self.raw_data_file.replace("_raw.json", "_simplified.json")
+        self.weekly_summary_path = self.raw_data_file.replace("_raw.json", "_weekly_summary.json")
+        self.weekly_summary_updated_path = self.raw_data_file.replace("_raw.json", "_weekly_summary_updated.json")
         # 要存在学期数据里的
         self.sem_data_path = os.path.join(SEM_DATA_PATH, sem)
         self.sem_week_path = os.path.join(self.sem_data_path, f"week{week-1}")
         if not os.path.exists(self.sem_week_path):
             os.makedirs(self.sem_week_path, exist_ok=True)
-        self.excel_path = os.path.join(self.sem_week_path, f"SMCLab第{week-1}周考勤统计.xlsx")
+        self.weekly_output_path = os.path.join(self.sem_week_path, f"SMCLab第{week-1}周考勤统计.xlsx")
         # 课表
         self.schedule_path = os.path.join(self.sem_data_path, "schedule_by_period.json")
-        
-        self.simplified = []
 
-    def simplify_raw_data(self):
+
+    def _simplify_raw_data(self):
         """
         读取原始考勤文件并提取核心字段：
         - name(姓名)
@@ -48,13 +48,13 @@ class SMCLabAttendanceParser:
         """
         # === 读取原始文件 ===
 
-        with open(self.input_path, "r", encoding="utf-8") as f:
-            data = json.load(f)
+        with open(self.raw_data_file, "r", encoding="utf-8") as f:
+            raw = json.load(f)
 
-        simplified = []
+        simplified_raw = []
 
         # === 遍历每个用户记录 ===
-        for record in data.get("user_datas", []):
+        for record in raw.get("user_datas", []):
             name = record.get("name")
             user_id = record.get("user_id")
 
@@ -68,7 +68,7 @@ class SMCLabAttendanceParser:
                     status = d.get("value")
 
             if name and date and status:
-                simplified.append({
+                simplified_raw.append({
                     "name": name,
                     "user_id": user_id,
                     "date": date,
@@ -77,38 +77,34 @@ class SMCLabAttendanceParser:
                 })
 
         # === 保存结果到文件 ===
-        with open(self.output_path, "w", encoding="utf-8") as f:
-            json.dump(simplified, f, ensure_ascii=False, indent=4)
+        return simplified_raw
 
-        print(f"已生成简化文件：{self.output_path}")
-        self.simplified = simplified
+    def _generate_last_week_attendance(self, simplified_raw) -> Dict[str, Dict]:
+        '''
+        总结每周出勤情况
+        '''
+        last_week_attendance = {}
 
-    def generate_weekly_summary(self) -> Dict[str, Dict]:
-        if len(self.simplified) == 0:
-            self.simplify_raw_data()
-
-        summary = {}
-
-        for item in self.simplified:
+        for item in simplified_raw:
             name = item["name"]
             user_id = item["user_id"]
             date = item["date"]
             status = item["status"]
 
-            if name not in summary:
-                summary[name] = {
+            if name not in last_week_attendance:
+                last_week_attendance[name] = {
                     "user_id": user_id,
                     "week": {}
                 }
 
-            summary[name]["week"][date] = status
+            last_week_attendance[name]["week"][date] = status
 
-        with open(self.weekly_summary_path, "w", encoding="utf-8") as f:
-            json.dump(summary, f, ensure_ascii=False, indent=4)
-
-        print(f"已生成每周出勤汇总文件：{self.weekly_summary_path}")
+        return last_week_attendance
     
-    def mark_class_absence(self, weekly_summary_path: str = None) -> Dict[str, Dict]:
+    def _amend_class_absence(self, weekly_summary) -> Dict[str, Dict]:
+        '''
+        根据课表, 把因为课表导致的缺勤标记为"上课"
+        '''
         # === 读取课表 ===
         schedule_path = self.schedule_path
         # assert os.path.exists(schedule_path), "请先下载课表, 并运行解析器里的make_schedule_by_slot_json函数"
@@ -117,14 +113,6 @@ class SMCLabAttendanceParser:
             schedule_parser.make_period_summary_json()
         with open(schedule_path, "r", encoding="utf-8") as f:
             schedule = json.load(f)
-
-        # === 读取出勤数据 ===
-        weekly_summary_path = self.weekly_summary_path
-        if not os.path.exists(weekly_summary_path):
-            self.generate_weekly_summary()
-        
-        with open(weekly_summary_path, "r", encoding="utf-8") as f:
-            weekly_summary = json.load(f)
 
         # === 遍历出勤数据并修改 ===
         for name, info in weekly_summary.items():
@@ -135,13 +123,9 @@ class SMCLabAttendanceParser:
                     if weekday_cn and name in schedule.get(weekday_cn, {}).get("上午", []):
                         info["week"][date] = "上课"
 
-        # === 保存修改结果 ===
-        self.updated_path = weekly_summary_path.replace(".json", "_updated.json")
-        with open(self.updated_path, "w", encoding="utf-8") as f:
-            json.dump(weekly_summary, f, ensure_ascii=False, indent=4)
+        weekly_summary_with_mark = weekly_summary
 
-        print(f"已更新课表缺卡修正文件：{self.updated_path}")
-        return weekly_summary
+        return weekly_summary_with_mark
 
     def _plot_attendance(self, df):
                 
@@ -196,22 +180,20 @@ class SMCLabAttendanceParser:
         plt.tight_layout()
         
         # 保存图片
-        plot_path = self.excel_path.replace('.xlsx', '.png')
+        plot_path = self.weekly_output_path.replace('.xlsx', '.png')
         plt.savefig(plot_path, dpi=600, bbox_inches='tight')
         print(f"图表已保存: {plot_path}")
 
     def last_week_attendance_to_excel(self, plot = True):
-        """简化版的考勤转换函数"""
-        updated_path = self.updated_path
-        excel_path = self.excel_path
-        if not os.path.exists(updated_path):
-            self.mark_class_absence()
-        with open(updated_path, 'r', encoding='utf-8') as f:
-            data = json.load(f)
-        
+        """把上周的考勤存为表格和图"""
+        excel_path = self.weekly_output_path
+        simplified_raw_data = self._simplify_raw_data()
+        last_week_attendance = self._generate_last_week_attendance(simplified_raw_data)
+        last_week_attendance_with_mark = self._amend_class_absence(last_week_attendance)
+
         table_data = []
         
-        for name, info in data.items():
+        for name, info in last_week_attendance_with_mark.items():
             # 获取并按日期排序考勤记录
             week_data = info['week']
             sorted_dates = sorted(week_data.keys())
@@ -238,5 +220,4 @@ class SMCLabAttendanceParser:
 
         if plot:
             self._plot_attendance(df_sorted)
-        return df
     
