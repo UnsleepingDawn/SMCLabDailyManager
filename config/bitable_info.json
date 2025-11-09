@@ -1,0 +1,27 @@
+{
+    "weekly_report":{
+        "app_token": "bascnNZHLLxh0ZKJ9zOvhtTaMAb",
+        "table_id":{
+            "2025-Fall": "tblhrAOhccTHJauv",
+            "2025-Spring": "tblR6hiO28MRPBvg"
+        },
+        "url": {
+            "2025-Fall": "https://sysu-smclab.feishu.cn/base/bascnNZHLLxh0ZKJ9zOvhtTaMAb?table=tblhrAOhccTHJauv&view=vewqm1Sd5B",
+            "2025-Spring": "https://sysu-smclab.feishu.cn/base/bascnNZHLLxh0ZKJ9zOvhtTaMAb?table=tblR6hiO28MRPBvg&view=vewqm1Sd5B"
+        }
+    },
+    "group_meeting":{
+        "app_token": "L5ZAbqlF4aG1EQsRszbcAa2JnWc",
+        "table_id": "tbl3n3I1oKuO0KPT",
+        "url": "https://sysu-smclab.feishu.cn/base/L5ZAbqlF4aG1EQsRszbcAa2JnWc?table=tbl3n3I1oKuO0KPT&view=vew4SqBurs"
+    },
+    "freshman_schedule":{
+        "app_token": "EGTXb1D1kaWnYUsTFLsc39rnntg",
+        "table_id": {
+            "2025-Fall": "tblvPa6Jzl7xogce"
+        },
+        "url": "https://sysu-smclab.feishu.cn/base/EGTXb1D1kaWnYUsTFLsc39rnntg?table=tblvPa6Jzl7xogce&view=vewFUQ7STo"
+    },
+    "help": "https://open.feishu.cn/document/server-docs/docs/bitable-v1/bitable-overview",
+    "caption": "来源于多维表格链接中的两个id, 第一个app_token(因为多维表格被飞书视为一种app), 第二个是table_id, 是数据表id"
+}
