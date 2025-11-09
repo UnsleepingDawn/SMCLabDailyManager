@@ -28,6 +28,7 @@ class SMCLabAttendanceCrawler(SMCLabClient):
         self.group_users_id_list = []
         self.page_size = page_size
         self.info_manager = SMCLabInfoManager()
+        self._remove_past_record()
     
     def _check_resp(self, resp: SearchGroupResponse):
         assert resp.code == 0
@@ -56,12 +57,11 @@ class SMCLabAttendanceCrawler(SMCLabClient):
 
         resp: SearchGroupResponse = self._client.attendance.v1.group.search(request)
         self._check_resp(resp)
+        # 取最前面那一个
         self.group_id = resp.data.group_list[0].group_id
 
-    def _get_group_list_user(self):
-        # TODO: 获取需要打卡的人和无需打卡的人
+    def _get_group_list_user(self):   
         # 参考：https://open.feishu.cn/document/attendance-v1/group/list_user
-        # member_clock_type：设置为2（表示查询无需打卡的人员）
         if not self.group_id:
             self._get_group_id()
             
@@ -97,7 +97,17 @@ class SMCLabAttendanceCrawler(SMCLabClient):
         users_id_list = [user.user_id for user in users_list]
         self.group_users_id_list = users_id_list
     
+    def _remove_past_record(self):
+        search_pattern = os.path.join(self.raw_data_path, "last_week*.json")
+        for file_path in glob.glob(search_pattern, recursive=True):
+            os.remove(file_path)
+        os.remove(os.path.join(self.raw_data_path, "attendance_group_info.json"))
+        return
+
     def get_group_info(self, update = False):
+        '''
+        该函数用于从 attendance_group_info.json 获取考勤组成员的user_id
+        ''' 
         group_info_path = os.path.join(self.raw_data_path, "attendance_group_info.json")
         if not update and os.path.exists(group_info_path):
             with open(group_info_path, "r", encoding="utf-8") as f:
@@ -106,7 +116,6 @@ class SMCLabAttendanceCrawler(SMCLabClient):
             self.group_id = group_info.get("group_id", 0)
             self.group_users_id_list = group_info.get("group_users_id_list", [])
         else:
-            self._get_group_id()
             self._get_group_list_user()
             group_info={}
             group_info["group_name"] = self.group_name
@@ -121,13 +130,14 @@ class SMCLabAttendanceCrawler(SMCLabClient):
         print(f"\tgroup_id:\t{self.group_id}")
 
     def get_user_stats_fields(self, update = False):
+        '''
+        这个函数下载了考勤的各个字段的信息，没有被任何函数调用
+        '''
         # 参考：https://open.feishu.cn/document/server-docs/attendance-v1/user_stats_data/query-2?appId=cli_a8cd4e246b70d013
         user_stats_fields_path = os.path.join(self.raw_data_path, "user_stats_fields.json")
         print("获取表头信息...")
         if not update and os.path.exists(user_stats_fields_path):
             print(f"表头信息已经存在: {user_stats_fields_path}")
-            # with open(user_stats_fields_path, "r", encoding="utf-8") as f:
-            #     user_stats_fields = json.load(f)
         else:
             last_monday, last_friday = TimeParser.get_last_week_date()
             request: QueryUserStatsFieldRequest = QueryUserStatsFieldRequest.builder() \
@@ -162,13 +172,6 @@ class SMCLabAttendanceCrawler(SMCLabClient):
         user_ids = self.group_users_id_list 
         my_id = name_id_pair["梁涵"]
 
-        # 检查路径存在性
-        if not os.path.exists(raw_data_path):
-            os.makedirs(raw_data_path, exist_ok=True)
-        else:
-            search_pattern = os.path.join(raw_data_path, "**", "last_week*.json")
-            for file_path in glob.glob(search_pattern, recursive=True):
-                os.remove(file_path)
         # 构造请求对象
         request: QueryUserStatsDataRequest = QueryUserStatsDataRequest.builder() \
             .employee_type("employee_id") \

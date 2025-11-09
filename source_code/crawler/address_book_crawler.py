@@ -1,4 +1,4 @@
-import os
+import os, glob
 import json
 import lark_oapi as lark
 # from lark_oapi.api.bitable.v1 import *
@@ -19,22 +19,21 @@ class SMCLabAddressBookCrawler(SMCLabClient):
         super().__init__()
         self.page_size = page_size
         self.raw_data_path = os.path.join(RAW_DATA_PATH, "address_book_raw_data")
+        if not os.path.exists(self.raw_data_path):
+            os.makedirs(self.raw_data_path, exist_ok=True)
         self.department_id = {}
+        self._remove_past_record()
     
-    def get_department_id(self, is_update = False):
+    def get_department_id(self, update = False):
         # 参考 https://open.feishu.cn/api-explorer/cli_a8cd4e246b70d013?apiName=children&from=op_doc&project=contact&resource=department&version=v3
-        raw_data_path = self.raw_data_path
-        data_path = os.path.join(raw_data_path, f"department_id.json")
-        if not is_update: # is_update为True时, 要强制下载
-            if os.path.exists(data_path):
-                with open(data_path, "r", encoding="utf-8") as f:
-                    self.department_id = json.load(f)
-                return
+        data_path = os.path.join(self.raw_data_path, "department_id.json")
+        if not update and os.path.exists(data_path):
+            with open(data_path, "r", encoding="utf-8") as f:
+                self.department_id = json.load(f)
+            return
         has_more = True
         page_token = ""
         page_cnt = 0
-        if not os.path.exists(raw_data_path):
-            os.makedirs(raw_data_path, exist_ok=True)
         while(has_more):
             print(f"请求下载第{page_cnt}页...")
             request: ChildrenDepartmentRequest = ChildrenDepartmentRequest.builder() \
@@ -67,12 +66,19 @@ class SMCLabAddressBookCrawler(SMCLabClient):
                 "primary_member_count": item.primary_member_count, # 当前部门及其下属部门的主属成员（即成员的主部门为当前部门）的数量。
             }
             self.department_id[item.name]=department
-        data_path = os.path.join(raw_data_path, f"department_id.json")
         with open(data_path, 'w', encoding='utf-8') as f:
             json.dump(self.department_id, f, ensure_ascii=False, indent=4)
         
+    def _remove_past_record(self):
+        # 删去所有的下载数据
+        search_pattern = os.path.join(self.raw_data_path, "**", "*.json")
+        for file_path in glob.glob(search_pattern, recursive=True):
+            os.remove(file_path)
+        return
+
     def get_one_department_records(self, 
                                    department_id: str = "") -> List[User]:
+        # 获取其中一个部门的用户名单
         has_more = True
         page_token = ""
         page_cnt = 0
@@ -89,11 +95,6 @@ class SMCLabAddressBookCrawler(SMCLabClient):
             resp: FindByDepartmentUserResponse = self._client.contact.v3.user.find_by_department(request)
             self._check_resp(resp) # 响应的合法性检查
             
-            # # 保存页面
-            # resp_json = lark.JSON.marshal(resp.data, indent=4)
-            # resp_page_path = os.path.join(raw_data_path, f"resp_page_{str(page_cnt)}.json")
-            # with open(resp_page_path, 'w', encoding='utf-8') as f:
-            #     f.write(resp_json)
             items = resp.data.items
             if items:
                 users.extend(items)
@@ -106,6 +107,7 @@ class SMCLabAddressBookCrawler(SMCLabClient):
     def filter_primary_dept_users(self,
                                   users: List[User], 
                                   department_id: str) -> List[User]:
+        # 只保留以当前部门为主部门的用户
         primary_users = []
         
         for user in users:
@@ -118,6 +120,7 @@ class SMCLabAddressBookCrawler(SMCLabClient):
         return primary_users
 
     def get_raw_records(self):
+        # 递归下载各个部门的通讯录, 并整理
         raw_data_path = self.raw_data_path
 
         if self.department_id == {}:

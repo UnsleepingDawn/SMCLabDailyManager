@@ -11,8 +11,7 @@ SRC_PATH = os.path.dirname(CURRENT_PATH)    # SMCLabDailyManager\source_code
 REPO_PATH = os.path.dirname(SRC_PATH)       # SMCLabDailyManager
 RAW_DATA_PATH = os.path.join(REPO_PATH, "data_raw")
 
-# SMCLabDailyManager\source_code\SMCLabCrawler\table_tokens.json
-TABLE_TOKENS_JSON_FILE = os.path.join(CURRENT_PATH, "table_tokens.json") 
+TABLE_TOKENS_JSON_FILE = os.path.join("config", "bitable_info.json") 
 
 
 class SMCLabBitableCrawler(SMCLabClient):
@@ -29,22 +28,25 @@ class SMCLabBitableCrawler(SMCLabClient):
 
         # table_token_name 仅用于索引已知表格
         self.table_token_name = None
-        self.raw_data_path = os.path.join(RAW_DATA_PATH, "temp_raw_data")
+        self.raw_data_path = None
         if table_name:
             self._set_table_name()
             self._set_table_tokens()
+            if not os.path.exists(self.raw_data_path):
+                os.makedirs(self.raw_data_path, exist_ok=True)
+            self._remove_past_record()
     
     def _set_table_name(self):
         if self.table_name == None:
             raise NotImplementedError(f"不允许空的多维表格")
         elif self.table_name == "Weekly Report":
-            self.table_token_name = "weekly_report_table"
+            self.table_token_name = "weekly_report"
             self.raw_data_path = os.path.join(RAW_DATA_PATH, "weekly_report_raw_data")
         elif self.table_name == "Group Meeting":
-            self.table_token_name = "group_meeting_table"
+            self.table_token_name = "group_meeting"
             self.raw_data_path = os.path.join(RAW_DATA_PATH, "group_meeting_raw_data")
         elif self.table_name == "Schedule":
-            self.table_token_name = "schedule_table"
+            self.table_token_name = "freshman_schedule"
             self.raw_data_path = os.path.join(RAW_DATA_PATH, "schedule_raw_data")
         else:
             raise NotImplementedError(f"还没有适配该多维表格: {self.table_name}")
@@ -58,7 +60,13 @@ class SMCLabBitableCrawler(SMCLabClient):
             self.table_id = table_info["table_id"][self._year_semester]
         else:
             self.table_id = table_info["table_id"]
-        
+
+    def _remove_past_record(self):
+        search_pattern = os.path.join(self.raw_data_path, "resp_page_*.json")
+        for file_path in glob.glob(search_pattern, recursive=True):
+            os.remove(file_path)
+        return
+    
     def print_basic_info(self):
         print("Year Semester:", self._year_semester)
         print("Tenant Access Token:", self._tenant_access_token)
@@ -74,12 +82,7 @@ class SMCLabBitableCrawler(SMCLabClient):
         has_more = True
         page_token = ""
         page_cnt = 0
-        if not os.path.exists(raw_data_path):
-            os.makedirs(raw_data_path, exist_ok=True)        
-        else:
-            search_pattern = os.path.join(raw_data_path, "**", "resp_page_*.json")
-            for file_path in glob.glob(search_pattern, recursive=True):
-                os.remove(file_path)
+
         while(has_more):
             print(f"请求下载第{page_cnt}页...")
             request: SearchAppTableRecordRequest = SearchAppTableRecordRequest.builder() \
