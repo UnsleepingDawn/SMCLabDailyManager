@@ -114,18 +114,16 @@ class TimeParser:
 
         today = datetime.now()
         current_weekday = today.weekday()
-        
         # 计算上周周一：当前日期 - 当前星期几 - 上周的6天（因为要回到上周）
         last_monday = today - timedelta(days=current_weekday + 7)
-        
         # 计算上周周五：上周周一 + 4天
         last_friday = last_monday + timedelta(days=4)
-        
         # 转换为整数格式 YYYYMMDD
         last_monday_int = int(last_monday.strftime("%Y%m%d"))
         last_friday_int = int(last_friday.strftime("%Y%m%d"))
         
         return last_monday_int, last_friday_int
+
     
     @staticmethod
     def get_last_week_date_maping():
@@ -155,6 +153,8 @@ class TimeParser:
         
         weekdays = ["", "周一", "周二", "周三", "周四", "周五", "周六", "周日"]
         return weekdays[weekday_num]
+
+
 
 # 使用示例
 if __name__ == "__main__":

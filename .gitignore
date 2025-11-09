@@ -12,10 +12,11 @@ data_semester/**
 *.pyc
 
 # 不忽略
-!table_tokens.json
+!bitable_info.json
 !user_stats_fields.json
 !sysu_schedule.json
 !sysu_semesters.json
+!smc_sum_last_week.json
 
 # 特定文件
 Readmeysy.md
