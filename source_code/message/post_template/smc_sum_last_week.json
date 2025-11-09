@@ -1,0 +1,59 @@
+{
+    "zh_cn": {
+        "title": "1999-Spring-第0周总结",
+        "content": [
+            [
+                {
+                    "tag": "text",
+                    "text": "1. 出勤情况:",
+                    "style": ["bold", "underline"]
+                
+                }
+            ],
+            [{
+                "tag": "img",
+                "image_key": ""
+            }],
+            [
+                {
+                    "tag": "text",
+                    "text": "2. 周报:",
+                    "style": ["bold", "underline"]
+                }
+            ],
+            [
+                {
+                    "tag": "a",
+                    "href": "http://www.feishu.cn",
+                    "text": "SMC周报链接"
+                }
+            ],
+            [
+                {
+                    "tag": "text",
+                    "text": "3. 组会出席:",
+                    "style": ["bold", "underline"]
+                }
+            ],
+            [
+                {
+                    "tag": "text",
+                    "text": "（还未写相关代码逻辑）"
+                }
+            ],
+            [
+                {
+                    "tag": "text",
+                    "text": "其他信息:",
+                    "style": ["bold", "underline"]
+                }
+            ],
+            [
+                {
+                    "tag": "text",
+                    "text": "（还未写相关代码逻辑）"
+                }
+            ]
+        ]
+    }
+}

@@ -18,126 +18,93 @@ class SMCLabMessageSender(SMCLabClient):
     def __init__(self):
         super().__init__()
         self.info_manager = SMCLabInfoManager()
+        # 姓名与飞书账号的映射, 用于根据人名发送
         name_account, _, _ = self.info_manager.map_fields("姓名", "飞书账号")
         self.name_account = name_account
-        self.post_message = {}
+        self.bitable_info = self._get_bitable_info()
+        self.post_message = None
 
-    def weekly_generate_attendance(self, 
-                                   professor: str = ""):
-        # 生成考勤数据的可拼接消息结构
-        return
+    def _get_bitable_info(self):
+        # 获得
+        bitable_info_file = os.path.join("config", "bitable_info.json")
+        with open(bitable_info_file, 'r', encoding='utf-8') as f:
+            bitable_info = json.load(f)
+        return bitable_info
+
+    def _weekly_generate_attendance(self, 
+                                   sem: str, 
+                                   week: int):
+        # 生成出勤一览图
+        attendance_plot_path = os.path.join(SEM_DATA_PATH, sem, f"week{week}", f"SMCLab第{week}周考勤统计.png")
+        assert os.path.exists(attendance_plot_path), "请先调用SMCLabAttendanceParser类的last_week_attendance_to_excel函数"
+        attendance_plot_key = self._get_image_key(attendance_plot_path)
+        return attendance_plot_key
     
     def weekly_generate_gm_attendance(self, 
                                       professor: str = ""):
-        # 生成组会考勤数据的可拼接消息结构
+        # TODO: 生成组会考勤数据的可拼接消息结构
         return
     
-    def weekly_generate_wr_submission(self,
-                                      professor: str = ""):
-        # 生成周报提交情况的可拼接消息结构
-        return
+    def _weekly_generate_wr_submission(self,
+                                      sem: str, 
+                                      week: int):
+        # 生成周报链接
+        return self.bitable_info["weekly_report"]["url"][sem]
     
     def monthly_generate_attendance(self, 
                                     professor: str = ""):
-        # 生成考勤数据的可拼接消息结构
+        # TODO: 生成月度考勤数据的可拼接消息结构
         return
     
     def monthly_generate_gm_attendance(self, 
                                        professor: str = ""):
-        # 生成组会考勤数据的可拼接消息结构
+        # TODO: 生成月度组会考勤数据的可拼接消息结构
         return
     
     def monthly_generate_wr_submission(self,
                                        professor: str = ""):
-        # 生成周报提交情况的可拼接消息结构
+        # TODO: 生成周报提交情况的可拼接消息结构
         return
     
     def send_last_weekly_summary(self,
-                            user: str = "梁涵"):
+                            users: str or List[str] = "梁涵"):
         # TODO: 思路, 在该文件夹下创建一个模板文件, 用于发送消息, 然后各个函数往里面填值
         name_account = self.name_account
-        assert user in name_account.keys(), f"没有找到该用户: {user}"
-        receive_name = user
-        receive_id = name_account[user]
+        if isinstance(users, str):
+            users = [users]
+        
+        for user in users:
+            assert user in name_account.keys(), f"没有找到该用户: {user}"
+        receive_names = users
+        receive_ids = [name_account[user] for user in users]
         semester, week = get_semester_and_week()
         last_week = week - 1
 
-        self.post_message = {
-            "zh_cn": {
-                "title": f"{semester}第{last_week}周总结",
-                "content": [
-                    [
-                        {
-                            "tag": "text",
-                            "text": "第一行:",
-                            "style": ["bold", "underline"]
-                        
-                        },
-                        {
-                            "tag": "a",
-                            "href": "http://www.feishu.cn",
-                            "text": "超链接",
-                            "style": ["bold", "italic"]
-                        },
-                        {
-                            "tag": "at",
-                            "user_id": "ou_1avnmsbv3k45jnk34j5",
-                            "style": ["lineThrough"]
-                        }
-                    ],
-                    [{
-                        "tag": "img",
-                        "image_key": "img_7ea74629-9191-4176-998c-2e603c9c5e8g"
-                    }],
-                    [	
-                        {
-                            "tag": "text",
-                            "text": "第二行:",
-                            "style": ["bold", "underline"]
-                        },
-                        {
-                            "tag": "text",
-                            "text": "文本测试"
-                        }
-                    ],
-                    [{
-                        "tag": "img",
-                        "image_key": "img_7ea74629-9191-4176-998c-2e603c9c5e8g"
-                    }],
-                    [{
-                        "tag": "media",
-                        "file_key": "file_v2_0dcdd7d9-fib0-4432-a519-41d25aca542j",
-                        "image_key": "img_7ea74629-9191-4176-998c-2e603c9c5e8g"
-                    }],
-                    [{
-                        "tag": "emotion",
-                        "emoji_type": "SMILE"
-                    }],
-                    [{
-                        "tag": "hr"
-                    }],
-                    [{
-                        "tag": "code_block",
-                        "language": "GO",
-                        "text": "func main() int64 {\n    return 0\n}"
-                    }],
-                    [{
-                        "tag": "md",
-                        "text": "**mention user:**<at user_id=\"ou_xxxxxx\">Tom</at>\n**href:**[Open Platform](https://open.feishu.cn)\n**code block:**\n```GO\nfunc main() int64 {\n    return 0\n}\n```\n**text styles:** **bold**, *italic*, ***bold and italic***, ~underline~,~~lineThrough~~\n> quote content\n\n1. item1\n    1. item1.1\n    2. item2.2\n2. item2\n --- \n- item1\n    - item1.1\n    - item2.2\n- item2"
-                    }]
-                ]
-            },
-        }
+        # 加载发送给陈旭老师的模板
+        template_path = os.path.join(CURRENT_PATH, "post_template", "smc_sum_last_week.json")
+        with open(template_path, "r", encoding="utf-8") as f:
+            self.post_message = json.load(f)
 
+        # 在此处构造数据
+        self.post_message["zh_cn"]["title"] = f"{semester}-第{last_week}周总结"
+        self.post_message["zh_cn"]["content"][1][0]["image_key"] = self._weekly_generate_attendance(semester, last_week)
+        self.post_message["zh_cn"]["content"][3][0]["href"] = self._weekly_generate_wr_submission(semester, last_week)
+
+        post_string = json.dumps(self.post_message, ensure_ascii=False)
         # 构造请求对象
-        request: CreateMessageRequest = CreateMessageRequest.builder() \
-            .receive_id_type("open_id") \
-            .request_body(CreateMessageRequestBody.builder()
-                .receive_id("receive_id")
-                .msg_type("text")
-                .content("{\"text\":\"test content\"}")
-                .build()) \
-            .build()
+        for receive_id in receive_ids:
+            request: CreateMessageRequest = CreateMessageRequest.builder() \
+                .receive_id_type("open_id") \
+                .request_body(CreateMessageRequestBody.builder()
+                    .receive_id(receive_id)
+                    .msg_type("post")
+                    .content(post_string)
+                    .build()) \
+                .build()
+            
+            resp: CreateMessageResponse = self._client.im.v1.message.create(request)
+            self._check_resp(resp)
+            print(f"SMC每周总结发送成功: To {receive_names}")
         return
 
     def send_text(self,
