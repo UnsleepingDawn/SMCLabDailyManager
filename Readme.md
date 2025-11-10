@@ -34,11 +34,14 @@ pip install schedule
 ```
 
 # 功能介绍
+
 分为服务器功能和任务功能
 
 ## 服务器功能
+
 一个长期运行在服务器上的定时任务调度系统，支持每周和每月特定时间执行任务。
 功能特点：
+
 - 每周一中午12:00自动执行任务
 - 每月1号中午12:00自动执行任务
 - 完善的日志记录系统
@@ -46,17 +49,23 @@ pip install schedule
 - 进程管理和监控
 
 有两种启动方法
+
 1. 直接运行（开发测试）
+
 ```bash
 python server.py
 ```
+
 或者使用管理命令
+
 ```bash
 python server.py start
 ```
-按`Ctrl+C`停止服务器
+
+按 `Ctrl+C`停止服务器
 
 2. 后台运行（生产环境）
+
 ```bash
 # 使用nohup在后台运行
 nohup python server.py > server.log 2>&1 &
@@ -69,6 +78,7 @@ python server.py
 ```
 
 3. 使用管理脚本
+
 ```bash
 # 启动服务器
 python server.py start
@@ -81,19 +91,23 @@ python server.py status
 ```
 
 ### 配置说明
+
 **定时任务配置**
 在 server.py中修改定时任务：
+
 ```python
 def setup_schedules(self):
     """设置定时任务"""
     # 每周一中午12点执行
     schedule.every().monday.at("12:00").do(self.weekly_task)
-    
+  
     # 每月1号中午12点执行
     schedule.every().day.at("12:00").do(self.check_monthly_task)
 ```
+
 **自定义任务**
 修改以下方法来添加你的业务逻辑：
+
 ```python
 def weekly_task(self):
     """每周一中午12点执行的任务"""
@@ -130,7 +144,6 @@ def monthly_task(self):
 
 # 未来更新(悬赏! 欢迎大家fork开发)
 
-
 - 下载考勤原始数据(按特定周/月进行下载)
 - 处理周报的原始数据(根据"SMCLab学生扩展信息.xlsx", 按周/月/学期, 以及是否按导师划分sheet)
 - 输入拟安排的meeting排表, 根据课表情况将meeting的冲突单元格标红
@@ -141,4 +154,5 @@ def monthly_task(self):
 
 # 已知需要优化 & 已知Bug
 
+- 非常重要：服务器端维护一个每周已完成爬取的清单，防止重复消耗API。
 - 现在每次实例化爬虫client都要实例化一个单独的baseclient, 可以开发一个类似于from_pretrained方法, 全部的爬虫都指向同一个baseclient
