@@ -4,6 +4,7 @@ from source_code.crawler.bitable_crawler import (
     SMCLabGourpMeetingCrawler,
     SMCLabScheduleCrawler
 )
+
 from source_code.crawler.address_book_crawler import (
     SMCLabAddressBookCrawler
 )
@@ -15,6 +16,10 @@ from source_code.data_manager.schedule_parser import (
 )
 from source_code.data_manager.attendance_parser import (
     SMCLabAttendanceParser
+)
+from source_code.data_manager.bitable_parser import (
+    SMCLabMemberInfoParser,
+    SMCLabWeeklyReportParser
 )
 from source_code.message.sender import (
     SMCLabMessageSender
@@ -49,11 +54,17 @@ def send_last_week_attendence():
     schedule_parser = SMCLabScheduleParser()
     schedule_parser.make_period_summary_json()
     attendance_crawler = SMCLabAttendanceCrawler()
-    attendance_crawler.get_last_week_record()
+    attendance_crawler.get_last_week_records()
     attendance_parser = SMCLabAttendanceParser()
     attendance_parser.last_week_attendance_to_excel(plot=True)
 
     sender.send_last_weekly_summary("梁涵")
+
+def send_last_week_weekly_report():
+    # weeklyreport_crawler = SMCLabWeeklyReportCrawler()
+    # weeklyreport_crawler.get_last_week_records()
+    weeklyreport_parser = SMCLabWeeklyReportParser()
+    weeklyreport_parser.last_week_weekly_report_to_txt()
 
 
 if __name__ == "__main__":
@@ -86,4 +97,6 @@ if __name__ == "__main__":
     # smclab_sender.send_image("梁涵", "D:\\【代码】\\SMCLabDailyManager\\data_semester\\2025-Fall\\week8\\SMCLab第8周考勤统计.png")
 
 
-    send_last_week_attendence()
+    # send_last_week_attendence()
+
+    send_last_week_weekly_report()

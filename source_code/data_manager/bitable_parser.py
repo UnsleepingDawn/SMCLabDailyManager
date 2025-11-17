@@ -3,19 +3,26 @@ import os
 from glob import glob
 from openpyxl import Workbook
 
+from ..utils import get_year_semester, get_semester_and_week
+from .excel_manager import SMCLabInfoManager
+
 ABS_PATH = os.path.abspath(__file__)        # SMCLabDailyManager\source_code\SMCLabDataManager\BitableParser.py
 CURRENT_PATH = os.path.dirname(ABS_PATH)    # SMCLabDailyManager\source_code\SMCLabDataManager
 SRC_PATH = os.path.dirname(CURRENT_PATH)    # SMCLabDailyManager\source_code
 REPO_PATH = os.path.dirname(SRC_PATH)       # SMCLabDailyManager
 RAW_DATA_PATH = os.path.join(REPO_PATH, "data_raw") # SMCLabDailyManager\data_raw
+SEM_DATA_PATH = os.path.join(REPO_PATH, "data_semester")
 INCRE_DATA_PATH = os.path.join(REPO_PATH, "data_incremental") # SMCLabDailyManager\data_incremental
+
 
 class SMCLabBitableParser:
     def __init__(self, bitable_dir: str = None):
         self.bitable_dir = bitable_dir
-        self.raw_data_file = os.path.join(RAW_DATA_PATH, bitable_dir)
-        self.file_list = sorted(glob(os.path.join(self.raw_data_file, "resp_page_*.json")))
+        self.raw_data_path = os.path.join(RAW_DATA_PATH, bitable_dir)
+        self.file_list = sorted(glob(os.path.join(self.raw_data_path, "resp_page_*.json")))
         self.output_path = None
+        self.info_manager = SMCLabInfoManager()
+        self._year_semester, self._this_week = get_semester_and_week()
 
     def _load_json(self, file_path):
         """读取单个 JSON 文件"""
@@ -36,7 +43,7 @@ class SMCLabMemberInfoParser(SMCLabBitableParser):
     def __init__(self):
         super().__init__(bitable_dir="group_meeting_raw_data")
         if not self.file_list:
-            raise FileNotFoundError(f"未在 {self.raw_data_file} 中找到任何 resp_page_*.json 文件")
+            raise FileNotFoundError(f"未在 {self.raw_data_path} 中找到任何 resp_page_*.json 文件")
         self.output_path = os.path.join(INCRE_DATA_PATH, "SMCLab学生基本信息.xlsx")
 
     def parse_all(self):
@@ -78,6 +85,105 @@ class SMCLabMemberInfoParser(SMCLabBitableParser):
         wb.save(output_path)
         print(f"Excel 文件已保存到：{output_path}")
 
+
+class SMCLabWeeklyReportParser(SMCLabBitableParser):
+    def __init__(self):
+        super().__init__(bitable_dir="weekly_report_raw_data")
+        
+        self.weekly_file_list = sorted(glob(os.path.join(self.raw_data_path, "last_week*.json")))
+        # 要存在学期数据里的
+        self.sem_data_path = os.path.join(SEM_DATA_PATH, self._year_semester)
+        self.sem_week_path = os.path.join(self.sem_data_path, f"week{self._this_week-1}")
+        if not os.path.exists(self.sem_week_path):
+            os.makedirs(self.sem_week_path, exist_ok=True)
+        self.weekly_output_path = os.path.join(self.sem_week_path, f"SMCLab第{self._this_week-1}周周报统计.txt")
+
+    def _get_group_info(self, update = False):
+        '''
+        该函数用于从 attendance_group_info.json 获取考勤组成员的姓名
+        SMCLabAttendanceCrawler.get_group_info()
+        ''' 
+        group_info_path = os.path.join(RAW_DATA_PATH, "attendance_raw_data", "attendance_group_info.json")
+        id_name_pair, _, _ = self.info_manager.map_fields("user_id", "姓名")
+        if not update and os.path.exists(group_info_path):
+            print("找到已有考勤组信息!")
+            with open(group_info_path, "r", encoding="utf-8") as f:
+                group_info = json.load(f)
+            group_users_id_list = group_info.get("group_users_id_list", [])
+            group_users_name_list = [id_name_pair[id] for id in group_users_id_list]
+        else:
+            raise RuntimeError("请先调用SMCLabAttendanceCrawler._get_group_list_user")
+        return group_users_name_list
+
+    def _simplify_raw_data(self):
+        """
+        读取原始上周周报文件并提取核心字段：
+        - 姓名
+        - 飞书账号
+        - 文档链接
+        - file_token
+        - file_name
+        :return: 提取后的简化数据列表
+        """
+        assert len(self.weekly_file_list)!=0, f"请先下载上周的周报元数据"
+        simplified_raw = []
+        for file in self.weekly_file_list:
+            data = self._load_json(file)
+            for item in data.get("items", []):
+                fields = item.get("fields", {})
+                record = {
+                    "姓名": self._get_nested(fields, ["汇报人", 0, "name"]),
+                    "飞书账号": self._get_nested(fields, ["汇报人", 0, "id"]),
+                    "文档链接": self._get_nested(fields, ["文档链接", 0, "link"]),
+                    "file_token": self._get_nested(fields, ["附件", 0, "file_token"]),
+                    "file_name": self._get_nested(fields, ["附件", 0, "name"]),
+                }
+                simplified_raw.append(record)
+        print(f"共读取 {len(simplified_raw)} 条记录，来自 {len(self.weekly_file_list)} 个 JSON 文件。")
+        return simplified_raw
+    
+    def _check_name_occurrence(self, simplified_raw, group_users_name_list):
+        """
+        检查总人员姓名列表中哪些出现在simplified_raw中, 哪些没有出现
+        
+        Args:
+            simplified_raw: list of dict, 每个字典包含"姓名"等键
+            group_users_name_list: list of str, 总人员姓名列表
+        
+        Returns:
+            tuple: (出现在simplified_raw中的姓名列表, 没有出现的姓名列表)
+        """
+        # 从simplified_raw中提取所有姓名
+        raw_names = set()
+        for item in simplified_raw:
+            if "姓名" in item and item["姓名"]:  # 确保姓名键存在且不为空
+                raw_names.add(item["姓名"])
+        
+        # 找出出现和没有出现的姓名
+        appeared_names = []
+        not_appeared_names = []
+        
+        for name in group_users_name_list:
+            if name in raw_names:
+                appeared_names.append(name)
+            else:
+                not_appeared_names.append(name)
+        
+        return appeared_names, not_appeared_names
+            
+    def last_week_weekly_report_to_txt(self):
+        """把上周的周报存为txt"""
+        simplified_raw_data = self._simplify_raw_data()
+        group_users_name_list = self._get_group_info()
+        appeared_names, not_appeared_names = self._check_name_occurrence(simplified_raw_data, group_users_name_list)
+        # 将列表转换为逗号分隔的字符串
+        appeared_str = ", ".join(appeared_names)
+        not_appeared_str = ", ".join(not_appeared_names)
+        # 写入文件
+        with open(self.weekly_output_path, 'w', encoding='utf-8') as f:
+            f.write("已提交: " + appeared_str + '\n')  # 第一行：出现的姓名
+            f.write("未提交: " + not_appeared_str)  # 第二行：未出现的姓名
+        print(f"提交情况已保存: {self.weekly_output_path}")
 
 # ======== 使用示例 ========
 if __name__ == "__main__":
