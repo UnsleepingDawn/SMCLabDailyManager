@@ -96,7 +96,7 @@ def get_semester_and_week(print_info=True,
     # 如果当前时间在第一个学期开始前
     assert current_semester is not None, "未找到对应学期"
 
-    # 4️⃣ 计算第几周（以起始日期所在周为第1周）
+    # 计算第几周（以起始日期所在周为第1周）
     days_passed = (current_time - start_of_semester).days
     week_number = days_passed // 7 + 1
     if week_number < 1:

@@ -215,7 +215,7 @@ class SMCLabAttendanceParser:
         df = pd.DataFrame(table_data)
         df_sorted = df.sort_values(by=['缺卡次数', '迟到次数'], ascending=[False, False])
         df_sorted.to_excel(excel_path, index=False)
-        print(f"表格已保存: {excel_path}")
+        print(f"出席表格已保存: {excel_path}")
 
         if plot:
             self._plot_attendance(df_sorted)

@@ -6,7 +6,7 @@ from lark_oapi.api.bitable.v1 import *
 import lark_oapi.api.bitable.v1.resource as base_rsc
 import lark_oapi.api.drive.v1.resource as drive_rsc
 
-from ..utils import get_year_semester
+from ..utils import get_year_semester, get_semester_and_week
 
 ABS_PATH = os.path.abspath(__file__)        # SMCLabDailyManager\source_code\SMCLabCrawler\SMCLabClient.py
 CURRENT_PATH = os.path.dirname(ABS_PATH)    # SMCLabDailyManager\source_code\SMCLabCrawler
@@ -34,7 +34,8 @@ class SMCLabClient(object):
         )
         self._client = client
         self._tenant_access_token = tenant_access_token
-        self._year_semester = get_year_semester()
+
+        self._year_semester, self._this_week = get_semester_and_week()
         # lark.logger.info(tenant_access_token)
 
     @property

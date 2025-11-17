@@ -5,7 +5,7 @@ import lark_oapi as lark
 from lark_oapi.api.attendance.v1 import *
 
 from ..common.baseclient import SMCLabClient
-from ..utils import TimeParser, get_semester_and_week
+from ..utils import TimeParser
 from ..data_manager.excel_manager import SMCLabInfoManager
 
 ABS_PATH = os.path.abspath(__file__)        # SMCLabDailyManager\source_code\SMCLabCrawler\AttendanceCrawler.py
@@ -122,6 +122,7 @@ class SMCLabAttendanceCrawler(SMCLabClient):
         else:
             self._get_group_list_user()
             group_info={}
+            # TODO: 这里好像有问题
             group_info["group_name"] = self.group_name
             group_info["group_id"] = self.group_id
             group_info["group_users_id_list"] = self.group_users_id_list
@@ -162,7 +163,7 @@ class SMCLabAttendanceCrawler(SMCLabClient):
                 f.write(resp_json)
 
 
-    def get_last_week_record(self):
+    def get_last_week_records(self):
         # 收集方式参考: https://open.feishu.cn/document/server-docs/attendance-v1/user_stats_data/query-3?appId=cli_a8cd4e246b70d013
         # 数据结构参考：https://open.feishu.cn/document/server-docs/attendance-v1/user_stats_data/query-2?appId=cli_a8cd4e246b70d013
         # 简单来说：
@@ -197,8 +198,7 @@ class SMCLabAttendanceCrawler(SMCLabClient):
 
         # 保存页面
         resp_json = lark.JSON.marshal(resp.data, indent=4)
-        sem, week = get_semester_and_week()
-        resp_page_path = os.path.join(raw_data_path, f"last_week({sem},{week-1})_attendance_raw.json")
+        resp_page_path = os.path.join(raw_data_path, f"last_week({self._year_semester},{self._this_week-1})_attendance_raw.json")
         with open(resp_page_path, 'w', encoding='utf-8') as f:
             f.write(resp_json)
 

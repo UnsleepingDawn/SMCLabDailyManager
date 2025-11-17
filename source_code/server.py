@@ -97,7 +97,7 @@ class SMCLabServer:
     def send_last_week_attendence(self, receivers: str or List[str] = ["梁涵"]):
         self.schedule_crawler.get_raw_records() # 下载最新课表数据
         self.schedule_parser.make_period_summary_json() # 处理最新的课表数据
-        self.attendance_crawler.get_last_week_record() # 下载上周的考勤数据
+        self.attendance_crawler.get_last_week_records() # 下载上周的考勤数据
         self.attendance_parser.last_week_attendance_to_excel(plot=True) # 处理上周的考勤数据
         self.sender.send_last_weekly_summary(receivers)
 
