@@ -29,10 +29,11 @@ pip install qasync
 pip install matplotlib
 pip install seaborn
 pip install schedule
+pip install openpyxl
 ```
 
 ```bash
-pip install lark-oapi pandas PySide6-Fluent-Widgets qasync matplotlib seaborn schedule
+pip install lark-oapi pandas PySide6-Fluent-Widgets qasync matplotlib seaborn schedule openpyxl
 ```
 
 # 功能介绍
