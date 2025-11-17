@@ -15,8 +15,6 @@
 
 ## Contributors
 
-对所有参与本项目建设的同学们表达衷心的感谢
-
 <a href="https://github.com/UnsleepingDawn/SMCLabDailyManager/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=UnsleepingDawn/SMCLabDailyManager" />
 </a>
@@ -24,13 +22,17 @@
 # 开发准备
 
 ```bash
-pip install lark-oapi -U
+pip install lark-oapi
 pip install pandas
 pip install PySide6-Fluent-Widgets
 pip install qasync
 pip install matplotlib
 pip install seaborn
 pip install schedule
+```
+
+```bash
+pip install lark-oapi pandas PySide6-Fluent-Widgets qasync matplotlib seaborn schedule
 ```
 
 # 功能介绍
