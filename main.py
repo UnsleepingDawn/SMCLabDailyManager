@@ -74,12 +74,12 @@ def send_last_week_summary():
     sender.send_last_weekly_summary("梁涵")
 
 def amend_info_every_semester():
-    # 组会表格部分
-    group_meeting_crawler = SMCLabGourpMeetingCrawler()
-    group_meeting_crawler.get_raw_records()
-    # 通讯录部分
-    address_book_crawler = SMCLabAddressBookCrawler()
-    address_book_crawler.get_raw_records() 
+    # # 组会表格部分
+    # group_meeting_crawler = SMCLabGourpMeetingCrawler()
+    # group_meeting_crawler.get_raw_records()
+    # # 通讯录部分
+    # address_book_crawler = SMCLabAddressBookCrawler()
+    # address_book_crawler.get_raw_records() 
     address_book_parser = SMCLabAddressBookParser()
     address_book_parser.merge_info_to_excel()
 

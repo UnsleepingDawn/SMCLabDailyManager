@@ -156,6 +156,13 @@ class SMCLabAddressBookParser:
                     json_col_idx = self.merged_df.columns.get_loc(json_col) + 1
                     ws.cell(idx, excel_col_idx).font = conflict_font
                     ws.cell(idx, json_col_idx).font = conflict_font
+                    if '姓名' not in self.conflict_cols:
+                        name_col_idx = self.merged_df.columns.get_loc('姓名') + 1
+                    else:
+                        name_col_idx = self.merged_df.columns.get_loc('姓名_Excel') + 1
+
+                    name = ws.cell(idx, name_col_idx).value
+                    print(f"\t{name}\t的*{col}*字段有冲突: {ws.cell(idx, excel_col_idx).value} vs. {ws.cell(idx, json_col_idx).value}")
 
 
         wb.save(output_path)
