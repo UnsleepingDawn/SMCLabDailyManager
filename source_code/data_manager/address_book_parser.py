@@ -24,6 +24,7 @@ class SMCLabAddressBookParser:
         self.merged_df = None
 
     def _read_excel(self):
+        # 用于init
         assert os.path.exists(self.excel_path), "请首先运行SMCLabMemberInfoParser, parse_all方法"
 
         df = pd.read_excel(self.excel_path)
@@ -31,24 +32,25 @@ class SMCLabAddressBookParser:
         return df
 
     def _read_json(self):
+        # 用于init
         with open(self.address_book_path, "r", encoding="utf-8") as f:
             json_data = json.load(f)
         print(f"读取JSON成功")
         return json_data
     
-    def _index_by_open_id(self):
-        df = self.df
-        """返回以飞书账号为索引的 DataFrame 副本（保证唯一索引）"""
-        if "飞书账号" not in df.columns:
-            raise ValueError("需要包含列 '飞书账号' 才能索引")
-        # 若存在重复 open_id，保留第一个并警告
-        dupes = df["飞书账号"][df["飞书账号"] != ""].duplicated()
-        if dupes.any():
-            print("警告：存在重复的飞书账号(open_id)，将在合并时以第一个为准。")
-        df_idx = df.set_index("飞书账号", drop=False)
-        # 若有重复索引， keep first
-        df_idx = df_idx[~df_idx.index.duplicated(keep="first")]
-        self.df = df_idx
+    # def _index_by_open_id(self):
+    #     """返回以飞书账号为索引的 DataFrame 副本（保证唯一索引）"""
+    #     df = self.df
+    #     if "飞书账号" not in df.columns:
+    #         raise ValueError("需要包含列 '飞书账号' 才能索引")
+    #     # 若存在重复 open_id，保留第一个并警告
+    #     dupes = df["飞书账号"][df["飞书账号"] != ""].duplicated()
+    #     if dupes.any():
+    #         print("警告：存在重复的飞书账号(open_id)，将在合并时以第一个为准。")
+    #     df_idx = df.set_index("飞书账号", drop=False)
+    #     # 若有重复索引， keep first
+    #     df_idx = df_idx[~df_idx.index.duplicated(keep="first")]
+    #     self.df = df_idx
     
     def _extract_json_members(self):
         members = []
@@ -67,16 +69,16 @@ class SMCLabAddressBookParser:
                 })
         return pd.DataFrame(members)
     
-    def _build_mentor_mapping(self, json_df):
-        """根据JSON中的所有成员构建 user_id -> 姓名 映射"""
-        mapping = {}
-        for _, row in json_df.iterrows():
-            if row["部门"] != "Tenure": continue
-            uid = row.get("user_id")
-            name = row.get("姓名")
-            if pd.notna(uid) and uid:
-                mapping[uid] = name
-        return mapping
+    # def _build_mentor_mapping(self, json_df):
+    #     """根据JSON中的所有成员构建 user_id -> 姓名 映射"""
+    #     mapping = {}
+    #     for _, row in json_df.iterrows():
+    #         if row["部门"] != "Tenure": continue
+    #         uid = row.get("user_id")
+    #         name = row.get("姓名")
+    #         if pd.notna(uid) and uid:
+    #             mapping[uid] = name
+    #     return mapping
     
     def merge(self):
         """合并并标记冲突"""
@@ -113,6 +115,7 @@ class SMCLabAddressBookParser:
                 merged[f"{col}_冲突"] = merged[col_excel] != merged[col_json] 
 
                 if merged[f"{col}_冲突"].any():
+                    print(f"********* {col} 字段有冲突！请优先处理！ *********")
                     conflict_cols.append(col)
                 else:
                     merged.rename(columns={
@@ -125,8 +128,10 @@ class SMCLabAddressBookParser:
         self.conflict_cols = conflict_cols
         print(f"合并完成，共 {len(merged)} 行，其中 {len(conflict_cols)} 个字段存在冲突")
 
-    def save(self):
+    def merge_info_to_excel(self):
         """保存Excel并对冲突单元格标红加粗"""
+        if not self.merged_df:
+            self.merge()
         output_path = self.output_path
         self.merged_df.to_excel(output_path, index=False)
 
@@ -160,5 +165,4 @@ class SMCLabAddressBookParser:
 # ---------------- 使用示例 ----------------
 if __name__ == "__main__":
     parser = SMCLabAddressBookParser()
-    parser.merge()
-    parser.save()
+    parser.merge_info_to_excel()
