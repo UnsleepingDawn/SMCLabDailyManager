@@ -11,6 +11,10 @@ from source_code.crawler.address_book_crawler import (
 from source_code.crawler.attendance_crawler import (
     SMCLabAttendanceCrawler
 )
+
+from source_code.data_manager.address_book_parser import (
+    SMCLabAddressBookParser
+)
 from source_code.data_manager.schedule_parser import (
     SMCLabScheduleParser
 )
@@ -64,40 +68,24 @@ def send_last_week_summary():
     weekly_report_crawler.get_last_week_records()
     weekly_report_parser = SMCLabWeeklyReportParser()
     weekly_report_parser.last_week_weekly_report_to_txt()
+    address_book_parser = SMCLabAddressBookParser()
+    address_book_parser.merge()
 
     sender.send_last_weekly_summary("梁涵")
+
+def amend_info_every_semester():
+    # 组会表格部分
+    group_meeting_crawler = SMCLabGourpMeetingCrawler()
+    group_meeting_crawler.get_raw_records()
+    # 通讯录部分
+    address_book_crawler = SMCLabAddressBookCrawler()
+    address_book_crawler.get_raw_records() 
+    address_book_parser = SMCLabAddressBookParser()
+    address_book_parser.merge_info_to_excel()
 
 
 if __name__ == "__main__":
     # client = SMCLabClient()
-    # smclab_gm_client = SMCLabGourpMeetingCrawler()
-    # smclab_gm_client.get_raw_records()
 
-    # smclab_wr_client = SMCLabWeeklyReportCrawler()
-    # smclab_wr_client.get_raw_records()
-
-    # smclab_s_client = SMCLabScheduleCrawler()
-    # smclab_s_client.get_raw_records() 
-
-    # smclab_ab_client = SMCLabAddressBookCrawler()
-    # smclab_ab_client.get_raw_records() 
-
-    # smclab_a_client = SMCLabAttendanceCrawler()
-    # smclab_a_client.get_last_week_record()
-
-    # smclab_s_parser = SMCLabScheduleParser()
-    # smclab_s_parser.make_schedule_count_xlsx()
-    # smclab_s_parser.make_schedule_names_xlsx()
-    # smclab_s_parser.make_period_summary_json()
-    # smclab_s_parser.make_schedule_by_slot_json()
-
-    # smclab_a_parser = SMCLabAttendanceParser()
-    # smclab_a_parser.last_week_attendance_to_excel(plot=True)
-
-    # smclab_sender = SMCLabMessageSender()
-    # smclab_sender.send_image("梁涵", "D:\\【代码】\\SMCLabDailyManager\\data_semester\\2025-Fall\\week8\\SMCLab第8周考勤统计.png")
-
-
-    # send_last_week_attendence()
-
-    send_last_week_summary()
+    # send_last_week_summary()
+    amend_info_every_semester()
