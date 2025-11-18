@@ -151,7 +151,7 @@ class SMCLabWeeklyReportParser(SMCLabBitableParser):
             group_users_name_list: list of str, 总人员姓名列表
         
         Returns:
-            tuple: (出现在simplified_raw中的姓名列表, 没有出现的姓名列表)
+            tuple: (出现在simplified_raw中的姓名列表, 没有出现的姓名列表, 额外的人)
         """
         # 从simplified_raw中提取所有姓名
         raw_names = set()
@@ -166,24 +166,33 @@ class SMCLabWeeklyReportParser(SMCLabBitableParser):
         for name in group_users_name_list:
             if name in raw_names:
                 appeared_names.append(name)
+                raw_names.remove(name)
             else:
                 not_appeared_names.append(name)
         
-        return appeared_names, not_appeared_names
+        extra_in_raw = list(raw_names)
+
+        return appeared_names, not_appeared_names, extra_in_raw
             
     def last_week_weekly_report_to_txt(self):
         """把上周的周报存为txt"""
         simplified_raw_data = self._simplify_raw_data()
         group_users_name_list = self._get_group_info()
-        appeared_names, not_appeared_names = self._check_name_occurrence(simplified_raw_data, group_users_name_list)
+        appeared_names, not_appeared_names, extra_in_raw = self._check_name_occurrence(simplified_raw_data, group_users_name_list)
         # 将列表转换为逗号分隔的字符串
-        appeared_str = ", ".join(appeared_names)
-        not_appeared_str = ", ".join(not_appeared_names)
+        extra_in_str = ", (" + ", ".join(extra_in_raw) + ")" if len(appeared_names) else ""
+        if len(appeared_names):
+            appeared_str = ", ".join(appeared_names)
+        elif extra_in_str:
+            appeared_str = ""
+        else:
+            appeared_str = "本周未收集到同学们的周报"
+        not_appeared_str = ", ".join(not_appeared_names) if len(not_appeared_names) else "本周周报全齐"
         # 写入文件
         with open(self.weekly_output_path, 'w', encoding='utf-8') as f:
-            f.write("已提交: " + appeared_str + '\n')  # 第一行：出现的姓名
-            f.write("未提交: " + not_appeared_str)  # 第二行：未出现的姓名
-        print(f"提交情况已保存: {self.weekly_output_path}")
+            f.write(f"{appeared_str}{extra_in_str}\n")  # 第一行：出现的姓名
+            f.write(f"{not_appeared_str}")  # 第二行：未出现的姓名
+        print(f"周报提交情况已保存: {self.weekly_output_path}")
 
 # ======== 使用示例 ========
 if __name__ == "__main__":
