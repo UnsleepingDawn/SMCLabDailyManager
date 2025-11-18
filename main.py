@@ -47,28 +47,29 @@ def main_app():
         loop.run_forever()
     loop.close()
 
-def send_last_week_attendence():
+def send_last_week_summary():
     sender = SMCLabMessageSender()
-    schedule_crawler = SMCLabScheduleCrawler()
-    schedule_crawler.get_raw_records() 
-    schedule_parser = SMCLabScheduleParser()
-    schedule_parser.make_period_summary_json()
-    attendance_crawler = SMCLabAttendanceCrawler()
-    attendance_crawler.get_last_week_records()
-    attendance_parser = SMCLabAttendanceParser()
-    attendance_parser.last_week_attendance_to_excel(plot=True)
+    # # 课表部分
+    # schedule_crawler = SMCLabScheduleCrawler()
+    # schedule_crawler.get_raw_records() 
+    # schedule_parser = SMCLabScheduleParser()
+    # schedule_parser.make_period_summary_json()
+    # # 出勤部分
+    # attendance_crawler = SMCLabAttendanceCrawler()
+    # attendance_crawler.get_last_week_records()
+    # attendance_parser = SMCLabAttendanceParser()
+    # attendance_parser.last_week_attendance_to_excel()
+    # 周报部分
+    weekly_report_crawler = SMCLabWeeklyReportCrawler()
+    weekly_report_crawler.get_last_week_records()
+    weekly_report_parser = SMCLabWeeklyReportParser()
+    weekly_report_parser.last_week_weekly_report_to_txt()
 
     sender.send_last_weekly_summary("梁涵")
 
-def send_last_week_weekly_report():
-    # weeklyreport_crawler = SMCLabWeeklyReportCrawler()
-    # weeklyreport_crawler.get_last_week_records()
-    weeklyreport_parser = SMCLabWeeklyReportParser()
-    weeklyreport_parser.last_week_weekly_report_to_txt()
-
 
 if __name__ == "__main__":
-    client = SMCLabClient()
+    # client = SMCLabClient()
     # smclab_gm_client = SMCLabGourpMeetingCrawler()
     # smclab_gm_client.get_raw_records()
 
@@ -99,4 +100,4 @@ if __name__ == "__main__":
 
     # send_last_week_attendence()
 
-    send_last_week_weekly_report()
+    send_last_week_summary()

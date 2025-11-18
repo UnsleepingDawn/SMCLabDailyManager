@@ -36,7 +36,7 @@ class SMCLabMessageSender(SMCLabClient):
                                    week: int):
         # 生成出勤一览图
         attendance_plot_path = os.path.join(SEM_DATA_PATH, sem, f"week{week}", f"SMCLab第{week}周考勤统计.png")
-        assert os.path.exists(attendance_plot_path), "请先调用SMCLabAttendanceParser类的last_week_attendance_to_excel函数"
+        assert os.path.exists(attendance_plot_path), "请先调用SMCLabAttendanceParser.last_week_attendance_to_excel()"
         attendance_plot_key = self._get_image_key(attendance_plot_path)
         return attendance_plot_key
     
@@ -49,7 +49,17 @@ class SMCLabMessageSender(SMCLabClient):
                                       sem: str, 
                                       week: int):
         # 生成周报链接
-        return self.bitable_info["weekly_report"]["url"][sem]
+        weekly_report_url = self.bitable_info["weekly_report"]["url"][sem]
+
+        weekly_report_txt_path = os.path.join(SEM_DATA_PATH, sem, f"week{week}", f"SMCLab第{week}周周报统计.txt")
+        assert os.path.exists(weekly_report_txt_path), "请先调用SMCLabWeeklyReportParser.last_week_weekly_report_to_txt()"
+        with open(weekly_report_txt_path, 'r', encoding='utf-8') as file:
+            lines = file.readlines()
+            assert len(lines) == 2, "周报统计文件格式不对！"
+            appeared_str = lines[0].strip()
+            not_appeared_str = lines[1].strip()
+            
+        return weekly_report_url, appeared_str, not_appeared_str
     
     def monthly_generate_attendance(self, 
                                     professor: str = ""):
@@ -86,9 +96,13 @@ class SMCLabMessageSender(SMCLabClient):
             self.post_message = json.load(f)
 
         # 在此处构造数据
+        image_key = self._weekly_generate_attendance(semester, last_week)
+        weekly_report_url, appeared_str, not_appeared_str =self._weekly_generate_wr_submission(semester, last_week)
         self.post_message["zh_cn"]["title"] = f"{semester}-第{last_week}周总结"
-        self.post_message["zh_cn"]["content"][1][0]["image_key"] = self._weekly_generate_attendance(semester, last_week)
-        self.post_message["zh_cn"]["content"][3][0]["href"] = self._weekly_generate_wr_submission(semester, last_week)
+        self.post_message["zh_cn"]["content"][1][0]["image_key"] = image_key
+        self.post_message["zh_cn"]["content"][3][0]["href"] = weekly_report_url
+        self.post_message["zh_cn"]["content"][4][1]["text"] = appeared_str
+        self.post_message["zh_cn"]["content"][5][1]["text"] = not_appeared_str
 
         post_string = json.dumps(self.post_message, ensure_ascii=False)
         # 构造请求对象

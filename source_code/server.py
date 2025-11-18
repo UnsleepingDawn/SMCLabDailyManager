@@ -25,6 +25,10 @@ from .data_manager.schedule_parser import (
 from .data_manager.attendance_parser import (
     SMCLabAttendanceParser
 )
+from .data_manager.bitable_parser import (
+    SMCLabInfoManager,
+    SMCLabWeeklyReportParser
+)
 from .message.sender import (
     SMCLabMessageSender
 )
@@ -47,8 +51,10 @@ class SMCLabServer:
         self.attendance_crawler    = SMCLabAttendanceCrawler()
 
         # 处理
-        self.schedule_parser   = SMCLabScheduleParser()
-        self.attendance_parser = SMCLabAttendanceParser()
+        self.schedule_parser      = SMCLabScheduleParser()
+        self.attendance_parser    = SMCLabAttendanceParser()
+        self.weekly_report_parser = SMCLabWeeklyReportParser()
+        
         # 发送
         self.sender = SMCLabMessageSender()
 
@@ -65,7 +71,7 @@ class SMCLabServer:
             ]
         )
     def write_pid_file(self):
-        """写入PID文件，便于管理"""
+        """写入PID文件, 便于管理"""
         with open(self.pid_file, 'w') as f:
             f.write(str(os.getpid()))
         logging.info(f"PID文件已创建: {self.pid_file}, PID: {os.getpid()}")
@@ -98,7 +104,10 @@ class SMCLabServer:
         self.schedule_crawler.get_raw_records() # 下载最新课表数据
         self.schedule_parser.make_period_summary_json() # 处理最新的课表数据
         self.attendance_crawler.get_last_week_records() # 下载上周的考勤数据
-        self.attendance_parser.last_week_attendance_to_excel(plot=True) # 处理上周的考勤数据
+        self.attendance_parser.last_week_attendance_to_excel() # 处理上周的考勤数据
+        self.weekly_report_crawler.get_last_week_records() # 下载上周的周报数据
+        self.weekly_report_parser.last_week_weekly_report_to_txt() # 处理上周的周报数据
+
         self.sender.send_last_weekly_summary(receivers)
 
     def monthly_task(self):

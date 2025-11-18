@@ -17,7 +17,7 @@
             [
                 {
                     "tag": "text",
-                    "text": "2. 周报:",
+                    "text": "2. 周报提交情况:",
                     "style": ["bold", "underline"]
                 }
             ],
@@ -31,27 +31,23 @@
             [
                 {
                     "tag": "text",
-                    "text": "3. 组会出席:",
-                    "style": ["bold", "underline"]
+                    "text": "已提交: ",
+                    "style": ["bold"]
+                },
+                {
+                    "tag": "text",
+                    "text": ""
                 }
             ],
             [
                 {
                     "tag": "text",
-                    "text": "（还未写相关代码逻辑）"
-                }
-            ],
-            [
+                    "text": "未提交: ",
+                    "style": ["bold"]
+                },
                 {
                     "tag": "text",
-                    "text": "其他信息:",
-                    "style": ["bold", "underline"]
-                }
-            ],
-            [
-                {
-                    "tag": "text",
-                    "text": "（还未写相关代码逻辑）"
+                    "text": ""
                 }
             ]
         ]
