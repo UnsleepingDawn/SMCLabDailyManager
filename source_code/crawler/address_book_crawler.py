@@ -24,7 +24,7 @@ class SMCLabAddressBookCrawler(SMCLabClient):
         self.department_id = {}
         self._remove_past_record()
     
-    def get_department_id(self, update = False):
+    def _get_department_id(self, update = False):
         # 参考 https://open.feishu.cn/api-explorer/cli_a8cd4e246b70d013?apiName=children&from=op_doc&project=contact&resource=department&version=v3
         data_path = os.path.join(self.raw_data_path, "department_id.json")
         if not update and os.path.exists(data_path):
@@ -77,7 +77,7 @@ class SMCLabAddressBookCrawler(SMCLabClient):
             os.remove(file_path)
         return
 
-    def get_one_department_records(self, 
+    def _get_one_department_records(self, 
                                    department_id: str = "") -> List[User]:
         # 获取其中一个部门的用户名单
         has_more = True
@@ -105,7 +105,7 @@ class SMCLabAddressBookCrawler(SMCLabClient):
             page_cnt += 1
         return users
     
-    def filter_primary_dept_users(self,
+    def _filter_primary_dept_users(self,
                                   users: List[User], 
                                   department_id: str) -> List[User]:
         # 只保留以当前部门为主部门的用户
@@ -125,7 +125,7 @@ class SMCLabAddressBookCrawler(SMCLabClient):
         raw_data_path = self.raw_data_path
 
         if self.department_id == {}:
-            self.get_department_id()
+            self._get_department_id()
         address_book = {}
         
         for department_name in self.department_id:
@@ -133,8 +133,8 @@ class SMCLabAddressBookCrawler(SMCLabClient):
             open_department_id = department.get("open_department_id", "0")
 
             print(f"正在处理部门: {department_name} ({open_department_id})")
-            users = self.get_one_department_records(open_department_id)
-            primary_users = self.filter_primary_dept_users(users, open_department_id)
+            users = self._get_one_department_records(open_department_id)
+            primary_users = self._filter_primary_dept_users(users, open_department_id)
             address_book[department_name] = {
                 "department_id": open_department_id,
                 "department_name": department_name,

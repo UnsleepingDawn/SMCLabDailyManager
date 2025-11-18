@@ -188,9 +188,11 @@ class SMCLabWeeklyReportCrawler(SMCLabBitableCrawler):
 class SMCLabGourpMeetingCrawler(SMCLabBitableCrawler):
     # 这是一个需要爬取所有记录的表格
     def __init__(self, *args):
-        super().__init__(*args, table_name = "Group Meeting")
+        super().__init__(*args, 
+                         table_name = "Group Meeting")
 
 class SMCLabScheduleCrawler(SMCLabBitableCrawler):
     # 这是一个需要爬取所有记录的表格
     def __init__(self, *args):
-        super().__init__(*args, table_name = "Schedule")
+        super().__init__(*args, 
+                         table_name = "Schedule")
