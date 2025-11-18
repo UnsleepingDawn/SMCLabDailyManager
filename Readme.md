@@ -11,7 +11,7 @@
 
 # 如何贡献
 
-欢迎您成为仓库的Contributor（[如何贡献本仓库？](Contribution.md)）
+欢迎您成为仓库的Contributor（[如何贡献本仓库？](SMC_resource/docs/Contribution.md)）
 
 ## Contributors
 
