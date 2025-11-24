@@ -141,18 +141,34 @@ class SMCLabAddressBookCrawler(SMCLabClient):
                 "member_count": department.get("member_count"),
                 "primary_members_count": department.get("primary_member_count"),
                 "primary_members": [
-                    {
+                ]
+            }
+            for user in primary_users:
+                if user.custom_attrs and len(user.custom_attrs) > 0 and hasattr(user.custom_attrs[0], 'value') and hasattr(user.custom_attrs[0].value, 'option_value'):
+                    cultivation = user.custom_attrs[0].value.option_value
+                    # print(f"用户 {user.name} 有培养属性: {user.custom_attrs[0].value.option_value}")
+                else:
+                    cultivation = ""
+                    print(f"\t用户 {user.name} 没有培养属性")
+
+                if user.custom_attrs and len(user.custom_attrs) > 1 and hasattr(user.custom_attrs[1], 'value') and hasattr(user.custom_attrs[1].value, 'generic_user') and hasattr(user.custom_attrs[1].value.generic_user, 'id'):
+                    mentor_id = user.custom_attrs[1].value.generic_user.id
+                    # print(f"用户 {user.name} 有导师属性: {user.custom_attrs[1].value.generic_user.id}")
+                else:
+                    mentor_id = ""
+                    print(f"\t用户 {user.name} 没有导师属性")
+                member_info = {
                         "name": user.name,
                         "union_id": user.union_id,
                         "open_id": user.open_id,
                         "user_id": user.user_id,
                         "email": user.email,
                         "mobile": user.mobile,
-                        "cultivation": user.custom_attrs[0].value.option_value if user.custom_attrs else "",
-                        "mentor_id": user.custom_attrs[1].value.generic_user.id if user.custom_attrs else ""
-                    } for user in primary_users
-                ]
-            }
+                        "cultivation": cultivation,
+                        "mentor_id": mentor_id
+                    } 
+                address_book[department_name]["primary_members"].append(member_info)
+                
         # 保存页面
         address_book_path = os.path.join(raw_data_path, f"address_book.json")
         with open(address_book_path, 'w', encoding='utf-8') as f:

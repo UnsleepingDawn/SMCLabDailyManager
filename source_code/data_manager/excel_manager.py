@@ -39,7 +39,7 @@ class SMCLabInfoManager:
             missing_names: list[姓名]
         """
         if field1 not in self.df.columns or field2 not in self.df.columns:
-            raise ValueError(f"字段名错误：'{field1}' 或 '{field2}' 不存在于Excel中")
+            raise ValueError(f"字段名错误：'{field1}' 或 '{field2}' 不存在于Excel中, 请检查'SMCLab学生扩展信息.xlsx'中是否有学生姓名不一致")
 
         mapping_dict = {} # 映射结果
         missing_names = [] # 统计缺失这两个字段的人员的姓名
