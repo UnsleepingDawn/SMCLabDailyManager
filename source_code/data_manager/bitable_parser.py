@@ -21,7 +21,10 @@ class SMCLabBitableParser:
         self.raw_data_path = os.path.join(RAW_DATA_PATH, bitable_dir)
         self.file_list = sorted(glob(os.path.join(self.raw_data_path, "resp_page_*.json")))
         self.output_path = None
-        self.info_manager = SMCLabInfoManager()
+        if bitable_dir == "group_meeting_raw_data":
+            self.info_manager = None
+        else:
+            self.info_manager = SMCLabInfoManager()
         self._year_semester, self._this_week = get_semester_and_week()
 
     def _load_json(self, file_path):

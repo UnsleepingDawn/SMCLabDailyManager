@@ -185,7 +185,7 @@ class SMCLabWeeklyReportCrawler(SMCLabBitableCrawler):
             os.remove(file_path)
         return
 
-class SMCLabGourpMeetingCrawler(SMCLabBitableCrawler):
+class SMCLabGroupMeetingCrawler(SMCLabBitableCrawler):
     # 这是一个需要爬取所有记录的表格
     def __init__(self, *args):
         super().__init__(*args, 

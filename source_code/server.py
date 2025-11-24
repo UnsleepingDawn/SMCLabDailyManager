@@ -10,7 +10,7 @@ import os
 from .common.baseclient import SMCLabClient
 from .crawler.bitable_crawler import (
     SMCLabWeeklyReportCrawler, 
-    SMCLabGourpMeetingCrawler,
+    SMCLabGroupMeetingCrawler,
     SMCLabScheduleCrawler
 )
 from .crawler.address_book_crawler import (
@@ -46,7 +46,7 @@ class SMCLabServer:
         # 下载
         self.address_book_crawler  = SMCLabAddressBookCrawler() # 每学期更新一次(或手动更新)
         self.weekly_report_crawler = SMCLabWeeklyReportCrawler() 
-        self.group_meeting_crawler = SMCLabGourpMeetingCrawler()
+        self.group_meeting_crawler = SMCLabGroupMeetingCrawler()
         self.schedule_crawler      = SMCLabScheduleCrawler()
         self.attendance_crawler    = SMCLabAttendanceCrawler()
 
