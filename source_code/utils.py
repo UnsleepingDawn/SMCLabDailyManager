@@ -107,7 +107,7 @@ def get_semester_and_week(print_info=True,
 class TimeParser:
     # 获取上周一和周五的int
     @staticmethod
-    def get_last_week_date():
+    def get_last_week_period():
 
         today = datetime.now()
         current_weekday = today.weekday()
@@ -121,7 +121,41 @@ class TimeParser:
         
         return last_monday_int, last_friday_int
 
+    @staticmethod
+    def get_last_week_date(weekday: int):
+        today = datetime.now()
+        current_weekday = today.weekday()
+        # 计算上周周一：当前日期 - 当前星期几 - 上周的6天（因为要回到上周）
+        last_weekday = today - timedelta(days=current_weekday + (8 - weekday) )
+        last_weekday_int = int(last_weekday.strftime("%Y%m%d"))
+        
+        return last_weekday_int
     
+    @staticmethod
+    def get_this_week_period():
+        today = datetime.now()
+        current_weekday = today.weekday()
+        # 计算上周周一：当前日期 - 当前星期几 - 上周的6天（因为要回到上周）
+        this_monday = today - timedelta(days=current_weekday)
+        this_friday = this_monday + timedelta(days=4)
+        last_monday_int = int(this_monday.strftime("%Y%m%d"))
+        last_friday_int = int(this_friday.strftime("%Y%m%d"))
+        
+        return this_monday, this_friday
+    
+    @staticmethod
+    def get_this_week_date(weekday: int):
+        today = datetime.now()
+        current_weekday = today.weekday()
+        
+        # 计算上周周一：当前日期 - 当前星期几 - 上周的6天（因为要回到上周）
+        this_weekday = today - timedelta(days=current_weekday + (1 - weekday) )
+        this_weekday_int = int(this_weekday.strftime("%Y%m%d"))
+        
+        delta = current_weekday + (1 - weekday)
+
+        return this_weekday_int, delta
+
     @staticmethod
     def get_last_week_date_maping():
         today = datetime.now()
@@ -151,6 +185,54 @@ class TimeParser:
         weekdays = ["", "周一", "周二", "周三", "周四", "周五", "周六", "周日"]
         return weekdays[weekday_num]
 
+    @staticmethod
+    def get_timestamps(start_date: int, 
+                       end_date: int = None, 
+                       start_time: str = "0700", 
+                       end_time: str = "2300"):
+        """
+        获取某一天起始和终点时间的秒级时间戳
+        
+        Args:
+            date_int: 日期整数，格式如20251203
+            start_time_str: 起始时间字符串，格式如0930
+            end_time_str: 终点时间字符串，格式如0930
+        
+        Returns:
+            tuple: (起始时间戳字符串, 终点时间戳字符串)
+        """
+        # 将整数日期转换为字符串并解析
+        if not end_date:
+            end_date = start_date
+            assert int(end_time)>int(start_time)
+        else:
+            assert (start_date < end_date) or (start_date == end_date and int(end_time)>int(start_time))
+        start_date = str(start_date)
+        start_year = int(start_date[:4])
+        start_month = int(start_date[4:6])
+        start_day = int(start_date[6:8])
+        end_date = str(end_date)
+        end_year = int(end_date[:4])
+        end_month = int(end_date[4:6])
+        end_day = int(end_date[6:8])
+        
+        # 解析起始时间
+        start_hour = int(start_time[:2])
+        start_minute = int(start_time[2:4])
+        
+        # 解析结束时间
+        end_hour = int(end_time[:2])
+        end_minute = int(end_time[2:4])
+        
+        # 创建起始和结束时间的datetime对象
+        start_dt = datetime(start_year, start_month, start_day, start_hour, start_minute)
+        end_dt = datetime(end_year, end_month, end_day, end_hour, end_minute)
+        
+        # 转换为时间戳（秒级）
+        start_timestamp = str(int(start_dt.timestamp()))
+        end_timestamp = str(int(end_dt.timestamp()))
+        
+        return start_timestamp, end_timestamp
 
 
 # 使用示例
@@ -162,4 +244,8 @@ if __name__ == "__main__":
     # print(f"上周周五: {last_friday}")
 
     # get_year_semester(True)
-    print(get_semester_and_week())
+    today = datetime.now()
+    current_weekday = today.weekday()
+    print(today)
+    print(current_weekday)
+    print(TimeParser.get_this_week_date(5))
