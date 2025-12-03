@@ -19,7 +19,8 @@ from source_code.data_manager.schedule_parser import (
     SMCLabScheduleParser
 )
 from source_code.data_manager.attendance_parser import (
-    SMCLabAttendanceParser
+    SMCLabAttendanceParser,
+    SMCLabSeminarAttendanceParser
 )
 from source_code.data_manager.bitable_parser import (
     SMCLabMemberInfoParser,
@@ -85,9 +86,14 @@ def amend_info_every_semester():
     address_book_parser = SMCLabAddressBookParser()
     address_book_parser.merge_info_to_excel()
 
+def send_this_week_seminar_attendance():
+    attendance_crawler = SMCLabAttendanceCrawler()
+    attendance_crawler.get_my_this_week_seminar_attendance_flow()
+    seminar_parser = SMCLabSeminarAttendanceParser()
+    seminar_parser.get_attendee_names()
 
 if __name__ == "__main__":
     # client = SMCLabClient()
 
-    send_last_week_summary()
+    send_this_week_seminar_attendance()
     # amend_info_every_semester()

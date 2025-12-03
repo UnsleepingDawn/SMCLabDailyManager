@@ -1,4 +1,4 @@
-import json, os
+import json, os, glob
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -7,6 +7,7 @@ from typing import List, Dict
 from ..utils import TimeParser, get_year_semester, get_semester_and_week
 from ..crawler.bitable_crawler import SMCLabScheduleCrawler
 from .schedule_parser import SMCLabScheduleParser
+from .excel_manager import SMCLabInfoManager
 
 ABS_PATH = os.path.abspath(__file__)        # SMCLabDailyManager\source_code\SMCLabDataManager\AttendanceParser.py
 CURRENT_PATH = os.path.dirname(ABS_PATH)    # SMCLabDailyManager\source_code\SMCLabDataManager
@@ -220,3 +221,55 @@ class SMCLabAttendanceParser:
         if plot:
             self._plot_attendance(df_sorted)
     
+
+class SMCLabSeminarAttendanceParser:
+    def __init__(self) -> None:
+        self.raw_data_path = os.path.join(RAW_DATA_PATH, "attendance_raw_data")
+        self.raw_data_files = glob.glob(os.path.join(self.raw_data_path, "*_seminar_attendance_raw_*.json"), recursive=True)
+        info_manager = SMCLabInfoManager()
+        self.name_and_id, _, _ = info_manager.map_fields("user_id","姓名")
+
+    def get_attendance_group_list(self):
+        group_info_path = os.path.join(self.raw_data_path, "attendance_group_info.json")
+        with open(group_info_path, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        ids = data.get("group_users_id_list", [])
+        self.expected_attendees = set([self.name_and_id[id] for id in ids])
+
+    def get_attendee_names(self) -> List[str]:
+        """
+        获取所有考勤文件中出现的人员姓名列表（去重）
+        
+        Returns:
+            List[str]: 按字母排序的姓名列表
+        """
+        # 使用集合来去重
+        attendee_names = set()
+        self.get_attendance_group_list()
+        notattended_names = self.expected_attendees
+        for file_path in self.raw_data_files:
+            try:
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    data = json.load(f)
+                
+                # 提取所有user_id
+                user_flow_results = data.get("user_flow_results", [])
+                for record in user_flow_results:
+                    user_id = record.get("user_id", None)
+                    type_attendance = record.get("type")
+                    if user_id and user_id in self.name_and_id:
+                        name = self.name_and_id[user_id]
+                        if name and (type_attendance==0 or type_attendance==6):  # 确保姓名不为空
+                            attendee_names.add(name)
+                            notattended_names.discard(name)
+                            
+                            
+            except (json.JSONDecodeError, KeyError, FileNotFoundError) as e:
+                print(f"处理文件 {file_path} 时出错: {e}")
+                continue
+        # notattended_names.discard("梁涵")
+        # notattended_names.discard("钟腾")
+        print("组会出勤:", attendee_names)
+        print("组会未出勤:", notattended_names)
+        # 转换为列表并按字母排序返回
+        return sorted(list(attendee_names)), sorted(list(notattended_names))
