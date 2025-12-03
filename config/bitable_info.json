@@ -15,6 +15,15 @@
         "table_id": "tbl3n3I1oKuO0KPT",
         "url": "https://sysu-smclab.feishu.cn/base/L5ZAbqlF4aG1EQsRszbcAa2JnWc?table=tbl3n3I1oKuO0KPT&view=vew4SqBurs"
     },
+    "group_meeting_leave":{
+        "app_token": "SAGSb336oa8QfPsJD4TcqCSin8b",
+        "table_id": {
+            "2025-Fall": "tblW7icX1N2mONai"
+        },
+        "url": {
+            "2025-Fall": "https://sysu-smclab.feishu.cn/base/SAGSb336oa8QfPsJD4TcqCSin8b?from=from_copylink"
+        }
+    },
     "freshman_schedule":{
         "app_token": "EGTXb1D1kaWnYUsTFLsc39rnntg",
         "table_id": {
