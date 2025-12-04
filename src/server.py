@@ -10,7 +10,7 @@ import os
 from .common.baseclient import SMCLabClient
 from .crawler.bitable_crawler import (
     SMCLabWeeklyReportCrawler, 
-    SMCLabGroupMeetingCrawler,
+    SMCLabSeminarCrawler,
     SMCLabScheduleCrawler
 )
 from .crawler.address_book_crawler import (
@@ -46,7 +46,7 @@ class SMCLabServer:
         # 下载
         self.address_book_crawler  = SMCLabAddressBookCrawler() # 每学期更新一次(或手动更新)
         self.weekly_report_crawler = SMCLabWeeklyReportCrawler() 
-        self.group_meeting_crawler = SMCLabGroupMeetingCrawler()
+        self.group_meeting_crawler = SMCLabSeminarCrawler()
         self.schedule_crawler      = SMCLabScheduleCrawler()
         self.attendance_crawler    = SMCLabAttendanceCrawler()
 
@@ -103,7 +103,7 @@ class SMCLabServer:
     def send_last_week_attendence(self, receivers: str or List[str] = ["梁涵"]):
         self.schedule_crawler.get_raw_records() # 下载最新课表数据
         self.schedule_parser.make_period_summary_json() # 处理最新的课表数据
-        self.attendance_crawler.get_last_week_records() # 下载上周的考勤数据
+        self.attendance_crawler.get_last_week_daily_records() # 下载上周的考勤数据
         self.attendance_parser.last_week_attendance_to_excel() # 处理上周的考勤数据
         self.weekly_report_crawler.get_last_week_records() # 下载上周的周报数据
         self.weekly_report_parser.last_week_weekly_report_to_txt() # 处理上周的周报数据

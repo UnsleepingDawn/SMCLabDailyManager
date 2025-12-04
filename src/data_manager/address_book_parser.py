@@ -4,21 +4,20 @@ from pathlib import Path
 from openpyxl import load_workbook
 from openpyxl.styles import Font, PatternFill
 
-ABS_PATH = os.path.abspath(__file__)        # SMCLabDailyManager\source_code\SMCLabDataManager\AddressBookParser.py
-CURRENT_PATH = os.path.dirname(ABS_PATH)    # SMCLabDailyManager\source_code\SMCLabDataManager
-SRC_PATH = os.path.dirname(CURRENT_PATH)    # SMCLabDailyManager\source_code
-REPO_PATH = os.path.dirname(SRC_PATH)       # SMCLabDailyManager
-RAW_DATA_PATH = os.path.join(REPO_PATH, "data_raw") # SMCLabDailyManager\data_raw
-INCRE_DATA_PATH = os.path.join(REPO_PATH, "data_incremental") # SMCLabDailyManager\data_incremental
+from ..common.baseparser import SMCLabBaseParser
+from ..config import Config
 
-class SMCLabAddressBookParser:
-    def __init__(self):
-        self.excel_path = os.path.join(INCRE_DATA_PATH, "SMCLab学生基本信息.xlsx")
-        self.raw_data_path = os.path.join(RAW_DATA_PATH, "address_book_raw_data")
+class SMCLabAddressBookParser(SMCLabBaseParser):
+    def __init__(self, config: Config = None):
+        if config is None:
+            config = Config()
+        super().__init__(config)
+        self.excel_path = os.path.join(config.incre_data_path, "SMCLab学生基本信息.xlsx")
+        self.raw_data_path = os.path.join(config.raw_data_path, "address_book_raw_data")
         if not os.path.exists(self.raw_data_path):
             os.makedirs(self.raw_data_path, exist_ok=True)
         self.address_book_path = os.path.join(self.raw_data_path, "address_book.json")
-        self.output_path = os.path.join(INCRE_DATA_PATH, "SMCLab学生扩展信息.xlsx")
+        self.output_path = os.path.join(config.incre_data_path, "SMCLab学生扩展信息.xlsx")
         self.df = self._read_excel()
         self.json_data = self._read_json()
         self.merged_df = None

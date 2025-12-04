@@ -7,28 +7,25 @@ from lark_oapi.api.attendance.v1 import *
 from ..common.baseclient import SMCLabClient
 from ..utils import TimeParser
 from ..data_manager.excel_manager import SMCLabInfoManager
-
-ABS_PATH = os.path.abspath(__file__)        # SMCLabDailyManager\source_code\SMCLabCrawler\AttendanceCrawler.py
-CURRENT_PATH = os.path.dirname(ABS_PATH)    # SMCLabDailyManager\source_code\SMCLabCrawler
-SRC_PATH = os.path.dirname(CURRENT_PATH)    # SMCLabDailyManager\source_code
-REPO_PATH = os.path.dirname(SRC_PATH)       # SMCLabDailyManager
-RAW_DATA_PATH = os.path.join(REPO_PATH, "data_raw") # SMCLabDailyManager\data_raw
-INCRE_DATA_PATH = os.path.join(REPO_PATH, "data_incremental") # SMCLabDailyManager\data_incremental
-
+from ..config import Config
 # 下载考勤原始数据(按周/月/学期/每周组会进行下载)
 class SMCLabAttendanceCrawler(SMCLabClient):
     def __init__(self, 
-                 page_size: int = 50):
-        super().__init__()
-        self.raw_data_path = os.path.join(RAW_DATA_PATH, "attendance_raw_data")
+                 config: Config = None):
+        if config is None:
+            config = Config()
+        super().__init__(config)
+        self.raw_data_path = config.da_raw_path
         if not os.path.exists(self.raw_data_path):
             os.makedirs(self.raw_data_path, exist_ok=True)
-        self.group_name = "SMC考勤"
+        self.page_size = config.da_page_size
+        self.group_name = config.da_group_name
+        self.group_info_path = config.da_group_info_path
+        self.update_group_info = config.da_update_group_info
+        # 会根据 group_name 来获取 group_id
         self.group_id = 0
         self.group_users_id_list = []
-        self.page_size = page_size
-        self.info_manager = SMCLabInfoManager()
-        self._remove_past_record()
+        self.info_manager = SMCLabInfoManager(config)
     
     def _check_resp(self, resp: SearchGroupResponse):
         assert resp.code == 0
@@ -98,20 +95,22 @@ class SMCLabAttendanceCrawler(SMCLabClient):
         users_id_list = [user.user_id for user in users_list]
         self.group_users_id_list = users_id_list
     
-    def _remove_past_record(self):
-        search_pattern = os.path.join(self.raw_data_path, "last_week*.json")
+    def _remove_past_daily_record(self):
+        search_pattern = os.path.join(self.raw_data_path, "*daily_attendance*.json")
         for file_path in glob.glob(search_pattern, recursive=True):
             os.remove(file_path)
-        file1 = os.path.join(self.raw_data_path, "attendance_group_info.json")
-        if os.path.exists(file1):
-            os.remove(os.path.join(self.raw_data_path, "attendance_group_info.json"))
-        return
 
-    def get_group_info(self, update = False):
+    def _remove_past_seminar_record(self):
+        search_pattern = os.path.join(self.raw_data_path, "*seminar_attendance*.json")
+        for file_path in glob.glob(search_pattern, recursive=True):
+            os.remove(file_path)
+
+    def get_group_info(self):
         '''
         该函数用于从 attendance_group_info.json 获取考勤组成员的user_id
         ''' 
-        group_info_path = os.path.join(self.raw_data_path, "attendance_group_info.json")
+        update = self.update_group_info
+        group_info_path = self.group_info_path
         if not update and os.path.exists(group_info_path):
             print("找到已有考勤组信息!")
             with open(group_info_path, "r", encoding="utf-8") as f:
@@ -134,15 +133,15 @@ class SMCLabAttendanceCrawler(SMCLabClient):
         print(f"\tgroup_name:\t{self.group_name}")
         print(f"\tgroup_id:\t{self.group_id}")
 
-    def get_user_stats_fields(self, update = False):
+    def get_fields(self, update = False):
         '''
         这个函数下载了考勤的各个字段的信息，没有被任何函数调用
         '''
         # 参考：https://open.feishu.cn/document/server-docs/attendance-v1/user_stats_data/query-2?appId=cli_a8cd4e246b70d013
-        user_stats_fields_path = os.path.join(self.raw_data_path, "user_stats_fields.json")
+        fields_path = os.path.join(self.raw_data_path, "fields.json")
         print("获取表头信息...")
-        if not update and os.path.exists(user_stats_fields_path):
-            print(f"表头信息已经存在: {user_stats_fields_path}")
+        if not update and os.path.exists(fields_path):
+            print(f"表头信息已经存在: {fields_path}")
         else:
             last_monday, last_friday = TimeParser.get_last_week_period()
             request: QueryUserStatsFieldRequest = QueryUserStatsFieldRequest.builder() \
@@ -159,18 +158,18 @@ class SMCLabAttendanceCrawler(SMCLabClient):
 
             # 保存页面
             resp_json = lark.JSON.marshal(resp.data, indent=4)
-            with open(user_stats_fields_path, 'w', encoding='utf-8') as f:
+            with open(fields_path, 'w', encoding='utf-8') as f:
                 f.write(resp_json)
 
 
-    def get_last_week_records(self):
+    def get_last_week_daily_records(self):
         # 收集方式参考: https://open.feishu.cn/document/server-docs/attendance-v1/user_stats_data/query-3?appId=cli_a8cd4e246b70d013
         # 数据结构参考：https://open.feishu.cn/document/server-docs/attendance-v1/user_stats_data/query-2?appId=cli_a8cd4e246b70d013
         # 简单来说：
         # 1. 51503-1-1: 每天第一次上班的打卡结果
         if not self.group_id:
             self.get_group_info()
-
+        self.remove_past_daily_record()
         raw_data_path = self.raw_data_path
         last_monday, last_friday = TimeParser.get_last_week_period()
         name_id_pair, _, _ = self.info_manager.map_fields("姓名", "user_id")
@@ -198,7 +197,7 @@ class SMCLabAttendanceCrawler(SMCLabClient):
 
         # 保存页面
         resp_json = lark.JSON.marshal(resp.data, indent=4)
-        resp_page_path = os.path.join(raw_data_path, f"last_week({self._year_semester},{self._this_week-1})_attendance_raw.json")
+        resp_page_path = os.path.join(raw_data_path, f"{self._year_semester}_Week{self._this_week-1}_daily_attendance_raw.json")
         with open(resp_page_path, 'w', encoding='utf-8') as f:
             f.write(resp_json)
 
@@ -243,7 +242,7 @@ class SMCLabAttendanceCrawler(SMCLabClient):
 
         print("下载完成!")
 
-    def get_my_this_week_seminar_attendance_flow(self):
+    def get_this_week_seminar_records(self):
         def split_ids_into_chunks(user_ids):
             if len(user_ids)>50:
                 return [user_ids[i:i + 50] for i in range(0, len(user_ids), 50)]
@@ -252,7 +251,7 @@ class SMCLabAttendanceCrawler(SMCLabClient):
 
         if not self.group_id:
             self.get_group_info()
-            
+        self.remove_past_seminar_record()
         raw_data_path = self.raw_data_path
         this_group_meeting_day, delta = TimeParser.get_this_week_date(3)
         timestamp_from, timestamp_to = TimeParser.get_timestamps(this_group_meeting_day,
@@ -282,7 +281,7 @@ class SMCLabAttendanceCrawler(SMCLabClient):
 
             # 保存页面
             resp_json = lark.JSON.marshal(resp.data, indent=4)
-            resp_page_path = os.path.join(raw_data_path, f"this_week({self._year_semester},{self._this_week})_seminar_attendance_raw_{count}.json")
+            resp_page_path = os.path.join(raw_data_path, f"{self._year_semester}_Week{self._this_week}_seminar_attendance_raw_{count}.json")
             with open(resp_page_path, 'w', encoding='utf-8') as f:
                 f.write(resp_json)
             count += 1

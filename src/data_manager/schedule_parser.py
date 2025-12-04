@@ -3,34 +3,30 @@ import pandas as pd
 from collections import defaultdict
 from pathlib import Path
 
-from ..utils import get_year_semester
-from ..crawler.bitable_crawler import SMCLabScheduleCrawler
+from ..common.baseparser import SMCLabBaseParser
+from ..config import Config
 
-ABS_PATH = os.path.abspath(__file__)        # SMCLabDailyManager\source_code\SMCLabDataManager\ScheduleParser.py
-CURRENT_PATH = os.path.dirname(ABS_PATH)    # SMCLabDailyManager\source_code\SMCLabDataManager
-SRC_PATH = os.path.dirname(CURRENT_PATH)    # SMCLabDailyManager\source_code
-REPO_PATH = os.path.dirname(SRC_PATH)       # SMCLabDailyManager
-RAW_DATA_PATH = os.path.join(REPO_PATH, "data_raw") # SMCLabDailyManager\data_raw
-SEM_DATA_PATH = os.path.join(REPO_PATH, "data_semester") # SMCLabDailyManager\data_semester
-
-class SMCLabScheduleParser:
-    def __init__(self):
-        raw_data_path = os.path.join(RAW_DATA_PATH, "schedule_raw_data")
-        raw_json_path = os.path.join(raw_data_path, "resp_page_0.json")
-        if not os.path.exists(raw_json_path):
-            client = SMCLabScheduleCrawler()
-            client.get_raw_records()
-        with open(raw_json_path, 'r', encoding='utf-8') as f:
+class SMCLabScheduleParser(SMCLabBaseParser):
+    def __init__(self, config: Config = None):
+        if config is None:
+            config = Config()
+        super().__init__(config)
+        self.raw_data_path = config.schedule.raw_path
+        self.file_list = sorted(glob(os.path.join(self.raw_data_path, "*schedule_raw*.json")))
+        if not self.file_list:
+            raise FileNotFoundError(f"未在 {self.raw_data_path} 中找到任何 schedule*.json 文件")
+        raw_file = self.file_list[0]
+        if not os.path.exists(raw_file):
+            raise RuntimeError(f"未找到 {raw_file}, 请先运行 SMCLabScheduleCrawler 下载数据")
+        with open(raw_file, 'r', encoding='utf-8') as f:
             self.data = json.load(f)["items"]
-        self.time_table = self._build_time_table()
-        self.days = ["周一", "周二", "周三", "周四", "周五"]
-        semester = get_year_semester()
-        self.sem_data_path = os.path.join(SEM_DATA_PATH, semester)
-        if not os.path.exists(self.sem_data_path):
-            os.makedirs(self.sem_data_path, exist_ok=True)
+        self.time_table, self.days = self._build_time_table()
+        self.sem_path = os.path.join(self._sem_data_path, self._year_semester)
+        if not os.path.exists(self.sem_path):
+            os.makedirs(self.sem_path, exist_ok=True)
     
     def _build_time_table(self):
-        return {
+        time_table = {
             "上午": {"第1节": ("08:00", "08:55"), "第2节": ("08:55", "09:40"), 
                    "第3节": ("10:10", "11:05"), "第4节": ("11:05", "11:50")},
             "下午": {"第1节": ("14:20", "15:15"), "第2节": ("15:15", "16:00"), 
@@ -38,6 +34,8 @@ class SMCLabScheduleParser:
             "晚上": {"第1节": ("19:00", "19:55"), "第2节": ("19:55", "20:50"), 
                    "第3节": ("20:50", "21:35")}
         }
+        days = ["周一", "周二", "周三", "周四", "周五"]
+        return time_table, days
     
     def _all_slots(self):
         """返回所有时段元组列表 [('上午','第1节'), ('上午','第2节'), ...]"""
@@ -58,7 +56,7 @@ class SMCLabScheduleParser:
         return schedule
 
     def make_schedule_count_xlsx(self):
-        output_path = os.path.join(self.sem_data_path, "schedule_count.xlsx")
+        output_path = os.path.join(self.sem_path, "schedule_count.xlsx")
         schedule = self._collect_schedule()
         records = []
         for period, sub in self.time_table.items():
@@ -73,7 +71,7 @@ class SMCLabScheduleParser:
         print(f"课时人数表已保存: {Path(output_path).absolute()}")
 
     def make_schedule_names_xlsx(self):
-        output_path = os.path.join(self.sem_data_path, "schedule_names.xlsx")
+        output_path = os.path.join(self.sem_path, "schedule_names.xlsx")
         schedule = self._collect_schedule()
         records = []
         for period, sub in self.time_table.items():
@@ -88,14 +86,14 @@ class SMCLabScheduleParser:
         print(f"课时姓名表已保存: {Path(output_path).absolute()}")
 
     def make_schedule_by_slot_json(self):
-        output_path = os.path.join(self.sem_data_path, "schedule_by_slot.json")
+        output_path = os.path.join(self.sem_path, "schedule_by_slot.json")
         schedule = self._collect_schedule()
         with open(output_path, "w", encoding="utf-8") as f:
             json.dump(schedule, f, ensure_ascii=False, indent=4)
         print(f"每节课学生名单JSON已保存: {Path(output_path).absolute()}")
 
     def make_period_summary_json(self):
-        output_path = os.path.join(self.sem_data_path, "schedule_by_period.json")
+        output_path = os.path.join(self.sem_path, "schedule_by_period.json")
         schedule = self._collect_schedule()
         summary = {day: {"上午": set(), "下午": set(), "晚上": set()} for day in self.days}
         for day in self.days:

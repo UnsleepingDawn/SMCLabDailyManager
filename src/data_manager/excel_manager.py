@@ -1,16 +1,12 @@
 import os
 import pandas as pd
-
-ABS_PATH = os.path.abspath(__file__)        # SMCLabDailyManager\source_code\SMCLabDataManager\ExcelManager.py
-CURRENT_PATH = os.path.dirname(ABS_PATH)    # SMCLabDailyManager\source_code\SMCLabDataManager
-SRC_PATH = os.path.dirname(CURRENT_PATH)    # SMCLabDailyManager\source_code
-REPO_PATH = os.path.dirname(SRC_PATH)       # SMCLabDailyManager
-RAW_DATA_PATH = os.path.join(REPO_PATH, "data_raw") # SMCLabDailyManager\data_raw
-INCRE_DATA_PATH = os.path.join(REPO_PATH, "data_incremental") # SMCLabDailyManager\data_incremental
+from ..config import Config
 
 class SMCLabInfoManager:
-    def __init__(self):
-        self.filepath = os.path.join(INCRE_DATA_PATH, "SMCLab学生扩展信息.xlsx")
+    def __init__(self, config: Config = None):
+        if config is None:
+            config = Config()
+        self.filepath = config.info_plus_path
         try:
             self.df = pd.read_excel(self.filepath)
         except Exception as e:
@@ -71,7 +67,8 @@ class SMCLabInfoManager:
 
 
 if __name__ == "__main__":
-    manager = SMCLabInfoManager()
+    config = Config()
+    manager = SMCLabInfoManager(config)
     mapping, missing_name = manager.map_fields("飞书账号", "user_id")
 
     print("映射数量：", len(mapping))

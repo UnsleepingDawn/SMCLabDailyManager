@@ -1,7 +1,7 @@
 from src.common.baseclient import SMCLabClient
 from src.crawler.bitable_crawler import (
     SMCLabWeeklyReportCrawler, 
-    SMCLabGroupMeetingCrawler,
+    SMCLabSeminarCrawler,
     SMCLabScheduleCrawler
 )
 
@@ -23,7 +23,7 @@ from src.data_manager.attendance_parser import (
     SMCLabSeminarAttendanceParser
 )
 from src.data_manager.bitable_parser import (
-    SMCLabMemberInfoParser,
+    SMCLabSeminarParser,
     SMCLabWeeklyReportParser
 )
 from src.message.sender import (
@@ -61,7 +61,7 @@ def send_last_week_summary():
     schedule_parser.make_period_summary_json()
     # 出勤部分
     attendance_crawler = SMCLabAttendanceCrawler()
-    attendance_crawler.get_last_week_records()
+    attendance_crawler.get_last_week_daily_records()
     attendance_parser = SMCLabAttendanceParser()
     attendance_parser.last_week_attendance_to_excel()
     # 周报部分
@@ -76,9 +76,9 @@ def send_last_week_summary():
 
 def amend_info_every_semester():
     # 组会表格部分
-    group_meeting_crawler = SMCLabGroupMeetingCrawler()
+    group_meeting_crawler = SMCLabSeminarCrawler()
     group_meeting_crawler.get_raw_records()
-    member_info_parser = SMCLabMemberInfoParser()
+    member_info_parser = SMCLabSeminarParser()
     member_info_parser.save_to_excel()
     # 通讯录部分
     address_book_crawler = SMCLabAddressBookCrawler()
@@ -88,7 +88,7 @@ def amend_info_every_semester():
 
 def send_this_week_seminar_attendance():
     attendance_crawler = SMCLabAttendanceCrawler()
-    attendance_crawler.get_my_this_week_seminar_attendance_flow()
+    attendance_crawler.get_this_week_seminar_records()
     seminar_parser = SMCLabSeminarAttendanceParser()
     seminar_parser.get_attendee_names()
 

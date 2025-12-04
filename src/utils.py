@@ -1,13 +1,11 @@
 import time, os, json
 from datetime import datetime, timedelta
 
-ABS_PATH = os.path.abspath(__file__)        # SMCLabDailyManager\source_code\utils.py
-CURRENT_PATH = os.path.dirname(ABS_PATH)    # SMCLabDailyManager\source_code
-
-def get_year_semester(current_time: str = None):
-    json_path = os.path.join(CURRENT_PATH, "sysu_semesters.json")
+def get_semester(current_time: str = None,
+                      sysu_semesters_path: str = "configs/sysu_semesters.json"):
+    sysu_semesters_path = os.path.join("configs", "sysu_semesters.json")
     # 1. 读取JSON文件
-    with open(json_path, 'r', encoding='utf-8') as f:
+    with open(sysu_semesters_path, 'r', encoding='utf-8') as f:
         semester_map = json.load(f)
     # 2. 将字符串日期转换为 datetime 对象
     semester_dates = []
@@ -43,22 +41,12 @@ def get_year_semester(current_time: str = None):
     return current_semester
 
 def get_semester_and_week(print_info=True,
-                          current_time: str = None):
+                          current_time: str = None,
+                          sysu_semesters_path: str = "configs/sysu_semesters.json"):
     """
     根据json文件中学期起始时间（周一）映射，
     判断当前日期属于哪个学期，并返回第几周。
-    
-    参数：
-        json_path: JSON文件路径
-        current_time: 可选，指定当前时间（datetime对象）
-        
-    返回：
-        (semester_name, week_number)
-        如果当前时间在所有学期开始前，则返回第一个学期 week=1
-        如果在最后一个学期之后，则返回最后一个学期的周数（自然延续计算）
     """
-
-    json_path = os.path.join(CURRENT_PATH, "sysu_semesters.json")
     # 如果未指定时间，则使用当前时间
     if current_time is None:
         current_time = datetime.now()
@@ -66,7 +54,7 @@ def get_semester_and_week(print_info=True,
         current_time = datetime.strptime(current_time, "%Y%m%d")
 
     # 读取JSON文件
-    with open(json_path, 'r', encoding='utf-8') as f:
+    with open(sysu_semesters_path, 'r', encoding='utf-8') as f:
         semester_map = json.load(f)
 
     # 转换为 (学期, 起始日期) 列表，并按时间排序

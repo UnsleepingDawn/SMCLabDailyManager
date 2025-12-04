@@ -6,49 +6,39 @@ from lark_oapi.api.bitable.v1 import *
 import lark_oapi.api.bitable.v1.resource as base_rsc
 import lark_oapi.api.drive.v1.resource as drive_rsc
 
-from ..utils import get_year_semester, get_semester_and_week
-
-ABS_PATH = os.path.abspath(__file__)        # SMCLabDailyManager\source_code\SMCLabCrawler\SMCLabClient.py
-CURRENT_PATH = os.path.dirname(ABS_PATH)    # SMCLabDailyManager\source_code\SMCLabCrawler
-SRC_PATH = os.path.dirname(CURRENT_PATH)    # SMCLabDailyManager\source_code
-REPO_PATH = os.path.dirname(SRC_PATH)       # SMCLabDailyManager
-
-TANENT_JSON_FILE = os.path.join(CURRENT_PATH, "last_tenant_access.json") # SMCLabDailyManager\source_code\SMCLabCrawler\table_tokens.json
-APP_TOKENS_JSON_FILE = os.path.join(SRC_PATH, "app_tokens.json")
+from ..utils import get_semester, get_semester_and_week
+from ..config import Config
 
 # 父类
 class SMCLabClient(object):
-    def __init__(self) -> None:
-        app_info = self._get_app_tokens()
+    def __init__(self, config: Config = None) -> None:
+        if config is None:
+            config = Config()
+        app_info = self._get_app_tokens(config.app_tokens_path)
         app_id = app_info["app_id"]
         app_secret = app_info["app_secret"]
-        tenant_access_token = self._get_tenant_access_token(app_id, app_secret) # 应用身份权限
-
+        last_tenant_path = config.last_tenant_path
+        tenant_access_token = self._get_tenant_access_token(app_id, app_secret, last_tenant_path) # 应用身份权限
         # 参考: https://open.feishu.cn/document/server-side-sdk/python--sdk/invoke-server-api
         client: lark.Client = (
             lark.Client.builder()
             .app_id(app_info["app_id"])
             .app_secret(app_info["app_secret"])
-            # .log_level(lark.LogLevel.DEBUG)
             .build()
         )
+
         self._client = client
         self._tenant_access_token = tenant_access_token
-
-        self._year_semester, self._this_week = get_semester_and_week()
-        # lark.logger.info(tenant_access_token)
+        self._year_semester = None
+        self._this_week = None
+        self.sysu_semesters_path = config.sysu_semesters_path
+        self._year_semester, self._this_week = get_semester_and_week(self.sysu_semesters_path)
 
     @property
     def app_table_record(self) -> base_rsc.AppTableRecord:
         assert self._client.bitable is not None
         assert self._client.bitable.v1.app_table_record is not None
         return self._client.bitable.v1.app_table_record
-    
-    # @property
-    # def department(self) -> base_rsc.AppTableRecord:
-    #     assert self._client.contact is not None
-    #     assert self._client.contact.v3.department is not None
-    #     return self._client.contact.v3.department
 
     @property
     def media(self) -> drive_rsc.Media:
@@ -56,21 +46,21 @@ class SMCLabClient(object):
         assert self._client.drive.v1.media is not None
         return self._client.drive.v1.media
 
-    def _get_app_tokens(self):
+    def _get_app_tokens(self,
+                        app_tokens_path: str = "configs/app_tokens.json"):
         """
         从json中获取应用的app_id, app_secret
-        input:
-            tokens_json_file: app的配置, 令牌等
-        return:
-            app_info: 含有键app_id, app_secret的字典
-            table_info: 含有键app_token, app_secret的字典
         """
-        with open(APP_TOKENS_JSON_FILE, "r", encoding="utf-8") as f:
+
+        with open(app_tokens_path, "r", encoding="utf-8") as f:
             data = json.load(f)
         app_info = data["SMCLab_Manager"]
         return app_info
 
-    def _get_tenant_access_token(self, app_id: str, app_secret: str):
+    def _get_tenant_access_token(self, 
+                                 app_id: str, 
+                                 app_secret: str,
+                                 last_tenant_path: str = "configs/last_tenant.json"):
         """
         修改自: https://open.feishu.cn/document/server-docs/authentication-management/access-token/tenant_access_token_internal
         通过自建应用的id和secret获取tenant_access_token, 用于查询表格记录
@@ -81,9 +71,8 @@ class SMCLabClient(object):
             tenant_access_token
         """
         # 检查本地是否有上次的应用身份权限tenant_access_token记录，且是否还有效
-
-        if os.path.exists(TANENT_JSON_FILE):
-            with open(TANENT_JSON_FILE, "r", encoding="utf-8") as f:
+        if os.path.exists(last_tenant_path):
+            with open(last_tenant_path, "r", encoding="utf-8") as f:
                 last_tenant_access_info = json.load(f)
             last_token_time = last_tenant_access_info.get("time_stamp", 0)
             expire = last_tenant_access_info.get("expire", 0)
@@ -101,7 +90,7 @@ class SMCLabClient(object):
         expire = response["expire"]
         tenant_access_token = response["tenant_access_token"]
 
-        with open(TANENT_JSON_FILE, 'w', encoding='utf-8') as f:
+        with open(last_tenant_path, 'w', encoding='utf-8') as f:
             time_now = time.time()
             json.dump({"time_stamp": time_now, 
                        "time_stamp_readable": time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(time_now)),
@@ -130,3 +119,5 @@ class SMCLabClient(object):
         print("Year Semester:", self._year_semester)
         print("Tenant Access Token:", self._tenant_access_token)
     
+    def reset_time(self):
+        self._year_semester, self._this_week = get_semester_and_week(self.sysu_semesters_path)

@@ -6,29 +6,28 @@ from lark_oapi.api.contact.v3 import *
 from lark_oapi.api.contact.v3.model.user import User
 
 from ..common.baseclient import SMCLabClient
-
-ABS_PATH = os.path.abspath(__file__)        # SMCLabDailyManager\source_code\SMCLabCrawler\AddressBookCrawler.py
-CURRENT_PATH = os.path.dirname(ABS_PATH)    # SMCLabDailyManager\source_code\SMCLabCrawler
-SRC_PATH = os.path.dirname(CURRENT_PATH)    # SMCLabDailyManager\source_code
-REPO_PATH = os.path.dirname(SRC_PATH)       # SMCLabDailyManager
-RAW_DATA_PATH = os.path.join(REPO_PATH, "data_raw")
+from ..config import Config
 
 class SMCLabAddressBookCrawler(SMCLabClient):
     def __init__(self,
-                 page_size: int = 50):
-        super().__init__()
-        self.page_size = page_size
-        self.raw_data_path = os.path.join(RAW_DATA_PATH, "address_book_raw_data")
+                 config: Config = None):
+        if config is None:
+            config = Config()
+        super().__init__(config)
+        self.page_size = config.ab_page_size
+        self.raw_data_path = config.ab_raw_path
+        self.department_id_path = config.ab_department_id_path
+        self.update_department_id = config.ab_update_department_id
+        self.output_path = config.ab_output_path
         if not os.path.exists(self.raw_data_path):
             os.makedirs(self.raw_data_path, exist_ok=True)
         self.department_id = {}
-        self._remove_past_record()
     
-    def _get_department_id(self, update = False):
+    def _get_department_id(self):
         # 参考 https://open.feishu.cn/api-explorer/cli_a8cd4e246b70d013?apiName=children&from=op_doc&project=contact&resource=department&version=v3
-        data_path = os.path.join(self.raw_data_path, "department_id.json")
-        if not update and os.path.exists(data_path):
-            with open(data_path, "r", encoding="utf-8") as f:
+        department_id_path = self.department_id_path
+        if not self.update_department_id and os.path.exists(department_id_path):
+            with open(department_id_path, "r", encoding="utf-8") as f:
                 self.department_id = json.load(f)
             return
         has_more = True
@@ -67,15 +66,8 @@ class SMCLabAddressBookCrawler(SMCLabClient):
                 "primary_member_count": item.primary_member_count, # 当前部门及其下属部门的主属成员（即成员的主部门为当前部门）的数量。
             }
             self.department_id[item.name]=department
-        with open(data_path, 'w', encoding='utf-8') as f:
+        with open(department_id_path, 'w', encoding='utf-8') as f:
             json.dump(self.department_id, f, ensure_ascii=False, indent=4)
-        
-    def _remove_past_record(self):
-        # 删去所有的下载数据
-        search_pattern = os.path.join(self.raw_data_path, "**", "*.json")
-        for file_path in glob.glob(search_pattern, recursive=True):
-            os.remove(file_path)
-        return
 
     def _get_one_department_records(self, 
                                    department_id: str = "") -> List[User]:
@@ -122,7 +114,6 @@ class SMCLabAddressBookCrawler(SMCLabClient):
 
     def get_raw_records(self):
         # 递归下载各个部门的通讯录, 并整理
-        raw_data_path = self.raw_data_path
 
         if self.department_id == {}:
             self._get_department_id()
@@ -170,7 +161,7 @@ class SMCLabAddressBookCrawler(SMCLabClient):
                 address_book[department_name]["primary_members"].append(member_info)
                 
         # 保存页面
-        address_book_path = os.path.join(raw_data_path, f"address_book.json")
+        address_book_path = self.output_path
         with open(address_book_path, 'w', encoding='utf-8') as f:
             json.dump(address_book, f, ensure_ascii=False, indent=4)
         return

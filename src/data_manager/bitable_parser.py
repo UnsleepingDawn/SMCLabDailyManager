@@ -3,29 +3,19 @@ import os
 from glob import glob
 from openpyxl import Workbook
 
-from ..utils import get_year_semester, get_semester_and_week
+from ..common.baseparser import SMCLabBaseParser
+from ..config import Config
 from .excel_manager import SMCLabInfoManager
 
-ABS_PATH = os.path.abspath(__file__)        # SMCLabDailyManager\src\SMCLabDataManager\BitableParser.py
-CURRENT_PATH = os.path.dirname(ABS_PATH)    # SMCLabDailyManager\src\SMCLabDataManager
-SRC_PATH = os.path.dirname(CURRENT_PATH)    # SMCLabDailyManager\src
-REPO_PATH = os.path.dirname(SRC_PATH)       # SMCLabDailyManager
-RAW_DATA_PATH = os.path.join(REPO_PATH, "data_raw") # SMCLabDailyManager\data_raw
-SEM_DATA_PATH = os.path.join(REPO_PATH, "data_semester")
-INCRE_DATA_PATH = os.path.join(REPO_PATH, "data_incremental") # SMCLabDailyManager\data_incremental
-
-
-class SMCLabBitableParser:
-    def __init__(self, bitable_dir: str = None):
-        self.bitable_dir = bitable_dir
-        self.raw_data_path = os.path.join(RAW_DATA_PATH, bitable_dir)
-        self.file_list = sorted(glob(os.path.join(self.raw_data_path, "resp_page_*.json")))
+class SMCLabBitableParser(SMCLabBaseParser):
+    def __init__(self, config: Config=None):
+        if config is None:
+            config = Config()
+        super().__init__(config)
+        self.raw_data_path = None
+        self.file_list = None
         self.output_path = None
-        if bitable_dir == "group_meeting_raw_data":
-            self.info_manager = None
-        else:
-            self.info_manager = SMCLabInfoManager()
-        self._year_semester, self._this_week = get_semester_and_week()
+        self.info_manager = SMCLabInfoManager(config)
 
     def _load_json(self, file_path):
         """读取单个 JSON 文件"""
@@ -42,12 +32,16 @@ class SMCLabBitableParser:
         except (KeyError, IndexError, TypeError):
             return ""
 
-class SMCLabMemberInfoParser(SMCLabBitableParser):
-    def __init__(self):
-        super().__init__(bitable_dir="group_meeting_raw_data")
+class SMCLabSeminarParser(SMCLabBitableParser):
+    def __init__(self, config: Config = None):
+        if config is None:
+            config = Config()
+        super().__init__(config=config)
+        self.raw_data_path = config.seminar.raw_path
+        self.file_list = sorted(glob(os.path.join(self.raw_data_path, "*seminar_raw*.json")))
         if not self.file_list:
-            raise FileNotFoundError(f"未在 {self.raw_data_path} 中找到任何 resp_page_*.json 文件")
-        self.output_path = os.path.join(INCRE_DATA_PATH, "SMCLab学生基本信息.xlsx")
+            raise FileNotFoundError(f"未在 {self.raw_data_path} 中找到任何 seminar*.json 文件")
+        self.info_base_path = config.info_base_path
 
     def parse_all(self):
         all_records = []
@@ -71,7 +65,7 @@ class SMCLabMemberInfoParser(SMCLabBitableParser):
     def save_to_excel(self, output_path: str = None):
         """将所有记录保存为 Excel 文件"""
         if not output_path:
-            output_path = self.output_path
+            output_path = self.info_base_path
         records = self.parse_all()
 
         wb = Workbook()
@@ -90,23 +84,21 @@ class SMCLabMemberInfoParser(SMCLabBitableParser):
 
 
 class SMCLabWeeklyReportParser(SMCLabBitableParser):
-    def __init__(self):
-        super().__init__(bitable_dir="weekly_report_raw_data")
-        
-        self.weekly_file_list = sorted(glob(os.path.join(self.raw_data_path, "last_week*.json")))
+    def __init__(self, config: Config = None):
+        if config is None:
+            config = Config()
+        super().__init__(config=config)
+        self.raw_data_path = config.weekly_report.raw_path
+        self.weekly_file_list = sorted(glob(os.path.join(self.raw_data_path, "*weekly_report_raw*.json")))
         # 要存在学期数据里的
-        self.sem_data_path = os.path.join(SEM_DATA_PATH, self._year_semester)
-        self.sem_week_path = os.path.join(self.sem_data_path, f"week{self._this_week-1}")
-        if not os.path.exists(self.sem_week_path):
-            os.makedirs(self.sem_week_path, exist_ok=True)
-        self.weekly_output_path = os.path.join(self.sem_week_path, f"SMCLab第{self._this_week-1}周周报统计.txt")
+        self.sem_path = os.path.join(self._sem_data_path, self._year_semester)
 
     def _get_group_info(self, update = False):
         '''
         该函数用于从 attendance_group_info.json 获取考勤组成员的姓名
         SMCLabAttendanceCrawler.get_group_info()
         ''' 
-        group_info_path = os.path.join(RAW_DATA_PATH, "attendance_raw_data", "attendance_group_info.json")
+        group_info_path = os.path.join(self.config.raw_data_path, "attendance_raw_data", "attendance_group_info.json")
         id_name_pair, _, _ = self.info_manager.map_fields("user_id", "姓名")
         if not update and os.path.exists(group_info_path):
             print("找到已有考勤组信息!")
@@ -192,6 +184,11 @@ class SMCLabWeeklyReportParser(SMCLabBitableParser):
             appeared_str = "本周未收集到同学们的周报"
         not_appeared_str = ", ".join(not_appeared_names) if len(not_appeared_names) else "本周周报全齐"
         # 写入文件
+        sem_week_path = os.path.join(self.sem_path, f"week{self._this_week-1}")
+        if not os.path.exists(sem_week_path):
+            os.makedirs(sem_week_path, exist_ok=True)
+        self.weekly_output_path = os.path.join(sem_week_path, f"SMCLab第{self._this_week-1}周周报统计.txt")
+
         with open(self.weekly_output_path, 'w', encoding='utf-8') as f:
             f.write(f"{appeared_str}{extra_in_str}\n")  # 第一行：出现的姓名
             f.write(f"{not_appeared_str}")  # 第二行：未出现的姓名
@@ -201,5 +198,5 @@ class SMCLabWeeklyReportParser(SMCLabBitableParser):
 if __name__ == "__main__":
     output_file = "output/飞书多维表格汇总.xlsx"
 
-    parser = SMCLabMemberInfoParser()
+    parser = SMCLabSeminarParser()
     parser.save_to_excel()

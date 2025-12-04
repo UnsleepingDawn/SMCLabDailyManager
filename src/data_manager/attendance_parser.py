@@ -4,33 +4,31 @@ import numpy as np
 import matplotlib.pyplot as plt
 from typing import List, Dict
 
-from ..utils import TimeParser, get_year_semester, get_semester_and_week
+from ..utils import TimeParser
+from ..common.baseparser import SMCLabBaseParser
 from ..crawler.bitable_crawler import SMCLabScheduleCrawler
+from ..config import Config
+
 from .schedule_parser import SMCLabScheduleParser
 from .excel_manager import SMCLabInfoManager
 
-ABS_PATH = os.path.abspath(__file__)        # SMCLabDailyManager\source_code\SMCLabDataManager\AttendanceParser.py
-CURRENT_PATH = os.path.dirname(ABS_PATH)    # SMCLabDailyManager\source_code\SMCLabDataManager
-SRC_PATH = os.path.dirname(CURRENT_PATH)    # SMCLabDailyManager\source_code
-REPO_PATH = os.path.dirname(SRC_PATH)       # SMCLabDailyManager
-RAW_DATA_PATH = os.path.join(REPO_PATH, "data_raw")
-SEM_DATA_PATH = os.path.join(REPO_PATH, "data_semester")
-
-class SMCLabAttendanceParser:
-    def __init__(self):
-        sem, week = get_semester_and_week()
-        self.raw_data_path = os.path.join(RAW_DATA_PATH, "attendance_raw_data")
-        self.raw_data_file = os.path.join(self.raw_data_path, f"last_week({sem},{week-1})_attendance_raw.json")
+class SMCLabAttendanceParser(SMCLabBaseParser):
+    def __init__(self, config: Config = None):
+        if config is None:
+            config = Config()
+        super().__init__(config)
+        self.raw_data_path = os.path.join(config.raw_data_path, "attendance_raw_data")
+        self.raw_data_file = os.path.join(self.raw_data_path, f"{self._year_semester}_{self._this_week-1}_attendance_raw.json")
         # 处理过程的中间数据
-        self.simplified_path = self.raw_data_file.replace("_raw.json", "_simplified.json")
-        self.weekly_summary_path = self.raw_data_file.replace("_raw.json", "_weekly_summary.json")
-        self.weekly_summary_updated_path = self.raw_data_file.replace("_raw.json", "_weekly_summary_updated.json")
+        self.simplified_path = self.raw_data_file.replace(".json", "_simplified.json")
+        self.weekly_summary_path = self.raw_data_file.replace(".json", "_weekly_summary.json")
+        self.weekly_summary_updated_path = self.raw_data_file.replace(".json", "_weekly_summary_updated.json")
         # 要存在学期数据里的
-        self.sem_data_path = os.path.join(SEM_DATA_PATH, sem)
-        self.sem_week_path = os.path.join(self.sem_data_path, f"week{week-1}")
+        self.sem_data_path = os.path.join(config.sem_data_path, self._year_semester)
+        self.sem_week_path = os.path.join(self.sem_data_path, f"week{self._this_week-1}")
         if not os.path.exists(self.sem_week_path):
             os.makedirs(self.sem_week_path, exist_ok=True)
-        self.weekly_output_path = os.path.join(self.sem_week_path, f"SMCLab第{week-1}周考勤统计.xlsx")
+        self.weekly_output_path = os.path.join(self.sem_week_path, f"SMCLab第{self._this_week-1}周考勤统计.xlsx")
         # 课表
         self.schedule_path = os.path.join(self.sem_data_path, "schedule_by_period.json")
 
@@ -222,11 +220,14 @@ class SMCLabAttendanceParser:
             self._plot_attendance(df_sorted)
     
 
-class SMCLabSeminarAttendanceParser:
-    def __init__(self) -> None:
-        self.raw_data_path = os.path.join(RAW_DATA_PATH, "attendance_raw_data")
+class SMCLabSeminarAttendanceParser(SMCLabBaseParser):
+    def __init__(self, config: Config = None) -> None:
+        if config is None:
+            config = Config()
+        super().__init__(config)
+        self.raw_data_path = os.path.join(config.raw_data_path, "attendance_raw_data")
         self.raw_data_files = glob.glob(os.path.join(self.raw_data_path, "*_seminar_attendance_raw_*.json"), recursive=True)
-        info_manager = SMCLabInfoManager()
+        info_manager = SMCLabInfoManager(config)
         self.name_and_id, _, _ = info_manager.map_fields("user_id","姓名")
 
     def get_attendance_group_list(self):
