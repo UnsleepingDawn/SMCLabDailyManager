@@ -18,6 +18,6 @@ data_semester/**
 !sysu_schedule.json
 !sysu_semesters.json
 !smc_sum_last_week.json
-
+!config.json
 # 特定文件
 Readmeysy.md

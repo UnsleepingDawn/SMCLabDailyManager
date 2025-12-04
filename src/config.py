@@ -59,6 +59,8 @@ class Config:
         self.sysu_schedule_path = path_config.get("sysu_schedule_path", "configs/sysu_schedule.json")
         self.sysu_semesters_path = path_config.get("sysu_semesters_path", "configs/sysu_semesters.json")
         
+        self.post_template_path = path_config.get("post_template_path", "configs/post_template/smc_sum_last_week.json")
+
         # 通讯录模块配置
         addressbook_config = self._config.get("addressbook", {})
         self.ab_page_size = addressbook_config.get("page_size", 50)

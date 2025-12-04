@@ -108,7 +108,7 @@ class SMCLabServer:
         self.weekly_report_crawler.get_last_week_records() # 下载上周的周报数据
         self.weekly_report_parser.last_week_weekly_report_to_txt() # 处理上周的周报数据
 
-        self.sender.send_last_weekly_summary(receivers)
+        self.sender.send_weekly_summary(receivers)
 
     def monthly_task(self):
         """每月1号中午12点执行的任务"""

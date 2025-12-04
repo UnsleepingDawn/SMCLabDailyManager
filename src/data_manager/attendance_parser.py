@@ -227,17 +227,50 @@ class SMCLabSeminarAttendanceParser(SMCLabBaseParser):
         super().__init__(config)
         self.raw_data_path = os.path.join(config.raw_data_path, "attendance_raw_data")
         self.raw_data_files = glob.glob(os.path.join(self.raw_data_path, "*_seminar_attendance_raw_*.json"), recursive=True)
+        self.sem_path = os.path.join(self._sem_data_path, self._year_semester)
+        
         info_manager = SMCLabInfoManager(config)
         self.name_and_id, _, _ = info_manager.map_fields("user_id","姓名")
 
-    def get_attendance_group_list(self):
+    def _get_attendance_group_list(self):
+        '''
+        加载理应参会的同学
+        '''
         group_info_path = os.path.join(self.raw_data_path, "attendance_group_info.json")
         with open(group_info_path, 'r', encoding='utf-8') as f:
             data = json.load(f)
         ids = data.get("group_users_id_list", [])
         self.expected_attendees = set([self.name_and_id[id] for id in ids])
 
-    def get_attendee_names(self) -> List[str]:
+    def load_attendees_from_relay(self) -> set:
+        """
+        加载txt文件中的人名集合
+        
+        Args:
+            file_path (str): txt文件路径，文件格式示例：
+                1. 姓名1 位置描述1
+                2. 姓名2 位置描述2
+                ...
+        
+        Returns:
+            set: 提取的人名集合
+        """
+
+        attendees = set()
+        file_path = os.path.join(self._sem_data_path, "临时的接龙结果.txt")
+        with open(file_path, 'r', encoding='utf-8') as f:
+            for line in f:
+                line = line.strip()
+                if line:
+                    # 查找第一个点，之后的内容为姓名和位置描述
+                    if '.' in line:
+                        # 提取点之后的内容，然后提取第一个空格之前的内容作为姓名
+                        name_part = line.split('.', 1)[1].strip()
+                        name = name_part.split()[0]
+                        attendees.add(name)
+        return attendees
+
+    def get_attended_names_to_txt(self, use_relay: bool = True) -> List[str]:
         """
         获取所有考勤文件中出现的人员姓名列表（去重）
         
@@ -245,32 +278,48 @@ class SMCLabSeminarAttendanceParser(SMCLabBaseParser):
             List[str]: 按字母排序的姓名列表
         """
         # 使用集合来去重
-        attendee_names = set()
-        self.get_attendance_group_list()
-        notattended_names = self.expected_attendees
-        for file_path in self.raw_data_files:
-            try:
-                with open(file_path, 'r', encoding='utf-8') as f:
-                    data = json.load(f)
-                
-                # 提取所有user_id
-                user_flow_results = data.get("user_flow_results", [])
-                for record in user_flow_results:
-                    user_id = record.get("user_id", None)
-                    type_attendance = record.get("type")
-                    if user_id and user_id in self.name_and_id:
-                        name = self.name_and_id[user_id]
-                        if name and (type_attendance==0 or type_attendance==6):  # 确保姓名不为空
-                            attendee_names.add(name)
-                            notattended_names.discard(name)
-                            
-                            
-            except (json.JSONDecodeError, KeyError, FileNotFoundError) as e:
-                print(f"处理文件 {file_path} 时出错: {e}")
-                continue
-        # notattended_names.discard("梁涵")
-        # notattended_names.discard("钟腾")
-        print("组会出勤:", attendee_names)
-        print("组会未出勤:", notattended_names)
+        attended_names = set()
+        self._get_attendance_group_list()
+
+        not_attended_names = self.expected_attendees
+        if use_relay:
+            # 通过群里的接龙结果输出出勤
+            attended_names = self.load_attendees_from_relay()
+            not_attended_names -= attended_names
+        else:
+            # 通过打卡流水输出出勤
+            for file_path in self.raw_data_files:
+                try:
+                    with open(file_path, 'r', encoding='utf-8') as f:
+                        data = json.load(f)
+                    # 提取所有user_id
+                    user_flow_results = data.get("user_flow_results", [])
+                    for record in user_flow_results:
+                        user_id = record.get("user_id", None)
+                        type_attendance = record.get("type")
+                        if user_id and user_id in self.name_and_id:
+                            name = self.name_and_id[user_id]
+                            if name and (type_attendance==0 or type_attendance==6):  # 确保姓名不为空
+                                attended_names.add(name)
+                                not_attended_names.discard(name)
+                except (json.JSONDecodeError, KeyError, FileNotFoundError) as e:
+                    print(f"处理文件 {file_path} 时出错: {e}")
+                    continue
+        
+        # TODO: 删去请假的人
+        # TODO: 删去上课的人
+        # TODO: 存为txt文件
+        attended_names_list = sorted(list(attended_names))
+        not_attended_names_list = sorted(list(not_attended_names))
+        attended_str = ", ".join(attended_names_list) if len(attended_names_list) else "本周未收集到同学们的打卡流水"
+        not_attended_str = ", ".join(not_attended_names_list) if len(not_attended_names_list) else "本周打卡流水全齐"
+        sem_week_path = os.path.join(self.sem_path, f"week{self._this_week}")
+        output_path = os.path.join(sem_week_path, f"SMCLab第{self._this_week}周组会考勤统计.txt")
+        if not os.path.exists(sem_week_path):
+            os.makedirs(sem_week_path, exist_ok=True)
+        with open(output_path, 'w', encoding='utf-8') as f:
+            f.write(f"{attended_str}\n")  # 第一行：出现的姓名
+            f.write(f"{not_attended_str}")  # 第二行：未出现的姓名
+        print("组会出勤:", attended_names)
+        print("组会未出勤:", not_attended_names)
         # 转换为列表并按字母排序返回
-        return sorted(list(attendee_names)), sorted(list(notattended_names))

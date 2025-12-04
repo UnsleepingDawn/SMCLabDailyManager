@@ -251,7 +251,7 @@ class SMCLabAttendanceCrawler(SMCLabClient):
 
         if not self.group_id:
             self.get_group_info()
-        self.remove_past_seminar_record()
+        self._remove_past_seminar_record()
         raw_data_path = self.raw_data_path
         this_group_meeting_day, delta = TimeParser.get_this_week_date(3)
         timestamp_from, timestamp_to = TimeParser.get_timestamps(this_group_meeting_day,
