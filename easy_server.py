@@ -1,4 +1,4 @@
-from source_code.server import SMCLabServer, manage_server
+from src.server import SMCLabServer, manage_server
 import sys
 
 if __name__ == "__main__":

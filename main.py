@@ -1,32 +1,32 @@
-from source_code.common.baseclient import SMCLabClient
-from source_code.crawler.bitable_crawler import (
+from src.common.baseclient import SMCLabClient
+from src.crawler.bitable_crawler import (
     SMCLabWeeklyReportCrawler, 
     SMCLabGroupMeetingCrawler,
     SMCLabScheduleCrawler
 )
 
-from source_code.crawler.address_book_crawler import (
+from src.crawler.address_book_crawler import (
     SMCLabAddressBookCrawler
 )
-from source_code.crawler.attendance_crawler import (
+from src.crawler.attendance_crawler import (
     SMCLabAttendanceCrawler
 )
 
-from source_code.data_manager.address_book_parser import (
+from src.data_manager.address_book_parser import (
     SMCLabAddressBookParser
 )
-from source_code.data_manager.schedule_parser import (
+from src.data_manager.schedule_parser import (
     SMCLabScheduleParser
 )
-from source_code.data_manager.attendance_parser import (
+from src.data_manager.attendance_parser import (
     SMCLabAttendanceParser,
     SMCLabSeminarAttendanceParser
 )
-from source_code.data_manager.bitable_parser import (
+from src.data_manager.bitable_parser import (
     SMCLabMemberInfoParser,
     SMCLabWeeklyReportParser
 )
-from source_code.message.sender import (
+from src.message.sender import (
     SMCLabMessageSender
 )
 
@@ -72,7 +72,7 @@ def send_last_week_summary():
     address_book_parser = SMCLabAddressBookParser()
     address_book_parser.merge()
 
-    sender.send_last_weekly_summary("陈旭")
+    sender.send_last_weekly_summary("梁涵")
 
 def amend_info_every_semester():
     # 组会表格部分

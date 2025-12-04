@@ -6,9 +6,9 @@ from openpyxl import Workbook
 from ..utils import get_year_semester, get_semester_and_week
 from .excel_manager import SMCLabInfoManager
 
-ABS_PATH = os.path.abspath(__file__)        # SMCLabDailyManager\source_code\SMCLabDataManager\BitableParser.py
-CURRENT_PATH = os.path.dirname(ABS_PATH)    # SMCLabDailyManager\source_code\SMCLabDataManager
-SRC_PATH = os.path.dirname(CURRENT_PATH)    # SMCLabDailyManager\source_code
+ABS_PATH = os.path.abspath(__file__)        # SMCLabDailyManager\src\SMCLabDataManager\BitableParser.py
+CURRENT_PATH = os.path.dirname(ABS_PATH)    # SMCLabDailyManager\src\SMCLabDataManager
+SRC_PATH = os.path.dirname(CURRENT_PATH)    # SMCLabDailyManager\src
 REPO_PATH = os.path.dirname(SRC_PATH)       # SMCLabDailyManager
 RAW_DATA_PATH = os.path.join(REPO_PATH, "data_raw") # SMCLabDailyManager\data_raw
 SEM_DATA_PATH = os.path.join(REPO_PATH, "data_semester")
