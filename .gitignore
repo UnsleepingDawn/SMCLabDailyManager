@@ -14,6 +14,8 @@ data_incre/**
 *.pyc
 *.log
 *.pid
+# 测试用代码
+test*.py
 # 不忽略
 !bitable_info.json
 !user_stats_fields.json
