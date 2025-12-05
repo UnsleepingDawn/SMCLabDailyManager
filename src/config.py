@@ -70,13 +70,18 @@ class Config:
         self.ab_output_path = addressbook_config.get("output_path", "data_raw/address_book.json")
 
         # 考勤模块配置
-        daily_config = self._config.get("daily_attendance", {})
-        self.da_page_size = daily_config.get("page_size", 50)
-        self.da_group_name = daily_config.get("group_name", "SMC考勤")
-        self.da_raw_path = daily_config.get("raw_path", "data_raw/attendance_raw_data")
-        self.da_group_info_path = daily_config.get("group_info_path", "data_raw/attendance_raw_data/group_info.json")
-        self.da_update_group_info = daily_config.get("update_group_info", True)
-        self.da_output_path = daily_config.get("output_path", "data_raw/attendance.json")
+        daily_attendance_config = self._config.get("daily_attendance", {})
+        self.da_page_size = daily_attendance_config.get("page_size", 50)
+        self.da_group_name = daily_attendance_config.get("group_name", "SMC考勤")
+        self.da_raw_path = daily_attendance_config.get("raw_path", "data_raw/attendance_raw_data")
+        self.da_group_info_path = daily_attendance_config.get("group_info_path", "data_raw/attendance_raw_data/group_info.json")
+        self.da_update_group_info = daily_attendance_config.get("update_group_info", True)
+        self.da_output_path = daily_attendance_config.get("output_path", "data_raw/attendance.json")
+
+        seminar_attendance_config = self._config.get("seminar_attendance", {})
+        self.sa_seminar_weekday = seminar_attendance_config.get("seminar_weekday", 3)
+        self.sa_seminar_start_time = seminar_attendance_config.get("seminar_start_time", 1900)
+        self.sa_seminar_end_time = seminar_attendance_config.get("seminar_end_time", 2030)
 
         # 多维表格配置
         bitable_config = self._config.get("bitable", {})

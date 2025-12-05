@@ -5,7 +5,7 @@
             [
                 {
                     "tag": "text",
-                    "text": "1. 出勤情况:",
+                    "text": "1. 日常出勤情况:",
                     "style": ["bold", "underline"]
                 
                 }
@@ -43,6 +43,36 @@
                 {
                     "tag": "text",
                     "text": "未提交: ",
+                    "style": ["bold"]
+                },
+                {
+                    "tag": "text",
+                    "text": ""
+                }
+            ],
+            [
+                {
+                    "tag": "text",
+                    "text": "3. 组会出勤情况:",
+                    "style": ["bold", "underline"]
+                
+                }
+            ],
+            [
+                {
+                    "tag": "text",
+                    "text": "已打卡: ",
+                    "style": ["bold"]
+                },
+                {
+                    "tag": "text",
+                    "text": ""
+                }
+            ],
+            [
+                {
+                    "tag": "text",
+                    "text": "未打卡: ",
                     "style": ["bold"]
                 },
                 {

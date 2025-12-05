@@ -6,7 +6,7 @@
         "incre_data_path": "data_incre",
         "configs_path": "configs",
 
-        "info_base_path": "data_incre/SMCLab学生基础信息.xlsx",
+        "info_base_path": "data_incre/SMCLab学生基本信息.xlsx",
         "info_plus_path": "data_incre/SMCLab学生扩展信息.xlsx",
 
         "app_tokens_path": "configs/app_tokens.json",
@@ -22,7 +22,7 @@
         "raw_path": "data_raw/address_book_raw_data",
         "department_id_path": "data_raw/address_book_raw_data/department_id.json",
         "update_department_id": true,
-        "output_path": "data_raw/address_book.json"
+        "output_path": "data_raw/address_book_raw_data/address_book.json"
     },
     "daily_attendance": {
         "page_size": 50,
@@ -33,7 +33,10 @@
         "output_name": "daily_attendance"
     },
     "seminar_attendance": {
-        "output_name": "seminar_attendance"
+        "output_name": "seminar_attendance",
+        "seminar_weekday": 3,
+        "seminar_start_time": 1900,
+        "seminar_end_time": 2030
     },
     "bitable": {
         "bitable_info_path": "configs/bitable_info.json",
