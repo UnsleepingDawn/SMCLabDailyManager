@@ -12,23 +12,16 @@ from ..config import Config
 from .schedule_parser import SMCLabScheduleParser
 from .excel_manager import SMCLabInfoManager
 
-class SMCLabAttendanceParser(SMCLabBaseParser):
+class SMCLabDailyAttendanceParser(SMCLabBaseParser):
     def __init__(self, config: Config = None):
         if config is None:
             config = Config()
         super().__init__(config)
-        self.raw_data_path = os.path.join(config.raw_data_path, "attendance_raw_data")
-        self.raw_data_file = os.path.join(self.raw_data_path, f"{self._year_semester}_{self._this_week-1}_attendance_raw.json")
-        # 处理过程的中间数据
-        self.simplified_path = self.raw_data_file.replace(".json", "_simplified.json")
-        self.weekly_summary_path = self.raw_data_file.replace(".json", "_weekly_summary.json")
-        self.weekly_summary_updated_path = self.raw_data_file.replace(".json", "_weekly_summary_updated.json")
+        self.raw_data_path = config.da_raw_path
+        raw_data_files = sorted(glob.glob(os.path.join(self.raw_data_path, f"*_daily_attendance_raw.json")))
+        self.raw_data_file = raw_data_files[-1] # 因为只有一个
         # 要存在学期数据里的
         self.sem_data_path = os.path.join(config.sem_data_path, self._year_semester)
-        self.sem_week_path = os.path.join(self.sem_data_path, f"week{self._this_week-1}")
-        if not os.path.exists(self.sem_week_path):
-            os.makedirs(self.sem_week_path, exist_ok=True)
-        self.weekly_output_path = os.path.join(self.sem_week_path, f"SMCLab第{self._this_week-1}周考勤统计.xlsx")
         # 课表
         self.schedule_path = os.path.join(self.sem_data_path, "schedule_by_period.json")
 
@@ -182,8 +175,13 @@ class SMCLabAttendanceParser(SMCLabBaseParser):
         plt.savefig(plot_path, dpi=600, bbox_inches='tight')
         print(f"图像已保存: {plot_path}")
 
-    def last_week_attendance_to_excel(self, plot = True):
+    def last_week_daily_attendance_to_excel(self, plot = True):
         """把上周的考勤存为表格和图"""
+        self.sem_week_path = os.path.join(self.sem_data_path, f"week{self._this_week-1}")
+        if not os.path.exists(self.sem_week_path):
+            os.makedirs(self.sem_week_path, exist_ok=True)
+        self.weekly_output_path = os.path.join(self.sem_week_path, f"SMCLab第{self._this_week-1}周考勤统计.xlsx")
+
         excel_path = self.weekly_output_path
         simplified_raw_data = self._simplify_raw_data()
         last_week_attendance = self._generate_last_week_attendance(simplified_raw_data)
@@ -226,7 +224,6 @@ class SMCLabSeminarAttendanceParser(SMCLabBaseParser):
             config = Config()
         super().__init__(config)
         self.raw_data_path = os.path.join(config.raw_data_path, "attendance_raw_data")
-        self.raw_data_files = glob.glob(os.path.join(self.raw_data_path, "*_seminar_attendance_raw_*.json"), recursive=True)
         self.sem_path = os.path.join(self._sem_data_path, self._year_semester)
         
         info_manager = SMCLabInfoManager(config)
@@ -242,7 +239,7 @@ class SMCLabSeminarAttendanceParser(SMCLabBaseParser):
         ids = data.get("group_users_id_list", [])
         self.expected_attendees = set([self.name_and_id[id] for id in ids])
 
-    def load_attendees_from_relay(self) -> set:
+    def load_attendees_from_relay(self, file_path: str) -> set:
         """
         加载txt文件中的人名集合
         
@@ -255,9 +252,8 @@ class SMCLabSeminarAttendanceParser(SMCLabBaseParser):
         Returns:
             set: 提取的人名集合
         """
-
+        assert os.path.getsize(file_path) > 4, f"接龙文件{file_path}为空"
         attendees = set()
-        file_path = os.path.join(self._sem_data_path, "临时的接龙结果.txt")
         with open(file_path, 'r', encoding='utf-8') as f:
             for line in f:
                 line = line.strip()
@@ -270,13 +266,17 @@ class SMCLabSeminarAttendanceParser(SMCLabBaseParser):
                         attendees.add(name)
         return attendees
 
-    def get_attended_names_to_txt(self, use_relay: bool = True) -> List[str]:
+    def get_attended_names_byweek(self, 
+                                  use_relay: bool = True,
+                                  week: int = None):
         """
-        获取所有考勤文件中出现的人员姓名列表（去重）
-        
-        Returns:
-            List[str]: 按字母排序的姓名列表
+        获取指定周所有考勤文件中出现的人员姓名列表（去重）
         """
+        # 筛选指定周的考勤文件
+        if week is None:
+            week = self._this_week
+        raw_data_files = sorted(glob.glob(os.path.join(self.raw_data_path, f"{self._year_semester}_Week{week}*seminar_attendance_raw*.json"), recursive=True))
+
         # 使用集合来去重
         attended_names = set()
         self._get_attendance_group_list()
@@ -284,11 +284,12 @@ class SMCLabSeminarAttendanceParser(SMCLabBaseParser):
         not_attended_names = self.expected_attendees
         if use_relay:
             # 通过群里的接龙结果输出出勤
-            attended_names = self.load_attendees_from_relay()
+            relay_file = os.path.join(self.raw_data_path, f"{self._year_semester}_Week{week}_seminar_attendance_relay.txt")
+            attended_names = self.load_attendees_from_relay(relay_file)
             not_attended_names -= attended_names
         else:
             # 通过打卡流水输出出勤
-            for file_path in self.raw_data_files:
+            for file_path in raw_data_files:
                 try:
                     with open(file_path, 'r', encoding='utf-8') as f:
                         data = json.load(f)
@@ -305,16 +306,39 @@ class SMCLabSeminarAttendanceParser(SMCLabBaseParser):
                 except (json.JSONDecodeError, KeyError, FileNotFoundError) as e:
                     print(f"处理文件 {file_path} 时出错: {e}")
                     continue
+
+        # TODO: 根据请假和上课情况进行自动排除，但是目前只能这么干
+        # 打印未出勤人员名单
+        print("\n=== 未出勤人员名单 ===")
+        if not_attended_names:
+            print(f"共有 {len(not_attended_names)} 人未出勤：")
+            for i, name in enumerate(sorted(not_attended_names), 1):
+                print(f"{i}. {name}")
+        else:
+            print("所有人员均已出勤")
         
-        # TODO: 删去请假的人
-        # TODO: 删去上课的人
-        # TODO: 存为txt文件
+        # 交互式排除人员
+        print("\n=== 交互式排除未出勤人员 ===")
+        print("请输入要从名单中排除的人名（按q回车退出）：")
+        
+        while True:
+            user_input = input("输入姓名或q退出: ").strip()
+            if user_input.lower() == 'q':
+                print("退出交互式排除")
+                break
+            if user_input in not_attended_names:
+                not_attended_names.discard(user_input)
+                print(f"已从名单中排除: {user_input}")
+            else:
+                print(f"{user_input} 不在未出勤名单中")
+        
+        # 保存到文件
         attended_names_list = sorted(list(attended_names))
         not_attended_names_list = sorted(list(not_attended_names))
         attended_str = ", ".join(attended_names_list) if len(attended_names_list) else "本周未收集到同学们的打卡流水"
         not_attended_str = ", ".join(not_attended_names_list) if len(not_attended_names_list) else "本周打卡流水全齐"
-        sem_week_path = os.path.join(self.sem_path, f"week{self._this_week}")
-        output_path = os.path.join(sem_week_path, f"SMCLab第{self._this_week}周组会考勤统计.txt")
+        sem_week_path = os.path.join(self.sem_path, f"week{week}")
+        output_path = os.path.join(sem_week_path, f"SMCLab第{week}周组会考勤统计.txt")
         if not os.path.exists(sem_week_path):
             os.makedirs(sem_week_path, exist_ok=True)
         with open(output_path, 'w', encoding='utf-8') as f:
@@ -323,3 +347,9 @@ class SMCLabSeminarAttendanceParser(SMCLabBaseParser):
         print("组会出勤:", attended_names)
         print("组会未出勤:", not_attended_names)
         # 转换为列表并按字母排序返回
+
+    def get_last_week_attended_names(self, use_relay: bool = False):
+        return self.get_attended_names_byweek(week=self._this_week-1, use_relay=use_relay)
+
+    def get_this_week_attended_names(self, use_relay: bool = True):
+        return self.get_attended_names_byweek(week=self._this_week, use_relay=use_relay)
