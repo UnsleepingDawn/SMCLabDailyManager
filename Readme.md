@@ -146,11 +146,13 @@ def monthly_task(self):
 4. 处理考勤原始数据(统计上周每个人的上班无故缺勤次数)
 
 # 未来更新(悬赏! 欢迎大家fork开发)
-
-- 下载考勤原始数据(按特定周/月进行下载)
-- 处理周报的原始数据(根据"SMCLab学生扩展信息.xlsx", 按周/月/学期, 以及是否按导师划分sheet)
+- 把group_info.json也加入到"SMCLab学生扩展信息.xlsx"中
+- SeminarParser在爬取之后，要去解析未来周的组会信息，并与SeminarAttendanceParser联动，因为或许本学期的组会不一定会在每周三。
+- Config中应该有一个字段用于指定本学期组会的时间, 2025-Fall默认为每周三的晚上。
+- 按导师划分sheet处理周报的原始数据
 - 输入拟安排的meeting排表, 根据课表情况将meeting的冲突单元格标红
-- 将密钥和token进行索引导出、压缩, 以及解压、索引导入
+
+暂时可以不用，但是后续可能要用：
 - 设置多种事件, 用于自动更新SMC的各个多维表格
 - 钩子检查
 - 客户端部署, 简单的GUI开发([参考](https://github.com/overflow65537/MFW-PyQt6))
