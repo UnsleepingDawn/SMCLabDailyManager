@@ -92,8 +92,48 @@ def get_semester_and_week(print_info=True,
 
     return current_semester, week_number
 
+def get_semester_start_date(semester: str = None,
+                            sysu_semesters_path: str = "configs/sysu_semesters.json"):
+    with open(sysu_semesters_path, 'r', encoding='utf-8') as f:
+        semester_map = json.load(f)
+    if semester is None:
+        semester = get_semester()
+    return datetime.strptime(semester_map[semester], "%Y%m%d")
+
 class TimeParser:
     # 获取上周一和周五的int
+
+    @staticmethod
+    def get_week_period(sem_start_date: datetime or str = None,
+                        week: int = None):
+        if sem_start_date is None:
+            sem_start_date = get_semester_start_date()
+        if isinstance(sem_start_date, str):
+            sem_start_date = datetime.strptime(sem_start_date, "%Y%m%d")
+        if week is None:
+            week = get_semester_and_week()[1]
+        # 计算本周周一：学期起始日期 + （周数 - 1） * 7天
+        monday = sem_start_date + timedelta(days=(week - 1) * 7)
+        # 计算本周周五：本周周一 + 4天
+        friday = monday + timedelta(days=4)
+        # 转换为整数格式 YYYYMMDD
+        monday_int = int(monday.strftime("%Y%m%d"))
+        friday_int = int(friday.strftime("%Y%m%d"))
+        
+        return monday_int, friday_int
+
+    @staticmethod
+    def get_week_date(weekday: int,
+                      week: int = None):
+        assert weekday in [1, 2, 3, 4, 5, 6, 7]
+        if week is None:
+            week = get_semester_and_week()[1]
+        assert week >= 0
+        sem_start_date = get_semester_start_date()
+        target_date = sem_start_date + timedelta(days=(week - 1) * 7 + (weekday - 1))
+        target_date_int = int(target_date.strftime("%Y%m%d"))
+        return target_date_int
+    
     @staticmethod
     def get_last_week_period():
 
@@ -116,7 +156,6 @@ class TimeParser:
         # 计算上周周一：当前日期 - 当前星期几 - 上周的6天（因为要回到上周）
         last_weekday = today - timedelta(days=current_weekday + (8 - weekday) )
         last_weekday_int = int(last_weekday.strftime("%Y%m%d"))
-        
         return last_weekday_int
     
     @staticmethod
@@ -236,4 +275,4 @@ if __name__ == "__main__":
     current_weekday = today.weekday()
     print(today)
     print(current_weekday)
-    print(TimeParser.get_this_week_date(5))
+    print(TimeParser.get_week_date(weekday=3, week=17))
