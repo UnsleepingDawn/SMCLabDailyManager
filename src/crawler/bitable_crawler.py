@@ -15,7 +15,7 @@ class SMCLabBitableCrawler(SMCLabClient):
         super().__init__(config)
         # 来自配置文件
         self.table_name = None
-        self.page_size = None
+        self._page_size = None
         self.raw_data_path = None
 
         # 需要读取多维表格token的配置
@@ -54,7 +54,7 @@ class SMCLabBitableCrawler(SMCLabClient):
             request: SearchAppTableRecordRequest = SearchAppTableRecordRequest.builder() \
                 .app_token(self._app_token) \
                 .table_id(self._table_id) \
-                .page_size(self.page_size) \
+                .page_size(self._page_size) \
                 .page_token(page_token) \
                 .request_body( \
                     SearchAppTableRecordRequestBody.builder()
@@ -84,7 +84,7 @@ class SMCLabWeeklyReportCrawler(SMCLabBitableCrawler):
         super().__init__(config)
         self.table_name = "weekly_report"
         self.raw_data_path = config.weekly_report.raw_path
-        self.page_size = config.weekly_report.page_size
+        self._page_size = config.weekly_report.page_size
         self._set_table_tokens()
         if not os.path.exists(self.raw_data_path):
             os.makedirs(self.raw_data_path, exist_ok=True)
@@ -93,8 +93,8 @@ class SMCLabWeeklyReportCrawler(SMCLabBitableCrawler):
         with open(self._bitable_tokens_path, "r", encoding="utf-8") as f:
             all_table_info = json.load(f)
         table_info = all_table_info[self.table_name]
-        self.app_token = table_info["app_token"]
-        self.table_id = table_info["table_id"][self._year_semester]
+        self._app_token = table_info["app_token"]
+        self._table_id = table_info["table_id"][self._year_semester]
 
     def get_raw_records_by_week(self, week: int = None):
         # 按周筛选返回响应
@@ -110,9 +110,9 @@ class SMCLabWeeklyReportCrawler(SMCLabBitableCrawler):
         while(has_more):
             print(f"\t请求下载第{page_cnt}页...")
             request: SearchAppTableRecordRequest = SearchAppTableRecordRequest.builder() \
-                .app_token(self.app_token) \
-                .table_id(self.table_id) \
-                .page_size(self.page_size) \
+                .app_token(self._app_token) \
+                .table_id(self._table_id) \
+                .page_size(self._page_size) \
                 .page_token(page_token) \
                 .request_body(SearchAppTableRecordRequestBody.builder()
                     .field_names(["汇报人", "附件", "文档链接"])
@@ -168,7 +168,7 @@ class SMCLabSeminarCrawler(SMCLabBitableCrawler):
         super().__init__(config)
         self.table_name = "seminar"
         self.raw_data_path = config.seminar.raw_path
-        self.page_size = config.seminar.page_size
+        self._page_size = config.seminar.page_size
         self._set_table_tokens()
         if not os.path.exists(self.raw_data_path):
             os.makedirs(self.raw_data_path, exist_ok=True)
@@ -177,8 +177,8 @@ class SMCLabSeminarCrawler(SMCLabBitableCrawler):
         with open(self._bitable_tokens_path, "r", encoding="utf-8") as f:
             all_table_info = json.load(f)
         table_info = all_table_info[self.table_name]
-        self.app_token = table_info["app_token"]
-        self.table_id = table_info["table_id"]
+        self._app_token = table_info["app_token"]
+        self._table_id = table_info["table_id"]
 
 
 class SMCLabScheduleCrawler(SMCLabBitableCrawler):
@@ -189,7 +189,7 @@ class SMCLabScheduleCrawler(SMCLabBitableCrawler):
         super().__init__(config)
         self.table_name = "schedule"
         self.raw_data_path = config.schedule.raw_path
-        self.page_size = config.schedule.page_size
+        self._page_size = config.schedule.page_size
         self._set_table_tokens()
         if not os.path.exists(self.raw_data_path):
             os.makedirs(self.raw_data_path, exist_ok=True)
@@ -198,5 +198,5 @@ class SMCLabScheduleCrawler(SMCLabBitableCrawler):
         with open(self._bitable_tokens_path, "r", encoding="utf-8") as f:
             all_table_info = json.load(f)
         table_info = all_table_info[self.table_name]
-        self.app_token = table_info["app_token"]
-        self.table_id = table_info["table_id"][self._year_semester]
+        self._app_token = table_info["app_token"]
+        self._table_id = table_info["table_id"][self._year_semester]

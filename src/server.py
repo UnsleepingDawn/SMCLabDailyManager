@@ -23,7 +23,7 @@ from .data_manager.schedule_parser import (
     SMCLabScheduleParser
 )
 from .data_manager.attendance_parser import (
-    SMCLabAttendanceParser
+    SMCLabDailyAttendanceParser
 )
 from .data_manager.bitable_parser import (
     SMCLabInfoManager,
@@ -52,7 +52,7 @@ class SMCLabServer:
 
         # 处理
         self.schedule_parser      = SMCLabScheduleParser()
-        self.attendance_parser    = SMCLabAttendanceParser()
+        self.attendance_parser    = SMCLabDailyAttendanceParser()
         self.weekly_report_parser = SMCLabWeeklyReportParser()
         
         # 发送
@@ -104,7 +104,7 @@ class SMCLabServer:
         self.schedule_crawler.get_raw_records() # 下载最新课表数据
         self.schedule_parser.make_period_summary_json() # 处理最新的课表数据
         self.attendance_crawler.get_last_week_daily_records() # 下载上周的考勤数据
-        self.attendance_parser.last_week_attendance_to_excel() # 处理上周的考勤数据
+        self.attendance_parser.last_week_daily_attendance_to_excel() # 处理上周的考勤数据
         self.weekly_report_crawler.get_last_week_records() # 下载上周的周报数据
         self.weekly_report_parser.last_week_weekly_report_to_txt() # 处理上周的周报数据
 

@@ -89,7 +89,8 @@ class SMCLabWeeklyReportParser(SMCLabBitableParser):
             config = Config()
         super().__init__(config=config)
         self.raw_data_path = config.weekly_report.raw_path
-        self.weekly_file_list = sorted(glob(os.path.join(self.raw_data_path, "*weekly_report_raw*.json")))
+        self.group_info_path = config.da_group_info_path
+        self.weekly_file_list = sorted(glob(os.path.join(self.raw_data_path, "*weekly_report_byweek_raw*.json")))
         # 要存在学期数据里的
         self.sem_path = os.path.join(self._sem_data_path, self._year_semester)
 
@@ -98,7 +99,7 @@ class SMCLabWeeklyReportParser(SMCLabBitableParser):
         该函数用于从 attendance_group_info.json 获取考勤组成员的姓名
         SMCLabAttendanceCrawler.get_group_info()
         ''' 
-        group_info_path = os.path.join(self.config.raw_data_path, "attendance_raw_data", "attendance_group_info.json")
+        group_info_path = self.group_info_path
         id_name_pair, _, _ = self.info_manager.map_fields("user_id", "姓名")
         if not update and os.path.exists(group_info_path):
             print("找到已有考勤组信息!")
