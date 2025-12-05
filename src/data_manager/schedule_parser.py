@@ -1,4 +1,4 @@
-import json, os 
+import json, os, glob
 import pandas as pd
 from collections import defaultdict
 from pathlib import Path
@@ -12,7 +12,7 @@ class SMCLabScheduleParser(SMCLabBaseParser):
             config = Config()
         super().__init__(config)
         self.raw_data_path = config.schedule.raw_path
-        self.file_list = sorted(glob(os.path.join(self.raw_data_path, "*schedule_raw*.json")))
+        self.file_list = sorted(glob.glob(os.path.join(self.raw_data_path, "*schedule_raw*.json")))
         if not self.file_list:
             raise FileNotFoundError(f"未在 {self.raw_data_path} 中找到任何 schedule*.json 文件")
         raw_file = self.file_list[0]
