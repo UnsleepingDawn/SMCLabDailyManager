@@ -19,7 +19,7 @@ from src.data_manager.schedule_parser import (
     SMCLabScheduleParser
 )
 from src.data_manager.attendance_parser import (
-    SMCLabAttendanceParser,
+    SMCLabDailyAttendanceParser,
     SMCLabSeminarAttendanceParser
 )
 from src.data_manager.bitable_parser import (
@@ -59,20 +59,24 @@ def send_last_week_summary():
     schedule_crawler.get_raw_records() 
     schedule_parser = SMCLabScheduleParser()
     schedule_parser.make_period_summary_json()
-    # 出勤部分
+    # 日常出勤部分
     attendance_crawler = SMCLabAttendanceCrawler()
     attendance_crawler.get_last_week_daily_records()
-    attendance_parser = SMCLabAttendanceParser()
-    attendance_parser.last_week_attendance_to_excel()
+    attendance_parser = SMCLabDailyAttendanceParser()
+    attendance_parser.last_week_daily_attendance_to_excel()
+    # 组会出勤部分
+    attendance_crawler.get_last_week_seminar_records()
+    seminar_parser = SMCLabSeminarAttendanceParser()
+    seminar_parser.get_last_week_attended_names(use_relay=False)
     # 周报部分
     weekly_report_crawler = SMCLabWeeklyReportCrawler()
     weekly_report_crawler.get_last_week_records()
     weekly_report_parser = SMCLabWeeklyReportParser()
     weekly_report_parser.last_week_weekly_report_to_txt()
-    address_book_parser = SMCLabAddressBookParser()
-    address_book_parser.merge()
+    # address_book_parser = SMCLabAddressBookParser()
+    # address_book_parser.merge()
 
-    sender.send_weekly_summary("梁涵")
+    sender.send_weekly_summary(users="梁涵")
 
 def amend_info_every_semester():
     # 组会表格部分
@@ -86,21 +90,22 @@ def amend_info_every_semester():
     address_book_parser = SMCLabAddressBookParser()
     address_book_parser.merge_info_to_excel()
 
-def send_this_week_seminar_attendance():
+def send_this_week_seminar_attendance(use_relay=True):
     sender = SMCLabMessageSender()
     # # 课表部分
     # schedule_crawler = SMCLabScheduleCrawler()
     # schedule_crawler.get_raw_records() 
     # schedule_parser = SMCLabScheduleParser()
     # schedule_parser.make_period_summary_json()
-    # # 出勤部分
-    # attendance_crawler = SMCLabAttendanceCrawler()
-    # attendance_crawler.get_this_week_seminar_records()
+    # 出勤部分
+    attendance_crawler = SMCLabAttendanceCrawler()
+    attendance_crawler.get_this_week_seminar_records()
     seminar_parser = SMCLabSeminarAttendanceParser()
-    seminar_parser.get_attended_names_to_txt()
+    seminar_parser.get_this_week_attended_names(use_relay=use_relay)
 
 if __name__ == "__main__":
-    # client = SMCLabClient()
+    # client = SMCLabClient() # 获取tenant_access, 要去网页API调试台时调用
 
-    send_this_week_seminar_attendance()
-    # amend_info_every_semester()
+    send_last_week_summary() # 每周一调用即可
+    # send_this_week_seminar_attendance(use_relay=True)  # 陈老师本周询问缺席名单时调用即可
+    # amend_info_every_semester() # 需要更新SMC成员时调用即可

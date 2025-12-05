@@ -48,7 +48,10 @@ class SMCLabMessageSender(SMCLabClient):
                                            sem: str, 
                                            week: int):
         seminar_attendance_txt_path = os.path.join(self._sem_data_path, sem, f"week{week}", f"SMCLab第{week}周组会考勤统计.txt")
-        assert os.path.exists(seminar_attendance_txt_path), "请先调用SMCLabSeminarAttendanceParser.get_attendee_names()"
+        if not os.path.exists(seminar_attendance_txt_path):
+            return "", ""
+        appeared_str = ""
+        not_appeared_str = ""
         with open(seminar_attendance_txt_path, 'r', encoding='utf-8') as file:
             lines = file.readlines()
             assert len(lines) == 2, "组会考勤统计文件格式不对！"
@@ -113,32 +116,40 @@ class SMCLabMessageSender(SMCLabClient):
         # 在此处构造数据
         image_key = self._weekly_generate_daily_attendance(semester, week)
         weekly_report_url, appeared_str, not_appeared_str =self._weekly_generate_weekly_report_submission(semester, week)
+        attended_str, not_attended_str = self._weekly_generate_seminar_attendance(semester, week)
         self.post_message["zh_cn"]["title"] = f"{semester}-第{week}周总结"
         self.post_message["zh_cn"]["content"][1][0]["image_key"] = image_key
         self.post_message["zh_cn"]["content"][3][0]["href"] = weekly_report_url
         self.post_message["zh_cn"]["content"][4][1]["text"] = appeared_str
         self.post_message["zh_cn"]["content"][5][1]["text"] = not_appeared_str
+        self.post_message["zh_cn"]["content"][7][1]["text"] = attended_str
+        self.post_message["zh_cn"]["content"][8][1]["text"] = not_attended_str
 
         post_string = json.dumps(self.post_message, ensure_ascii=False)
         # 构造请求对象
-        for receive_id in receive_ids:
-            request: CreateMessageRequest = CreateMessageRequest.builder() \
-                .receive_id_type("open_id") \
-                .request_body(CreateMessageRequestBody.builder()
-                    .receive_id(receive_id)
-                    .msg_type("post")
-                    .content(post_string)
-                    .build()) \
-                .build()
-            
-            resp: CreateMessageResponse = self._client.im.v1.message.create(request)
-            self._check_resp(resp)
-            print(f"SMC每周总结发送成功: To {receive_names}")
+        for receive_id, receive_name in zip(receive_ids, receive_names):
+            user_input = input(f"即将发送给'{receive_name}', 请确认(yes/y): ").strip()
+            if user_input.lower() == "yes" or "y":
+                request: CreateMessageRequest = CreateMessageRequest.builder() \
+                    .receive_id_type("open_id") \
+                    .request_body(CreateMessageRequestBody.builder()
+                        .receive_id(receive_id)
+                        .msg_type("post")
+                        .content(post_string)
+                        .build()) \
+                    .build()
+                
+                resp: CreateMessageResponse = self._client.im.v1.message.create(request)
+                self._check_resp(resp)
+                print(f"SMC每周总结发送成功: To {receive_names}")
+            else:
+                print(f"SMC每周总结发送失败: To {receive_names}")
+                    
         return
 
     def send_this_weekly_summary(self,
                                  users: str or List[str] = "梁涵"):
-        self.send_weekly_summary(users)
+        self.send_weekly_summary(users=users)
         return
 
     def send_last_weekly_summary(self,
