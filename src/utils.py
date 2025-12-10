@@ -203,14 +203,36 @@ class TimeParser:
                 days[7]: weekdays[7]}
     
     @staticmethod
-    def get_weekday_iso(date_str):
-        date_obj = datetime.strptime(date_str, "%Y%m%d")
-        
-        # isoweekday()返回1-7，1代表周一，7代表周日
-        weekday_num = date_obj.isoweekday()
+    def get_weekday_iso(date: str or int):
+        # ISO 8601 标准定义: 星期一为一周的第一天, 星期日为一周的最后一天
+        if isinstance(date, int) and date < 8:
+            weekday_num = date
+        elif isinstance(date, int) and date > 20010124:
+            date_obj = datetime.strptime(str(date), "%Y%m%d")
+            # isoweekday()返回1-7，1代表周一，7代表周日
+            weekday_num = date_obj.isoweekday()
+        else:
+            date_obj = datetime.strptime(date, "%Y%m%d")
+            # isoweekday()返回1-7，1代表周一，7代表周日
+            weekday_num = date_obj.isoweekday()
         
         weekdays = ["", "周一", "周二", "周三", "周四", "周五", "周六", "周日"]
         return weekdays[weekday_num]
+
+    @staticmethod
+    def get_day_period(time: int):
+        """
+        根据时间获取时间范围，如"上午"、"下午"、"晚上"
+        """
+        if time > 600 and time < 1200:
+            return "上午"
+        elif time > 1200 and time < 1800:
+            return "下午"
+        elif time > 1800 and time < 2400:
+            return "晚上"
+        else:
+            return "错误时间"
+
 
     @staticmethod
     def get_timestamps(start_date: int, 
