@@ -173,7 +173,7 @@ class SMCLabDailyAttendanceParser(SMCLabBaseParser):
         # 保存图片
         plot_path = self.weekly_output_path.replace('.xlsx', '.png')
         plt.savefig(plot_path, dpi=600, bbox_inches='tight')
-        print(f"图像已保存: {plot_path}")
+        self.logger.info("图像已保存: %s", plot_path)
 
     def last_week_daily_attendance_to_excel(self, plot = True):
         """把上周的考勤存为表格和图"""
@@ -212,7 +212,7 @@ class SMCLabDailyAttendanceParser(SMCLabBaseParser):
         df = pd.DataFrame(table_data)
         df_sorted = df.sort_values(by=['缺卡次数', '迟到次数'], ascending=[False, False])
         df_sorted.to_excel(excel_path, index=False)
-        print(f"出席表格已保存: {excel_path}")
+        self.logger.info("出席表格已保存: %s", excel_path)
 
         if plot:
             self._plot_attendance(df_sorted)
@@ -239,20 +239,26 @@ class SMCLabSeminarAttendanceParser(SMCLabBaseParser):
         ids = data.get("group_users_id_list", [])
         self.expected_attendees = set([self.name_and_id[id] for id in ids])
 
-    def load_attendees_from_relay(self, file_path: str) -> set:
+    def load_attendees_from_relay(self, week: int) -> set:
         """
         加载txt文件中的人名集合
-        
-        Args:
-            file_path (str): txt文件路径，文件格式示例：
-                1. 姓名1 位置描述1
-                2. 姓名2 位置描述2
-                ...
-        
-        Returns:
-            set: 提取的人名集合
         """
-        assert os.path.getsize(file_path) > 4, f"接龙文件{file_path}为空"
+        file_path = os.path.join(self.raw_data_path, f"{self._year_semester}_Week{week}_seminar_attendance_relay.txt")
+        # 检查文件是否存在，如果不存在则创建
+        if not os.path.exists(file_path):
+            with open(file_path, 'w', encoding='utf-8') as f:
+                f.write('')  # 创建空文件
+            print(f"文件 {file_path} 不存在，已创建空文件")
+        
+        # 检查文件是否为空
+        while os.path.getsize(file_path) <= 4:  # 文件大小小于等于4字节视为空文件
+            print(f"文件 {file_path} 为空，请在文件中添加出席人员信息")
+            print("操作完成后，请输入(yes/y)继续读取文件：")
+            user_input = input().strip().lower()
+            if user_input in ['yes', 'y']:
+                break                
+        
+        # 读取文件内容
         attendees = set()
         with open(file_path, 'r', encoding='utf-8') as f:
             for line in f:
@@ -266,9 +272,32 @@ class SMCLabSeminarAttendanceParser(SMCLabBaseParser):
                         attendees.add(name)
         return attendees
 
+    def _backdoor_delete_spec_names(self, not_attended_names: set):
+        """
+        删除指定姓名的记录
+        """
+        # 交互式排除人员
+        # TODO: 251209 把这里的名单存到一个文件里
+        print("\n=== 交互式排除未出勤人员 ===")
+        print("请输入要从名单中排除的人名（按q回车退出）：")
+        
+        while True:
+            user_input = input("输入姓名或q退出: ").strip()
+            if user_input.lower() == 'q':
+                print("退出交互式排除")
+                break
+            if user_input in not_attended_names:
+                not_attended_names.discard(user_input)
+                print(f"已从名单中排除: {user_input}")
+            else:
+                print(f"{user_input} 不在未出勤名单中")
+        return not_attended_names
+
+
     def get_attended_names_byweek(self, 
                                   use_relay: bool = True,
-                                  week: int = None):
+                                  week: int = None,
+                                  backdoor_delete: bool = False):
         """
         获取指定周所有考勤文件中出现的人员姓名列表（去重）
         """
@@ -284,10 +313,9 @@ class SMCLabSeminarAttendanceParser(SMCLabBaseParser):
         not_attended_names = self.expected_attendees
         if use_relay:
             # 通过群里的接龙结果输出出勤
-            relay_file = os.path.join(self.raw_data_path, f"{self._year_semester}_Week{week}_seminar_attendance_relay.txt")
-            attended_names = self.load_attendees_from_relay(relay_file)
+            attended_names = self.load_attendees_from_relay(week)
             not_attended_names -= attended_names
-        else:
+        if not use_relay or (use_relay and not attended_names):
             # 通过打卡流水输出出勤
             for file_path in raw_data_files:
                 try:
@@ -304,33 +332,22 @@ class SMCLabSeminarAttendanceParser(SMCLabBaseParser):
                                 attended_names.add(name)
                                 not_attended_names.discard(name)
                 except (json.JSONDecodeError, KeyError, FileNotFoundError) as e:
-                    print(f"处理文件 {file_path} 时出错: {e}")
+                    self.logger.error("处理文件 %s 时出错: %s", file_path, e)
                     continue
 
         # TODO: 根据请假和上课情况进行自动排除，但是目前只能这么干
         # 打印未出勤人员名单
-        print("\n=== 未出勤人员名单 ===")
+        self.logger.info("=== 未出勤人员名单 ===")
         if not_attended_names:
-            print(f"共有 {len(not_attended_names)} 人未出勤：")
+            self.logger.info("共有 %d 人未出勤：", len(not_attended_names))
             for i, name in enumerate(sorted(not_attended_names), 1):
-                print(f"{i}. {name}")
+                self.logger.info("%d. %s", i, name)
         else:
-            print("所有人员均已出勤")
+            self.logger.info("所有人员均已出勤")
         
         # 交互式排除人员
-        print("\n=== 交互式排除未出勤人员 ===")
-        print("请输入要从名单中排除的人名（按q回车退出）：")
-        
-        while True:
-            user_input = input("输入姓名或q退出: ").strip()
-            if user_input.lower() == 'q':
-                print("退出交互式排除")
-                break
-            if user_input in not_attended_names:
-                not_attended_names.discard(user_input)
-                print(f"已从名单中排除: {user_input}")
-            else:
-                print(f"{user_input} 不在未出勤名单中")
+        if backdoor_delete:
+            not_attended_names = self._backdoor_delete_spec_names(not_attended_names)
         
         # 保存到文件
         attended_names_list = sorted(list(attended_names))
@@ -344,8 +361,8 @@ class SMCLabSeminarAttendanceParser(SMCLabBaseParser):
         with open(output_path, 'w', encoding='utf-8') as f:
             f.write(f"{attended_str}\n")  # 第一行：出现的姓名
             f.write(f"{not_attended_str}")  # 第二行：未出现的姓名
-        print("组会出勤:", attended_names)
-        print("组会未出勤:", not_attended_names)
+        self.logger.info("组会出勤: %s", attended_names)
+        self.logger.info("组会未出勤: %s", not_attended_names)
         # 转换为列表并按字母排序返回
 
     def get_last_week_attended_names(self, use_relay: bool = False):
