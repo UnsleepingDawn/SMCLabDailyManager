@@ -21,10 +21,7 @@ class SMCLabDailyAttendanceParser(SMCLabBaseParser):
         raw_data_files = sorted(glob.glob(os.path.join(self.raw_data_path, f"*_daily_attendance_raw.json")))
         self.raw_data_file = raw_data_files[-1] # 因为只有一个
         # 要存在学期数据里的
-        self.sem_data_path = os.path.join(config.sem_data_path, self._year_semester)
-        # 课表
-        self.schedule_path = os.path.join(self.sem_data_path, "schedule_by_period.json")
-
+        self.this_sem_path = os.path.join(config.sem_data_path, self._year_semester)
 
     def _simplify_raw_data(self):
         """
@@ -97,7 +94,7 @@ class SMCLabDailyAttendanceParser(SMCLabBaseParser):
         根据课表, 把因为课表导致的缺勤/迟到标记为"上课"
         '''
         # === 读取课表 ===
-        schedule_path = self.schedule_path
+        schedule_path = os.path.join(self.this_sem_path, "schedule_by_period.json")
         # assert os.path.exists(schedule_path), "请先下载课表, 并运行解析器里的make_schedule_by_slot_json函数"
         if not os.path.exists(schedule_path):
             schedule_parser = SMCLabScheduleParser()
@@ -177,7 +174,7 @@ class SMCLabDailyAttendanceParser(SMCLabBaseParser):
 
     def last_week_daily_attendance_to_excel(self, plot = True):
         """把上周的考勤存为表格和图"""
-        self.sem_week_path = os.path.join(self.sem_data_path, f"week{self._this_week-1}")
+        self.sem_week_path = os.path.join(self.this_sem_path, f"week{self._this_week-1}")
         if not os.path.exists(self.sem_week_path):
             os.makedirs(self.sem_week_path, exist_ok=True)
         self.weekly_output_path = os.path.join(self.sem_week_path, f"SMCLab第{self._this_week-1}周考勤统计.xlsx")
@@ -224,8 +221,13 @@ class SMCLabSeminarAttendanceParser(SMCLabBaseParser):
             config = Config()
         super().__init__(config)
         self.raw_data_path = os.path.join(config.raw_data_path, "attendance_raw_data")
-        self.sem_path = os.path.join(self._sem_data_path, self._year_semester)
+        self.this_sem_path = os.path.join(self._sem_data_path, self._year_semester)
         
+        # Seminar 相关配置
+        self.seminar_weekday = config.sa_seminar_weekday
+        self.seminar_start_time = config.sa_seminar_start_time
+        self.seminar_end_time = config.sa_seminar_end_time
+
         info_manager = SMCLabInfoManager(config)
         self.name_and_id, _, _ = info_manager.map_fields("user_id","姓名")
 
@@ -239,7 +241,7 @@ class SMCLabSeminarAttendanceParser(SMCLabBaseParser):
         ids = data.get("group_users_id_list", [])
         self.expected_attendees = set([self.name_and_id[id] for id in ids])
 
-    def load_attendees_from_relay(self, week: int) -> set:
+    def _load_attendees_from_relay(self, week: int) -> set:
         """
         加载txt文件中的人名集合
         """
@@ -293,8 +295,25 @@ class SMCLabSeminarAttendanceParser(SMCLabBaseParser):
                 print(f"{user_input} 不在未出勤名单中")
         return not_attended_names
 
+    def _amend_course_absence(self, not_attended_names: set):
+        """
+        修正班级缺卡人员
+        """
+        schedule_path = os.path.join(self.this_sem_path, "schedule_by_period.json")
+        if not os.path.exists(schedule_path):
+            schedule_parser = SMCLabScheduleParser()
+            schedule_parser.make_period_summary_json()
+        with open(schedule_path, "r", encoding="utf-8") as f:
+            schedule = json.load(f)
+        # 做一下组会信息的对应
+        weekday_str = TimeParser.get_weekday_iso(self.seminar_weekday) # 如"周一"
+        day_period = TimeParser.get_day_period(int(self.seminar_start_time)) # 如"上午"
+        class_absent_names = schedule[weekday_str][day_period]
+        self.logger.info(f"删去课程缺卡人员: {class_absent_names}")
+        not_attended_names -= set(class_absent_names)
+        return not_attended_names
 
-    def get_attended_names_byweek(self, 
+    def _get_attended_names_byweek(self, 
                                   use_relay: bool = True,
                                   week: int = None,
                                   backdoor_delete: bool = False):
@@ -313,7 +332,7 @@ class SMCLabSeminarAttendanceParser(SMCLabBaseParser):
         not_attended_names = self.expected_attendees
         if use_relay:
             # 通过群里的接龙结果输出出勤
-            attended_names = self.load_attendees_from_relay(week)
+            attended_names = self._load_attendees_from_relay(week)
             not_attended_names -= attended_names
         if not use_relay or (use_relay and not attended_names):
             # 通过打卡流水输出出勤
@@ -335,7 +354,9 @@ class SMCLabSeminarAttendanceParser(SMCLabBaseParser):
                     self.logger.error("处理文件 %s 时出错: %s", file_path, e)
                     continue
 
-        # TODO: 根据请假和上课情况进行自动排除，但是目前只能这么干
+        # 根据上课情况进行自动排除，但是目前只能这么干
+        not_attended_names = self._amend_course_absence(not_attended_names)
+
         # 打印未出勤人员名单
         self.logger.info("=== 未出勤人员名单 ===")
         if not_attended_names:
@@ -345,7 +366,7 @@ class SMCLabSeminarAttendanceParser(SMCLabBaseParser):
         else:
             self.logger.info("所有人员均已出勤")
         
-        # 交互式排除人员
+        # TODO: 根据请假排除, 但是目前还是只能交互式排除人员
         if backdoor_delete:
             not_attended_names = self._backdoor_delete_spec_names(not_attended_names)
         
@@ -354,7 +375,7 @@ class SMCLabSeminarAttendanceParser(SMCLabBaseParser):
         not_attended_names_list = sorted(list(not_attended_names))
         attended_str = ", ".join(attended_names_list) if len(attended_names_list) else "本周未收集到同学们的打卡流水"
         not_attended_str = ", ".join(not_attended_names_list) if len(not_attended_names_list) else "本周打卡流水全齐"
-        sem_week_path = os.path.join(self.sem_path, f"week{week}")
+        sem_week_path = os.path.join(self.this_sem_path, f"week{week}")
         output_path = os.path.join(sem_week_path, f"SMCLab第{week}周组会考勤统计.txt")
         if not os.path.exists(sem_week_path):
             os.makedirs(sem_week_path, exist_ok=True)
@@ -366,7 +387,7 @@ class SMCLabSeminarAttendanceParser(SMCLabBaseParser):
         # 转换为列表并按字母排序返回
 
     def get_last_week_attended_names(self, use_relay: bool = False):
-        return self.get_attended_names_byweek(week=self._this_week-1, use_relay=use_relay)
+        return self._get_attended_names_byweek(week=self._this_week-1, use_relay=use_relay)
 
     def get_this_week_attended_names(self, use_relay: bool = True):
-        return self.get_attended_names_byweek(week=self._this_week, use_relay=use_relay)
+        return self._get_attended_names_byweek(week=self._this_week, use_relay=use_relay)
