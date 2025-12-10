@@ -1,4 +1,12 @@
 {
+    "logger": {
+        "name": "SMCLabDailyManager",
+        "format": "%(levelname)s - %(filename)s - %(funcName)s - %(message)s",
+        "level": "INFO",
+        "file": "logs/smclab_daily_manager.log",
+        "max_bytes": 10485760,
+        "backup_count": 5
+    },
     "paths": {
         "src_path": "src",
         "raw_data_path": "data_raw",

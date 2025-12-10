@@ -1,6 +1,7 @@
 import os, time
 import json
 import requests
+import logging
 import lark_oapi as lark
 from lark_oapi.api.bitable.v1 import *
 import lark_oapi.api.bitable.v1.resource as base_rsc
@@ -14,6 +15,8 @@ class SMCLabClient(object):
     def __init__(self, config: Config = None) -> None:
         if config is None:
             config = Config()
+        # 初始化logger
+        self.logger = logging.getLogger(config.logger_name)
         app_info = self._get_app_tokens(config.app_tokens_path)
         app_id = app_info["app_id"]
         app_secret = app_info["app_secret"]
@@ -83,10 +86,10 @@ class SMCLabClient(object):
             # 如果上次的应用身份权限还在有效期内，则直接返回
             # TODO: 有关expire还没写好
             if time.time() - last_token_time < 7200 and tenant_access_token:
-                print("上次应用身份权限依然有效, 复用...")
+                self.logger.info("上次应用身份权限依然有效, 复用...")
                 return tenant_access_token
 
-        print("申请应用身份权限")
+        self.logger.info("申请应用身份权限")
         url = "https://open.feishu.cn/open-apis/auth/v3/tenant_access_token/internal/"  # 自建应用通过此接口获取
         payload = {"app_id": app_id, "app_secret": app_secret}
         response = requests.post(url, json=payload).json()
@@ -113,14 +116,6 @@ class SMCLabClient(object):
         # TODO: 请针对所有的子类响应信息进行子类函数实现
         assert resp.code == 0
         assert resp.msg == "success"
-        # assert resp.data is not None
-        # assert resp.data.has_more is not None
-        # assert resp.data.items is not None
-        # assert not resp.data.has_more # 如果还有更多
-    
-    def print_basic_info(self):
-        print("Year Semester:", self._year_semester)
-        print("Tenant Access Token:", self._tenant_access_token)
     
     def reset_time(self):
         self._year_semester, self._this_week = get_semester_and_week(self._sysu_semesters_path)

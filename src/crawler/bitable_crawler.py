@@ -34,11 +34,11 @@ class SMCLabBitableCrawler(SMCLabClient):
         return
     
     def print_basic_info(self):
-        print("Year Semester:", self._year_semester)
-        print("Tenant Access Token:", self._tenant_access_token)
-        print("Bitable Name:", self.table_name)
-        print("Bitable Token:", self._app_token)
-        print("Bitable Table ID:", self._table_id)
+        self.logger.debug("Year Semester: %s", self._year_semester)
+        self.logger.debug("Tenant Access Token: %s", self._tenant_access_token)
+        self.logger.debug("Bitable Name: %s", self.table_name)
+        self.logger.debug("Bitable Token: %s", self._app_token)
+        self.logger.debug("Bitable Table ID: %s", self._table_id)
 
     def get_raw_records(self):
         # 参考: https://open.feishu.cn/api-explorer?apiName=search&from=op_doc&project=bitable&resource=app.table.record&version=v1
@@ -48,9 +48,9 @@ class SMCLabBitableCrawler(SMCLabClient):
         has_more = True
         page_token = ""
         page_cnt = 0
-        print(f"正在下载多维表格：{self.table_name}:")
+        self.logger.info("正在下载多维表格：%s:", self.table_name)
         while(has_more):
-            print(f"\t请求下载第{page_cnt}页...")
+            self.logger.info("请求下载第%d页...", page_cnt)
             request: SearchAppTableRecordRequest = SearchAppTableRecordRequest.builder() \
                 .app_token(self._app_token) \
                 .table_id(self._table_id) \
@@ -74,7 +74,7 @@ class SMCLabBitableCrawler(SMCLabClient):
             has_more = resp.data.has_more
             page_token = resp.data.page_token
             page_cnt += 1
-        print("下载完成")
+        self.logger.info("下载完成")
 
 class SMCLabWeeklyReportCrawler(SMCLabBitableCrawler):
     # 这是一个需要爬取部分记录的表格, 但是依然内置了爬所有记录的方法get_raw_records()
@@ -106,9 +106,9 @@ class SMCLabWeeklyReportCrawler(SMCLabBitableCrawler):
         has_more = True
         page_token = ""
         page_cnt = 0
-        print(f"正在下载第{week}周周报记录：")
+        self.logger.info("正在下载第%d周周报记录：", week)
         while(has_more):
-            print(f"\t请求下载第{page_cnt}页...")
+            self.logger.info("请求下载第%d页...", page_cnt)
             request: SearchAppTableRecordRequest = SearchAppTableRecordRequest.builder() \
                 .app_token(self._app_token) \
                 .table_id(self._table_id) \
@@ -148,7 +148,7 @@ class SMCLabWeeklyReportCrawler(SMCLabBitableCrawler):
             has_more = resp.data.has_more
             page_token = resp.data.page_token
             page_cnt += 1
-        print("下载完成")
+        self.logger.info("下载完成")
 
     def get_last_week_records(self):
         self.get_raw_records_by_week()

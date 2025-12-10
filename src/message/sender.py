@@ -24,29 +24,35 @@ class SMCLabMessageSender(SMCLabClient):
         # 姓名与飞书账号的映射, 用于根据人名发送
         name_account, _, _ = self.info_manager.map_fields("姓名", "飞书账号")
         self.name_account = name_account
-        self.bitable_info = self._get_bitable_info(config.bitable_info_path)
+        self.bitable_info = self._fetch_bitable_info(config.bitable_info_path)
         self.post_template_path = config.post_template_path
         self.post_message = None
 
-    def _get_bitable_info(self, path: str):
+    def _fetch_bitable_info(self, path: str):
         # 获得
         bitable_info_file = path
         with open(bitable_info_file, 'r', encoding='utf-8') as f:
             bitable_info = json.load(f)
         return bitable_info
 
-    def _weekly_generate_daily_attendance(self, 
-                                   sem: str, 
-                                   week: int):
+    def _fetch_daily_attendance(self, 
+                                          sem: str, 
+                                          week: int):
         # 生成出勤一览图
         attendance_plot_path = os.path.join(self._sem_data_path, sem, f"week{week}", f"SMCLab第{week}周考勤统计.png")
         assert os.path.exists(attendance_plot_path), "请先调用SMCLabAttendanceParser.last_week_attendance_to_excel()"
         attendance_plot_key = self._get_image_key(attendance_plot_path)
         return attendance_plot_key
     
-    def _weekly_generate_seminar_attendance(self, 
-                                           sem: str, 
-                                           week: int):
+    def _fetch_seminar_attendance(self, 
+                                  sem: str, 
+                                  week: int):
+        '''
+        生成第week周组会考勤统计的字符串:
+        第一行为到了的, 第二行没到, 格式为:
+        张三, 李四, 王五
+        赵六, 钱七
+        '''
         seminar_attendance_txt_path = os.path.join(self._sem_data_path, sem, f"week{week}", f"SMCLab第{week}周组会考勤统计.txt")
         if not os.path.exists(seminar_attendance_txt_path):
             return "", ""
@@ -59,7 +65,7 @@ class SMCLabMessageSender(SMCLabClient):
             not_appeared_str = lines[1].strip()
         return appeared_str, not_appeared_str
     
-    def _weekly_generate_weekly_report_submission(self,
+    def _fetch_weekly_report_submission(self,
                                       sem: str, 
                                       week: int):
         # 生成周报链接
@@ -75,26 +81,10 @@ class SMCLabMessageSender(SMCLabClient):
             
         return weekly_report_url, appeared_str, not_appeared_str
     
-    def monthly_generate_attendance(self, 
-                                    professor: str = ""):
-        # TODO: 生成月度考勤数据的可拼接消息结构
-        return
-    
-    def monthly_generate_gm_attendance(self, 
-                                       professor: str = ""):
-        # TODO: 生成月度组会考勤数据的可拼接消息结构
-        return
-    
-    def monthly_generate_wr_submission(self,
-                                       professor: str = ""):
-        # TODO: 生成周报提交情况的可拼接消息结构
-        return
-    
-    def send_weekly_summary(self,
+    def _send_weekly_summary_byweek(self,
                             week: int = None,
-                            last_week: bool = True,
                             users: str or List[str] = "梁涵"):
-        # TODO: 思路, 在该文件夹下创建一个模板文件, 用于发送消息, 然后各个函数往里面填值
+        
         name_account = self.name_account
         if isinstance(users, str):
             users = [users]
@@ -103,20 +93,17 @@ class SMCLabMessageSender(SMCLabClient):
             assert user in name_account.keys(), f"没有找到该用户: {user}"
         receive_names = users
         receive_ids = [name_account[user] for user in users]
-        semester, this_week = get_semester_and_week()
-        if not week:
-            week = this_week
-        if last_week:
-            week -= 1
+        semester = self._year_semester
+        week = self._this_week if not week else week
 
         # 加载发送给陈旭老师的模板
         with open(self.post_template_path, "r", encoding="utf-8") as f:
             self.post_message = json.load(f)
 
         # 在此处构造数据
-        image_key = self._weekly_generate_daily_attendance(semester, week)
-        weekly_report_url, appeared_str, not_appeared_str =self._weekly_generate_weekly_report_submission(semester, week)
-        attended_str, not_attended_str = self._weekly_generate_seminar_attendance(semester, week)
+        image_key = self._fetch_daily_attendance(semester, week)
+        weekly_report_url, appeared_str, not_appeared_str =self._fetch_weekly_report_submission(semester, week)
+        attended_str, not_attended_str = self._fetch_seminar_attendance(semester, week)
         self.post_message["zh_cn"]["title"] = f"{semester}-第{week}周总结"
         self.post_message["zh_cn"]["content"][1][0]["image_key"] = image_key
         self.post_message["zh_cn"]["content"][3][0]["href"] = weekly_report_url
@@ -128,7 +115,8 @@ class SMCLabMessageSender(SMCLabClient):
         post_string = json.dumps(self.post_message, ensure_ascii=False)
         # 构造请求对象
         for receive_id, receive_name in zip(receive_ids, receive_names):
-            user_input = input(f"即将发送给'{receive_name}', 请确认(yes/y): ").strip()
+            if not receive_name == "梁涵":
+                user_input = input(f"即将发送给'{receive_name}', 请确认(yes/y): ").strip()
             if user_input.lower() == "yes" or "y":
                 request: CreateMessageRequest = CreateMessageRequest.builder() \
                     .receive_id_type("open_id") \
@@ -141,20 +129,28 @@ class SMCLabMessageSender(SMCLabClient):
                 
                 resp: CreateMessageResponse = self._client.im.v1.message.create(request)
                 self._check_resp(resp)
-                print(f"SMC每周总结发送成功: To {receive_names}")
+                self.logger.info("SMC每周总结发送成功: To %s", receive_names)
             else:
-                print(f"SMC每周总结发送失败: To {receive_names}")
+                self.logger.warning("SMC每周总结发送失败: To %s", receive_names)
                     
         return
 
-    def send_this_weekly_summary(self,
-                                 users: str or List[str] = "梁涵"):
-        self.send_weekly_summary(users=users)
+    def send_this_week_summary(self,
+                               users: str or List[str] = "梁涵"):
+        self._send_weekly_summary_byweek(week=self._this_week, users=users)
         return
 
-    def send_last_weekly_summary(self,
-                                 users: str or List[str] = "梁涵"):
-        self.send_weekly_summary(last_week=True, users=users)
+    def send_last_week_summary(self,
+                               users: str or List[str] = "梁涵"):
+        self._send_weekly_summary_byweek(week=self._this_week-1, users=users)
+        return
+
+    def send_this_week_seminar_attendance(self,
+                                          users: str = "梁涵"):
+        self.logger.info("发送第%s周组会考勤给 %s", self._this_week, users)
+        attended_str, not_attended_str = self._fetch_seminar_attendance(self._year_semester, self._this_week)
+        message_string = f"{self._year_semester}-第{self._this_week}周组会考勤:\n" + f"参会: {attended_str}" + "\n" + f"未参会: {not_attended_str}"
+        self.send_text(user = users, message = message_string)
         return
 
     def send_text(self,
@@ -182,7 +178,7 @@ class SMCLabMessageSender(SMCLabClient):
         
         resp: CreateMessageResponse = self._client.im.v1.message.create(request)
         self._check_resp(resp)
-        print("发送成功")
+        self.logger.info("发送成功")
 
     def _get_image_key(self, image_path):
         # 获得图片的key
@@ -227,5 +223,5 @@ class SMCLabMessageSender(SMCLabClient):
         
         resp: CreateMessageResponse = self._client.im.v1.message.create(request)
         self._check_resp(resp)
-        print("发送成功")
+        self.logger.info("发送成功")
 

@@ -1,4 +1,4 @@
-import time, os, json
+import time, os, json, logging
 from datetime import datetime, timedelta
 
 def get_semester(current_time: str = None,
@@ -265,14 +265,7 @@ class TimeParser:
 # 使用示例
 if __name__ == "__main__":
     
-
     # last_monday, last_friday = TimeParser.get_last_week_date()
-    # print(f"上周周一: {last_monday}")
-    # print(f"上周周五: {last_friday}")
-
     # get_year_semester(True)
     today = datetime.now()
     current_weekday = today.weekday()
-    print(today)
-    print(current_weekday)
-    print(TimeParser.get_week_date(weekday=3, week=17))

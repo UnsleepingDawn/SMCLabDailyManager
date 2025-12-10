@@ -63,14 +63,3 @@ class SMCLabInfoManager:
                 mapping_dict[val1] = val2
 
         return mapping_dict, missing_names, one2one_flag
-    
-
-
-if __name__ == "__main__":
-    config = Config()
-    manager = SMCLabInfoManager(config)
-    mapping, missing_name = manager.map_fields("飞书账号", "user_id")
-
-    print("映射数量：", len(mapping))
-    print("缺失字段的学生名单：", missing_name)
-    print("部分映射示例：", dict(list(mapping.items())[:5]))

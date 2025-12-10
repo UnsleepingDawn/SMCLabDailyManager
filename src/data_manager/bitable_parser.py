@@ -59,7 +59,7 @@ class SMCLabSeminarParser(SMCLabBitableParser):
                     "学号": fields.get("_学号", ""),
                 }
                 all_records.append(record)
-        print(f"共读取 {len(all_records)} 条记录，来自 {len(self.file_list)} 个 JSON 文件。")
+        self.logger.info("共读取 %d 条记录，来自 %d 个 JSON 文件。", len(all_records), len(self.file_list))
         return all_records
 
     def save_to_excel(self, output_path: str = None):
@@ -80,7 +80,7 @@ class SMCLabSeminarParser(SMCLabBitableParser):
 
         os.makedirs(os.path.dirname(output_path), exist_ok=True)
         wb.save(output_path)
-        print(f"Excel 文件已保存到：{output_path}")
+        self.logger.info("Excel 文件已保存到：%s", output_path)
 
 
 class SMCLabWeeklyReportParser(SMCLabBitableParser):
@@ -102,7 +102,7 @@ class SMCLabWeeklyReportParser(SMCLabBitableParser):
         group_info_path = self.group_info_path
         id_name_pair, _, _ = self.info_manager.map_fields("user_id", "姓名")
         if not update and os.path.exists(group_info_path):
-            print("找到已有考勤组信息!")
+            self.logger.info("找到已有考勤组信息!")
             with open(group_info_path, "r", encoding="utf-8") as f:
                 group_info = json.load(f)
             group_users_id_list = group_info.get("group_users_id_list", [])
@@ -135,7 +135,7 @@ class SMCLabWeeklyReportParser(SMCLabBitableParser):
                     "file_name": self._get_nested(fields, ["附件", 0, "name"]),
                 }
                 simplified_raw.append(record)
-        print(f"共读取 {len(simplified_raw)} 条记录，来自 {len(self.weekly_file_list)} 个 JSON 文件。")
+        self.logger.info("共读取 %d 条记录，来自 %d 个 JSON 文件。", len(simplified_raw), len(self.weekly_file_list))
         return simplified_raw
     
     def _check_name_occurrence(self, simplified_raw, group_users_name_list):
@@ -193,7 +193,7 @@ class SMCLabWeeklyReportParser(SMCLabBitableParser):
         with open(self.weekly_output_path, 'w', encoding='utf-8') as f:
             f.write(f"{appeared_str}{extra_in_str}\n")  # 第一行：出现的姓名
             f.write(f"{not_appeared_str}")  # 第二行：未出现的姓名
-        print(f"周报提交情况已保存: {self.weekly_output_path}")
+        self.logger.info("周报提交情况已保存: %s", self.weekly_output_path)
 
 # ======== 使用示例 ========
 if __name__ == "__main__":

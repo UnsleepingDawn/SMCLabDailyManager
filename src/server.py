@@ -98,7 +98,7 @@ class SMCLabServer:
         logging.info("执行每周任务")
         # 在这里添加你的每周任务逻辑
         self.send_last_week_attendence()
-        print(f"发送SMC每周总结: {datetime.now()}")
+        logging.info("发送SMC每周总结: %s", datetime.now())
     
     def send_last_week_attendence(self, receivers: str or List[str] = ["梁涵"]):
         self.schedule_crawler.get_raw_records() # 下载最新课表数据
@@ -108,13 +108,13 @@ class SMCLabServer:
         self.weekly_report_crawler.get_last_week_records() # 下载上周的周报数据
         self.weekly_report_parser.last_week_weekly_report_to_txt() # 处理上周的周报数据
 
-        self.sender.send_weekly_summary(receivers)
+        self.sender._send_weekly_summary_byweek(receivers)
 
     def monthly_task(self):
         """每月1号中午12点执行的任务"""
         logging.info("执行每月任务")
         # 在这里添加你的每月任务逻辑
-        print(f"每月任务执行时间: {datetime.now()}")
+        logging.info("每月任务执行时间: %s", datetime.now())
     
     def setup_schedules(self):
         """设置定时任务"""
@@ -165,16 +165,16 @@ def manage_server(action):
         if os.path.exists("server.pid"):
             with open("server.pid", 'r') as f:
                 pid = f.read().strip()
-            print(f"服务器似乎已经在运行 (PID: {pid})")
+            logging.info("服务器似乎已经在运行 (PID: %s)", pid)
             return
         
-        print("启动服务器...")
+        logging.info("启动服务器...")
         server = SMCLabServer()
         server.main_loop()
     
     elif action == "stop":
         if not os.path.exists("server.pid"):
-            print("服务器未运行")
+            logging.info("服务器未运行")
             return
         
         with open("server.pid", 'r') as f:
@@ -182,12 +182,12 @@ def manage_server(action):
         
         try:
             os.kill(int(pid), signal.SIGTERM)
-            print(f"已发送停止信号到进程 {pid}")
+            logging.info("已发送停止信号到进程 %s", pid)
         except ProcessLookupError:
-            print("进程不存在，删除PID文件")
+            logging.info("进程不存在，删除PID文件")
             os.remove("server.pid")
         except Exception as e:
-            print(f"停止服务器时出错: {e}")
+            logging.error("停止服务器时出错: %s", e)
     
     elif action == "status":
         if os.path.exists("server.pid"):
@@ -195,12 +195,12 @@ def manage_server(action):
                 pid = f.read().strip()
             try:
                 os.kill(int(pid), 0)  # 检查进程是否存在
-                print(f"服务器正在运行 (PID: {pid})")
+                logging.info("服务器正在运行 (PID: %s)", pid)
             except ProcessLookupError:
-                print("PID文件存在但进程未运行")
+                logging.info("PID文件存在但进程未运行")
                 os.remove("server.pid")
         else:
-            print("服务器未运行")
+            logging.info("服务器未运行")
 
 
         

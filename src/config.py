@@ -1,5 +1,6 @@
 import json
 import os
+import logging
 from dataclasses import dataclass
 from typing import Any
 
@@ -31,14 +32,9 @@ class Config:
     
     def _load_config(self):
         """加载配置文件"""
-        try:
-            if os.path.exists(self.config_path):
-                with open(self.config_path, 'r', encoding='utf-8') as f:
-                    self._config = json.load(f)
-            else:
-                print(f"配置文件 {self.config_path} 不存在")
-        except Exception as e:
-            print(f"加载配置文件失败: {e}")
+        if os.path.exists(self.config_path):
+            with open(self.config_path, 'r', encoding='utf-8') as f:
+                self._config = json.load(f)
 
     def _set_attributes(self):
         """将配置项设置为类属性"""
@@ -60,6 +56,15 @@ class Config:
         self.sysu_semesters_path = path_config.get("sysu_semesters_path", "configs/sysu_semesters.json")
         
         self.post_template_path = path_config.get("post_template_path", "configs/post_template/smc_sum_last_week.json")
+
+        # 日志模块配置
+        logger_config = self._config.get("logger", {})
+        self.logger_name = logger_config.get("name", "SMCLabDailyManager")
+        self.logger_format = logger_config.get("format", "")
+        self.logger_level = logger_config.get("level", "INFO")
+        self.logger_file = logger_config.get("file", "logs/smclab_daily_manager.log")
+        self.logger_max_bytes = logger_config.get("max_bytes", 10485760)
+        self.logger_backup_count = logger_config.get("backup_count", 5)
 
         # 通讯录模块配置
         addressbook_config = self._config.get("addressbook", {})

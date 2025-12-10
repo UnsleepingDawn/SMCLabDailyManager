@@ -72,9 +72,9 @@ class SMCLabAttendanceCrawler(SMCLabClient):
         page_token = ""
         page_cnt = 0
         users_list = []
-        print(f"正在下载考勤组成员: ")
+        self.logger.info("正在下载考勤组成员: ")
         while(has_more):
-            print(f"\t请求下载第{page_cnt}页...")
+            self.logger.info("\t请求下载第%d页...", page_cnt)
             # 构造请求对象
             request: ListUserGroupRequest = ListUserGroupRequest.builder() \
                 .group_id(self.group_id) \
@@ -109,9 +109,9 @@ class SMCLabAttendanceCrawler(SMCLabClient):
         search_pattern = os.path.join(self.raw_data_path, "*seminar_attendance*.json")
         for file_path in glob.glob(search_pattern, recursive=True):
             os.remove(file_path)
-        search_pattern = os.path.join(self.raw_data_path, "*seminar_attendance*.txt")
-        for file_path in glob.glob(search_pattern, recursive=True):
-            os.remove(file_path)
+        # search_pattern = os.path.join(self.raw_data_path, "*seminar_attendance*.txt")
+        # for file_path in glob.glob(search_pattern, recursive=True):
+        #     os.remove(file_path)
 
 
     def get_group_info(self):
@@ -121,7 +121,7 @@ class SMCLabAttendanceCrawler(SMCLabClient):
         update = self.update_group_info
         group_info_path = self.group_info_path
         if not update and os.path.exists(group_info_path):
-            print("找到已有考勤组信息!")
+            self.logger.info("找到已有考勤组信息!")
             with open(group_info_path, "r", encoding="utf-8") as f:
                 group_info = json.load(f)
             self.group_name = group_info.get("group_name", "")
@@ -138,9 +138,9 @@ class SMCLabAttendanceCrawler(SMCLabClient):
                 json.dump(group_info,
                           f, ensure_ascii=False, indent=4)
         
-        print("获取到考勤组信息:")
-        print(f"\tgroup_name:\t{self.group_name}")
-        print(f"\tgroup_id:\t{self.group_id}")
+        self.logger.info("获取到考勤组信息:")
+        self.logger.info(f"group_name: {self.group_name}")
+        self.logger.info(f"group_id: {self.group_id}")
 
     def get_fields(self, update = False):
         '''
@@ -148,9 +148,9 @@ class SMCLabAttendanceCrawler(SMCLabClient):
         '''
         # 参考：https://open.feishu.cn/document/server-docs/attendance-v1/user_stats_data/query-2?appId=cli_a8cd4e246b70d013
         fields_path = os.path.join(self.raw_data_path, "fields.json")
-        print("获取表头信息...")
+        self.logger.info("获取表头信息...")
         if not update and os.path.exists(fields_path):
-            print(f"表头信息已经存在: {fields_path}")
+            self.logger.info("表头信息已经存在: %s", fields_path)
         else:
             last_monday, last_friday = TimeParser.get_last_week_period()
             request: QueryUserStatsFieldRequest = QueryUserStatsFieldRequest.builder() \
@@ -187,7 +187,7 @@ class SMCLabAttendanceCrawler(SMCLabClient):
         my_id = name_id_pair["梁涵"]
 
         # 构造请求对象
-        print("下载上周的考勤数据:")
+        self.logger.info("下载上周的考勤数据:")
         request: QueryUserStatsDataRequest = QueryUserStatsDataRequest.builder() \
             .employee_type("employee_id") \
             .request_body(QueryUserStatsDataRequestBody.builder()
@@ -211,7 +211,7 @@ class SMCLabAttendanceCrawler(SMCLabClient):
         with open(resp_page_path, 'w', encoding='utf-8') as f:
             f.write(resp_json)
 
-        print("下载完成!")
+        self.logger.info("下载完成!")
 
     def get_seminar_records_byweek(self, 
                                     week: int, 
@@ -249,7 +249,7 @@ class SMCLabAttendanceCrawler(SMCLabClient):
         user_ids_chunks = split_ids_into_chunks(self.group_users_id_list)
 
         # 构造请求对象
-        print("下载这周的组会出勤:")
+        self.logger.info("下载这周的组会出勤:")
         count = 0
         for user_ids in user_ids_chunks:
             request: QueryUserFlowRequest = QueryUserFlowRequest.builder() \
@@ -272,11 +272,7 @@ class SMCLabAttendanceCrawler(SMCLabClient):
                 f.write(resp_json)
             count += 1
 
-        print("下载完成!")
-        # 创建一个txt用于粘贴可能用到的群内接龙结果
-        relay_path = os.path.join(raw_data_path, f"{self._year_semester}_Week{week}_seminar_attendance_relay.txt")
-        with open(relay_path, 'w') as f:
-            pass
+        self.logger.info("下载完成!")
 
     def get_this_week_seminar_records(self):
         self.get_seminar_records_byweek(self._this_week)

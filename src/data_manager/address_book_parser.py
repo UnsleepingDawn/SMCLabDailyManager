@@ -27,14 +27,14 @@ class SMCLabAddressBookParser(SMCLabBaseParser):
         assert os.path.exists(self.excel_path), "请首先运行SMCLabMemberInfoParser, parse_all方法"
 
         df = pd.read_excel(self.excel_path)
-        print(f"读取Excel成功, 共 {len(df)} 行")
+        self.logger.info("读取Excel成功, 共 %d 行", len(df))
         return df
 
     def _read_json(self):
         # 用于init
         with open(self.address_book_path, "r", encoding="utf-8") as f:
             json_data = json.load(f)
-        print(f"读取JSON成功")
+        self.logger.info("读取JSON成功")
         return json_data
     
     # def _index_by_open_id(self):
@@ -114,7 +114,7 @@ class SMCLabAddressBookParser(SMCLabBaseParser):
                 merged[f"{col}_冲突"] = merged[col_excel] != merged[col_json] 
 
                 if merged[f"{col}_冲突"].any():
-                    print(f"********* {col} 字段有冲突！请优先处理！ *********")
+                    self.logger.warning("********* %s 字段有冲突！请优先处理！ *********", col)
                     conflict_cols.append(col)
                 else:
                     merged.rename(columns={
@@ -125,7 +125,7 @@ class SMCLabAddressBookParser(SMCLabBaseParser):
 
         self.merged_df = merged
         self.conflict_cols = conflict_cols
-        print(f"合并完成，共 {len(merged)} 行，其中 {len(conflict_cols)} 个字段存在冲突")
+        self.logger.info("合并完成，共 %d 行，其中 %d 个字段存在冲突", len(merged), len(conflict_cols))
 
     def merge_info_to_excel(self):
         """保存Excel并对冲突单元格标红加粗"""
@@ -161,12 +161,12 @@ class SMCLabAddressBookParser(SMCLabBaseParser):
                         name_col_idx = self.merged_df.columns.get_loc('姓名_Excel') + 1
 
                     name = ws.cell(idx, name_col_idx).value
-                    print(f"\t{name}\t的*{col}*字段有冲突: {ws.cell(idx, excel_col_idx).value} vs. {ws.cell(idx, json_col_idx).value}")
+                    self.logger.warning("\t%s\t的*%s*字段有冲突: %s vs. %s", name, col, ws.cell(idx, excel_col_idx).value, ws.cell(idx, json_col_idx).value)
 
 
         wb.save(output_path)
-        print(f"文件已保存：{output_path}")
-        print("红色加粗部分表示Excel与JSON存在差异")
+        self.logger.info("文件已保存：%s", output_path)
+        self.logger.info("红色加粗部分表示Excel与JSON存在差异")
 
 # ---------------- 使用示例 ----------------
 if __name__ == "__main__":

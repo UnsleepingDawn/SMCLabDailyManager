@@ -68,7 +68,7 @@ class SMCLabScheduleParser(SMCLabBaseParser):
                 records.append(row)
         df = pd.DataFrame(records)
         df.to_excel(output_path, index=False)
-        print(f"课时人数表已保存: {Path(output_path).absolute()}")
+        self.logger.info("课时人数表已保存: %s", Path(output_path).absolute())
 
     def make_schedule_names_xlsx(self):
         output_path = os.path.join(self.sem_path, "schedule_names.xlsx")
@@ -83,14 +83,14 @@ class SMCLabScheduleParser(SMCLabBaseParser):
                 records.append(row)
         df = pd.DataFrame(records)
         df.to_excel(output_path, index=False)
-        print(f"课时姓名表已保存: {Path(output_path).absolute()}")
+        self.logger.info("课时姓名表已保存: %s", Path(output_path).absolute())
 
     def make_schedule_by_slot_json(self):
         output_path = os.path.join(self.sem_path, "schedule_by_slot.json")
         schedule = self._collect_schedule()
         with open(output_path, "w", encoding="utf-8") as f:
             json.dump(schedule, f, ensure_ascii=False, indent=4)
-        print(f"每节课学生名单JSON已保存: {Path(output_path).absolute()}")
+        self.logger.info("每节课学生名单JSON已保存: %s", Path(output_path).absolute())
 
     def make_period_summary_json(self):
         output_path = os.path.join(self.sem_path, "schedule_by_period.json")
@@ -104,4 +104,4 @@ class SMCLabScheduleParser(SMCLabBaseParser):
         summary = {d: {p: list(v) for p, v in ps.items()} for d, ps in summary.items()}
         with open(output_path, "w", encoding="utf-8") as f:
             json.dump(summary, f, ensure_ascii=False, indent=4)
-        print(f"每日三时段学生名单JSON已保存: {Path(output_path).absolute()}")
+        self.logger.info("每日三时段学生名单JSON已保存: %s", Path(output_path).absolute())

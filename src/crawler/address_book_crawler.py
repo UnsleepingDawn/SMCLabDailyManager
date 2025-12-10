@@ -33,9 +33,9 @@ class SMCLabAddressBookCrawler(SMCLabClient):
         has_more = True
         page_token = ""
         page_cnt = 0
-        print(f"正在下载部门id: ")
+        self.logger.info("正在下载部门id: ")
         while(has_more):
-            print(f"\t请求下载第{page_cnt}页...")
+            self.logger.info("请求下载第%d页...", page_cnt)
             request: ChildrenDepartmentRequest = ChildrenDepartmentRequest.builder() \
                 .department_id("0") \
                 .user_id_type("open_id") \
@@ -77,7 +77,7 @@ class SMCLabAddressBookCrawler(SMCLabClient):
         page_cnt = 0
         users=[]
         while(has_more):
-            print(f"\t请求下载第{page_cnt}页...")
+            self.logger.info("请求下载第%d页...", page_cnt)
             request = FindByDepartmentUserRequest.builder() \
                 .department_id(department_id) \
                 .page_size(self.page_size) \
@@ -123,7 +123,7 @@ class SMCLabAddressBookCrawler(SMCLabClient):
             department = self.department_id[department_name]
             open_department_id = department.get("open_department_id", "0")
 
-            print(f"正在处理部门: {department_name} ({open_department_id})")
+            self.logger.info("正在处理部门: %s (%s)", department_name, open_department_id)
             users = self._get_one_department_records(open_department_id)
             primary_users = self._filter_primary_dept_users(users, open_department_id)
             address_book[department_name] = {
@@ -140,14 +140,14 @@ class SMCLabAddressBookCrawler(SMCLabClient):
                     # print(f"用户 {user.name} 有培养属性: {user.custom_attrs[0].value.option_value}")
                 else:
                     cultivation = ""
-                    print(f"\t用户 {user.name} 没有培养属性")
+                    self.logger.debug("用户 %s 没有培养属性", user.name)
 
                 if user.custom_attrs and len(user.custom_attrs) > 1 and hasattr(user.custom_attrs[1], 'value') and hasattr(user.custom_attrs[1].value, 'generic_user') and hasattr(user.custom_attrs[1].value.generic_user, 'id'):
                     mentor_id = user.custom_attrs[1].value.generic_user.id
                     # print(f"用户 {user.name} 有导师属性: {user.custom_attrs[1].value.generic_user.id}")
                 else:
                     mentor_id = ""
-                    print(f"\t用户 {user.name} 没有导师属性")
+                    self.logger.debug("用户 %s 没有导师属性", user.name)
                 member_info = {
                         "name": user.name,
                         "union_id": user.union_id,
