@@ -97,11 +97,12 @@ class SMCLabDailyManager:
         self.address_book_parser.merge_info_to_excel()
 
     def send_this_week_seminar_attendance(self, 
+                                          user: str = "梁涵",
                                           use_relay: bool =True):
         self.attendance_crawler.get_this_week_seminar_records()
         self.seminar_attendance_parser.get_this_week_attended_names(use_relay=use_relay)
         # 发送消息
-        self.sender.send_this_week_seminar_attendance(use_relay=use_relay)
+        self.sender.send_this_week_seminar_attendance(user)
 
     def send_last_week_summary(self, 
                                users: str or List[str] = "梁涵",

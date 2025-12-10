@@ -115,7 +115,9 @@ class SMCLabMessageSender(SMCLabClient):
         post_string = json.dumps(self.post_message, ensure_ascii=False)
         # 构造请求对象
         for receive_id, receive_name in zip(receive_ids, receive_names):
-            if not receive_name == "梁涵":
+            if receive_name == "梁涵":
+                user_input = "yes"
+            else:
                 user_input = input(f"即将发送给'{receive_name}', 请确认(yes/y): ").strip()
             if user_input.lower() == "yes" or "y":
                 request: CreateMessageRequest = CreateMessageRequest.builder() \
@@ -146,7 +148,7 @@ class SMCLabMessageSender(SMCLabClient):
         return
 
     def send_this_week_seminar_attendance(self,
-                                          users: str = "梁涵"):
+                                          users: str):
         self.logger.info("发送第%s周组会考勤给 %s", self._this_week, users)
         attended_str, not_attended_str = self._fetch_seminar_attendance(self._year_semester, self._this_week)
         message_string = f"{self._year_semester}-第{self._this_week}周组会考勤:\n" + f"参会: {attended_str}" + "\n" + f"未参会: {not_attended_str}"
