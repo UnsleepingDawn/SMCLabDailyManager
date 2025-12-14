@@ -18,8 +18,6 @@ class SMCLabDailyAttendanceParser(SMCLabBaseParser):
             config = Config()
         super().__init__(config)
         self.raw_data_path = config.da_raw_path
-        raw_data_files = sorted(glob.glob(os.path.join(self.raw_data_path, f"*_daily_attendance_raw.json")))
-        self.raw_data_file = raw_data_files[-1] # 因为只有一个
         # 要存在学期数据里的
         self.sem_data_path = os.path.join(config.sem_data_path, self._year_semester)
         # 课表
@@ -38,8 +36,10 @@ class SMCLabDailyAttendanceParser(SMCLabBaseParser):
         :return: 提取后的简化数据列表
         """
         # === 读取原始文件 ===
-        assert os.path.exists(self.raw_data_file), f"请先下载元数据: {self.raw_data_file}"
-        with open(self.raw_data_file, "r", encoding="utf-8") as f:
+        raw_data_files = sorted(glob.glob(os.path.join(self.raw_data_path, f"*_daily_attendance_raw.json")))
+        raw_data_file = raw_data_files[-1] # 因为只有一个
+        assert os.path.exists(raw_data_file), f"请先下载元数据: {raw_data_file}"
+        with open(raw_data_file, "r", encoding="utf-8") as f:
             raw = json.load(f)
 
         simplified_raw = []
@@ -225,8 +225,10 @@ class SMCLabSeminarAttendanceParser(SMCLabBaseParser):
         super().__init__(config)
         self.raw_data_path = os.path.join(config.raw_data_path, "attendance_raw_data")
         self.sem_path = os.path.join(self._sem_data_path, self._year_semester)
-        
-        info_manager = SMCLabInfoManager(config)
+        self.name_and_id = None
+
+    def _set_info_manager(self):
+        info_manager = SMCLabInfoManager()
         self.name_and_id, _, _ = info_manager.map_fields("user_id","姓名")
 
     def _get_attendance_group_list(self):
@@ -234,6 +236,8 @@ class SMCLabSeminarAttendanceParser(SMCLabBaseParser):
         加载理应参会的同学
         '''
         group_info_path = os.path.join(self.raw_data_path, "attendance_group_info.json")
+        if not self.name_and_id:
+            self._set_info_manager()
         with open(group_info_path, 'r', encoding='utf-8') as f:
             data = json.load(f)
         ids = data.get("group_users_id_list", [])
@@ -304,6 +308,8 @@ class SMCLabSeminarAttendanceParser(SMCLabBaseParser):
         # 筛选指定周的考勤文件
         if week is None:
             week = self._this_week
+        if not self.name_and_id:
+            self._set_info_manager()
         raw_data_files = sorted(glob.glob(os.path.join(self.raw_data_path, f"{self._year_semester}_Week{week}*seminar_attendance_raw*.json"), recursive=True))
 
         # 使用集合来去重

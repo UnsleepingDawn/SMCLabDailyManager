@@ -18,8 +18,6 @@ class SMCLabAddressBookParser(SMCLabBaseParser):
             os.makedirs(self.raw_data_path, exist_ok=True)
         self.address_book_path = os.path.join(self.raw_data_path, "address_book.json")
         self.output_path = os.path.join(config.incre_data_path, "SMCLab学生扩展信息.xlsx")
-        self.df = self._read_excel()
-        self.json_data = self._read_json()
         self.merged_df = None
 
     def _read_excel(self):
@@ -37,23 +35,10 @@ class SMCLabAddressBookParser(SMCLabBaseParser):
         self.logger.info("读取JSON成功")
         return json_data
     
-    # def _index_by_open_id(self):
-    #     """返回以飞书账号为索引的 DataFrame 副本（保证唯一索引）"""
-    #     df = self.df
-    #     if "飞书账号" not in df.columns:
-    #         raise ValueError("需要包含列 '飞书账号' 才能索引")
-    #     # 若存在重复 open_id，保留第一个并警告
-    #     dupes = df["飞书账号"][df["飞书账号"] != ""].duplicated()
-    #     if dupes.any():
-    #         print("警告：存在重复的飞书账号(open_id)，将在合并时以第一个为准。")
-    #     df_idx = df.set_index("飞书账号", drop=False)
-    #     # 若有重复索引， keep first
-    #     df_idx = df_idx[~df_idx.index.duplicated(keep="first")]
-    #     self.df = df_idx
-    
     def _extract_json_members(self):
         members = []
-        for department, primary_members in self.json_data.items():
+        json_data = self._read_json()
+        for department, primary_members in json_data.items():
             for user in primary_members.get("primary_members", []):
                 members.append({
                     "姓名": user.get("name", ""),
@@ -82,7 +67,7 @@ class SMCLabAddressBookParser(SMCLabBaseParser):
     def merge(self):
         """合并并标记冲突"""
         json_df = self._extract_json_members()
-        excel_df = self.df.copy()
+        excel_df = self._read_excel()
 
         merged = pd.merge(
             excel_df,
