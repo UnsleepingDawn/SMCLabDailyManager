@@ -23,5 +23,6 @@ test*.py
 !sysu_semesters.json
 !smc_sum_last_week.json
 !config.json
+!weekly_todo.json
 # 特定文件
 Readmeysy.md
