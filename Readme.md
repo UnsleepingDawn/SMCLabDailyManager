@@ -38,112 +38,62 @@ pip install lark-oapi pandas PySide6-Fluent-Widgets qasync matplotlib seaborn sc
 
 # 功能介绍
 
-分为服务器功能和任务功能
+本项目基于飞书 API，自动化完成中山大学SMCLab 日常数据的爬取、解析与消息发送，主要功能包括：
 
-## 服务器功能
+- 学生基础及扩展信息抓取与维护
+- 组会（Seminar）安排抓取、考勤信息获取与统计
+- 日常考勤数据批量抓取与处理
+- 周报提交情况统计
+- 通过飞书机器人自动发送通知、汇总与提醒
 
-一个长期运行在服务器上的定时任务调度系统，支持每周和每月特定时间执行任务。
-功能特点：
+## 主要功能介绍
 
-- 每周一中午12:00自动执行任务
-- 每月1号中午12:00自动执行任务
-- 完善的日志记录系统
-- 优雅的启动/停止机制
-- 进程管理和监控
+1. **学生信息维护**：  
+   自动下载、合并并同步飞书通讯录信息至本地 Excel 文件，保持学生名册的更新。
 
-有两种启动方法
+2. **组会管理与考勤**：  
+   自动下载组会安排，统计每周出勤情况，并通过飞书自动推送考勤结果。
 
-1. 直接运行（开发测试）
+3. **课表与周报统计**：  
+   自动同步课表；抓取各成员周报提交状态，并生成汇总报表，支持自动群发消息。
 
-```bash
-python server.py
-```
+4. **灵活的配置支持**：  
+   全部操作均可按需开关，可定制日志、路径、多账号token等参数，便于二次开发与扩展。
 
-或者使用管理命令
+## 示例代码
 
-```bash
-python server.py start
-```
-
-按 `Ctrl+C`停止服务器
-
-2. 后台运行（生产环境）
-
-```bash
-# 使用nohup在后台运行
-nohup python server.py > server.log 2>&1 &
-
-# 使用screen在后台运行
-screen -S task_server
-python server.py
-# 按 Ctrl+A, 然后按 D 退出screen（程序继续运行）
-# screen -r task_server 重新连接
-```
-
-3. 使用管理脚本
-
-```bash
-# 启动服务器
-python server.py start
-
-# 停止服务器
-python server.py stop
-
-# 查看服务器状态
-python server.py status
-```
-
-### 配置说明
-
-**定时任务配置**
-在 server.py中修改定时任务：
+如需一键执行上一周的周报与考勤统计并推送至指定同学，可在 `main.py` 中如下调用：
 
 ```python
-def setup_schedules(self):
-    """设置定时任务"""
-    # 每周一中午12点执行
-    schedule.every().monday.at("12:00").do(self.weekly_task)
-  
-    # 每月1号中午12点执行
-    schedule.every().day.at("12:00").do(self.check_monthly_task)
+from src.system import SMCLabDailyManager
+from src.config import Config
+
+if __name__ == "__main__":
+    config = Config()
+    system = SMCLabDailyManager(config)
+    # 发送上周所有统计及考勤消息给梁涵
+    system.send_last_week_summary(users=["梁涵"])
 ```
 
-**自定义任务**
-修改以下方法来添加你的业务逻辑：
+如需强制更新通讯录和课表，并推送上周统计：
 
 ```python
-def weekly_task(self):
-    """每周一中午12点执行的任务"""
-    logging.info("执行每周任务")
-    # 在这里添加你的每周任务逻辑
-    # 例如：数据备份、报表生成等
-
-def monthly_task(self):
-    """每月1号中午12点执行的任务"""
-    logging.info("执行每月任务")
-    # 在这里添加你的每月任务逻辑
-    # 例如：月度统计、账单生成等
+system.send_last_week_summary(
+    users=["梁涵", "张三"],
+    update_address_book=True,
+    update_schedule=True,
+    use_relay=False  # 设置为True可通过中转号发送
+)
 ```
 
-## 数据收发/处理功能
+## 适用场景
 
-### 收发功能
+- 科研实验室日常管理
+- 研究生课题组排会签到
+- 自动化统计与提醒、多维数据整合
 
-1. 下载周报的原始数据: `data_raw\weekly_report_raw_data`
-2. 下载组会信息表格的原始数据: `data_raw\group_meeting_raw_data`
-3. 下载新生课表: `data_raw\schedule_raw_data`
-4. 下载SMC通讯录: `data_raw\address_book_raw_data`的"address_book.json"
-5. 下载考勤原始数据(目前只实现了下载上周的元数据)
-6. 处理新生课表原始数据(可视化)
-7. 处理考勤原始数据(并Python作图可视化保存)
-8. 消息发送系统
-
-### 处理数据
-
-1. 从 `data_raw/group_meeting_raw_data`中提取人员信息, 整理成"SMCLab学生基本信息.xlsx"
-2. 基于"SMCLab学生基本信息.xlsx"和"address_book.json", 增量更新, 并冲突合并为"SMCLab学生扩展信息.xlsx"
-3. 处理新生课表原始数据
-4. 处理考勤原始数据(统计上周每个人的上班无故缺勤次数)
+**注：更多详细用法与自定义选项，请查阅 [src/system.py](src/system.py) 和 configs 下的配置文件。**  
+如有问题或需求，欢迎提Issue或参与贡献！
 
 # 未来更新(悬赏! 欢迎大家fork开发)
 - 把group_info.json也加入到"SMCLab学生扩展信息.xlsx"中
@@ -158,6 +108,4 @@ def monthly_task(self):
 - 客户端部署, 简单的GUI开发([参考](https://github.com/overflow65537/MFW-PyQt6))
 
 # 已知需要优化 & 已知Bug
-
-- 非常重要：服务器端维护一个每周已完成爬取的清单，防止重复消耗API。
 - 现在每次实例化爬虫client都要实例化一个单独的baseclient, 可以开发一个类似于from_pretrained方法, 全部的爬虫都指向同一个baseclient
