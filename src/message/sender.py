@@ -121,8 +121,7 @@ class SMCLabMessageSender(SMCLabClient):
                 user_input = "yes"
             else:
                 user_input = input(f"即将发送给'{receive_name}', 请确认(yes/y): ").strip()
-            else:
-                user_input = "yes"
+                
             if user_input.lower() == "yes" or "y":
                 request: CreateMessageRequest = CreateMessageRequest.builder() \
                     .receive_id_type("open_id") \
