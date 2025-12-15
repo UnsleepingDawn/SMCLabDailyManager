@@ -20,13 +20,14 @@ class SMCLabMessageSender(SMCLabClient):
         if config is None:
             config = Config()
         super().__init__(config)
-        self.info_manager = SMCLabInfoManager(config)
-        # 姓名与飞书账号的映射, 用于根据人名发送
-        name_account, _, _ = self.info_manager.map_fields("姓名", "飞书账号")
-        self.name_account = name_account
         self.bitable_info = self._fetch_bitable_info(config.bitable_info_path)
         self.post_template_path = config.post_template_path
         self.post_message = None
+        self.name_account = None
+
+    def _set_info_manager(self):
+        info_manager = SMCLabInfoManager()
+        self.name_account, _, _ = info_manager.map_fields("姓名", "飞书账号")
 
     def _fetch_bitable_info(self, path: str):
         # 获得
@@ -84,7 +85,8 @@ class SMCLabMessageSender(SMCLabClient):
     def _send_weekly_summary_byweek(self,
                             week: int = None,
                             users: str or List[str] = "梁涵"):
-        
+        if not self.name_account:
+            self._set_info_manager()
         name_account = self.name_account
         if isinstance(users, str):
             users = [users]
@@ -119,6 +121,8 @@ class SMCLabMessageSender(SMCLabClient):
                 user_input = "yes"
             else:
                 user_input = input(f"即将发送给'{receive_name}', 请确认(yes/y): ").strip()
+            else:
+                user_input = "yes"
             if user_input.lower() == "yes" or "y":
                 request: CreateMessageRequest = CreateMessageRequest.builder() \
                     .receive_id_type("open_id") \
@@ -160,6 +164,9 @@ class SMCLabMessageSender(SMCLabClient):
                   message: str):
         # 发送单条文本信息给指定人
         # 参考: https://open.feishu.cn/document/server-docs/im-v1/message-content-description/create_json#45e0953e
+        
+        if self.name_account:
+            self._set_info_manager()
         name_account = self.name_account
         assert user in name_account.keys(), f"没有找到该用户: {user}"
         receive_name = user
@@ -204,6 +211,9 @@ class SMCLabMessageSender(SMCLabClient):
                    image_path: str):
         # 发送单条信息
         # 参考: https://open.feishu.cn/document/server-docs/im-v1/message-content-description/create_json?appId=cli_a8cd4e246b70d013#7111df05
+        
+        if self.name_account:
+            self._set_info_manager()
         name_account = self.name_account
         assert user in name_account.keys(), f"没有找到该用户: {user}"
         receive_name = user

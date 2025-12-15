@@ -13,9 +13,10 @@ class SMCLabBitableParser(SMCLabBaseParser):
             config = Config()
         super().__init__(config)
         self.raw_data_path = None
-        self.file_list = None
         self.output_path = None
-        self.info_manager = SMCLabInfoManager(config)
+
+    def _set_info_manager(self):
+        self.info_manager = SMCLabInfoManager()
 
     def _load_json(self, file_path):
         """读取单个 JSON 文件"""
@@ -38,14 +39,14 @@ class SMCLabSeminarParser(SMCLabBitableParser):
             config = Config()
         super().__init__(config=config)
         self.raw_data_path = config.seminar.raw_path
-        self.file_list = sorted(glob(os.path.join(self.raw_data_path, "*seminar_raw*.json")))
-        if not self.file_list:
-            raise FileNotFoundError(f"未在 {self.raw_data_path} 中找到任何 seminar*.json 文件")
         self.info_base_path = config.info_base_path
 
     def parse_all(self):
         all_records = []
-        for file in self.file_list:
+        file_list = sorted(glob(os.path.join(self.raw_data_path, "*seminar_raw*.json")))
+        if not file_list:
+            raise FileNotFoundError(f"未在 {self.raw_data_path} 中找到任何 seminar*.json 文件")
+        for file in file_list:
             data = self._load_json(file)
             for item in data.get("items", []):
                 fields = item.get("fields", {})
@@ -59,7 +60,7 @@ class SMCLabSeminarParser(SMCLabBitableParser):
                     "学号": fields.get("_学号", ""),
                 }
                 all_records.append(record)
-        self.logger.info("共读取 %d 条记录，来自 %d 个 JSON 文件。", len(all_records), len(self.file_list))
+        self.logger.info("共读取 %d 条记录，来自 %d 个 JSON 文件。", len(all_records), len(file_list))
         return all_records
 
     def save_to_excel(self, output_path: str = None):
@@ -90,7 +91,8 @@ class SMCLabWeeklyReportParser(SMCLabBitableParser):
         super().__init__(config=config)
         self.raw_data_path = config.weekly_report.raw_path
         self.group_info_path = config.da_group_info_path
-        self.weekly_file_list = sorted(glob(os.path.join(self.raw_data_path, "*weekly_report_byweek_raw*.json")))
+        self.weekly_file_list = []
+        self.info_manager = None
         # 要存在学期数据里的
         self.sem_path = os.path.join(self._sem_data_path, self._year_semester)
 
@@ -100,6 +102,8 @@ class SMCLabWeeklyReportParser(SMCLabBitableParser):
         SMCLabAttendanceCrawler.get_group_info()
         ''' 
         group_info_path = self.group_info_path
+        if not self.info_manager:
+            self._set_info_manager()
         id_name_pair, _, _ = self.info_manager.map_fields("user_id", "姓名")
         if not update and os.path.exists(group_info_path):
             self.logger.info("找到已有考勤组信息!")
@@ -121,6 +125,7 @@ class SMCLabWeeklyReportParser(SMCLabBitableParser):
         - file_name
         :return: 提取后的简化数据列表
         """
+        self.weekly_file_list = sorted(glob(os.path.join(self.raw_data_path, "*weekly_report_byweek_raw*.json")))
         assert len(self.weekly_file_list)!=0, f"请先下载上周的周报元数据"
         simplified_raw = []
         for file in self.weekly_file_list:

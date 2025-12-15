@@ -12,14 +12,6 @@ class SMCLabScheduleParser(SMCLabBaseParser):
             config = Config()
         super().__init__(config)
         self.raw_data_path = config.schedule.raw_path
-        self.file_list = sorted(glob.glob(os.path.join(self.raw_data_path, "*schedule_raw*.json")))
-        if not self.file_list:
-            raise FileNotFoundError(f"未在 {self.raw_data_path} 中找到任何 schedule*.json 文件")
-        raw_file = self.file_list[0]
-        if not os.path.exists(raw_file):
-            raise RuntimeError(f"未找到 {raw_file}, 请先运行 SMCLabScheduleCrawler 下载数据")
-        with open(raw_file, 'r', encoding='utf-8') as f:
-            self.data = json.load(f)["items"]
         self.time_table, self.days = self._build_time_table()
         self.sem_path = os.path.join(self._sem_data_path, self._year_semester)
         if not os.path.exists(self.sem_path):
@@ -43,8 +35,17 @@ class SMCLabScheduleParser(SMCLabBaseParser):
 
     def _collect_schedule(self):
         """提取每个工作日每节课的上课同学名单"""
+        file_list = sorted(glob.glob(os.path.join(self.raw_data_path, "*schedule_raw*.json")))
+        if not file_list:
+            raise FileNotFoundError(f"未在 {self.raw_data_path} 中找到任何 schedule*.json 文件")
+        raw_file = file_list[0]
+        if not os.path.exists(raw_file):
+            raise RuntimeError(f"未找到 {raw_file}, 请先运行 SMCLabScheduleCrawler 下载数据")
+        with open(raw_file, 'r', encoding='utf-8') as f:
+            data = json.load(f)["items"]
+
         schedule = {day: defaultdict(list) for day in self.days}
-        for item in self.data:
+        for item in data:
             fields = item.get("fields", {})
             name = fields.get("姓名", [{}])[0].get("text", "未知")
             for day in self.days:

@@ -30,8 +30,11 @@ class SMCLabAttendanceCrawler(SMCLabClient):
         self.seminar_start_time = config.sa_seminar_start_time
         self.seminar_end_time = config.sa_seminar_end_time
 
-        self.info_manager = SMCLabInfoManager(config)
+        self.info_manager = None
     
+    def _set_info_manager(self):
+        self.info_manager = SMCLabInfoManager()
+
     def _check_resp(self, resp: SearchGroupResponse):
         assert resp.code == 0
         assert len(resp.data.group_list) != 0, "未查询到考勤组"
@@ -182,6 +185,8 @@ class SMCLabAttendanceCrawler(SMCLabClient):
         self._remove_past_daily_record()
         raw_data_path = self.raw_data_path
         last_monday, last_friday = TimeParser.get_last_week_period()
+        if not self.info_manager:
+            self._set_info_manager()
         name_id_pair, _, _ = self.info_manager.map_fields("姓名", "user_id")
         user_ids = self.group_users_id_list 
         my_id = name_id_pair["梁涵"]
@@ -245,7 +250,6 @@ class SMCLabAttendanceCrawler(SMCLabClient):
                                                                  start_time=query_start_time,
                                                                  end_time=query_end_time)
         
-        name_id_pair, _, _ = self.info_manager.map_fields("姓名", "user_id")
         user_ids_chunks = split_ids_into_chunks(self.group_users_id_list)
 
         # 构造请求对象

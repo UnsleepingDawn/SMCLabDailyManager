@@ -110,10 +110,10 @@ class SMCLabDailyManager:
                                update_address_book: bool = False,
                                use_relay: bool = True):
         # 更新通讯录
-        if update_address_book:
+        if update_address_book: # TODO: 不够智能，这里的条件应该判断是否存在文件，如果没有文件依然需要更新
             self.update_address_book()
         # 更新课表
-        if update_schedule:
+        if update_schedule: # TODO: 不够智能，这里的条件应该判断是否存在文件，如果没有文件依然需要更新
             self.schedule_crawler.get_raw_records() 
             self.schedule_parser.make_period_summary_json()
         # 下载出席记录
