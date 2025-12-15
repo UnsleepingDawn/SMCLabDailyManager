@@ -222,14 +222,14 @@ class SMCLabSeminarAttendanceParser(SMCLabBaseParser):
         super().__init__(config)
         self.raw_data_path = os.path.join(config.raw_data_path, "attendance_raw_data")
         self.this_sem_path = os.path.join(self._sem_data_path, self._year_semester)
+        self.sem_path = os.path.join(self._sem_data_path, self._year_semester)
+        self.group_info_path = config.da_group_info_path
         
         # Seminar 相关配置
         self.seminar_weekday = config.sa_seminar_weekday
         self.seminar_start_time = config.sa_seminar_start_time
         self.seminar_end_time = config.sa_seminar_end_time
 
-        
-        self.sem_path = os.path.join(self._sem_data_path, self._year_semester)
         self.name_and_id = None
 
     def _set_info_manager(self):
@@ -240,7 +240,7 @@ class SMCLabSeminarAttendanceParser(SMCLabBaseParser):
         '''
         加载理应参会的同学
         '''
-        group_info_path = os.path.join(self.raw_data_path, "attendance_group_info.json")
+        group_info_path = self.group_info_path
         if not self.name_and_id:
             self._set_info_manager()
         with open(group_info_path, 'r', encoding='utf-8') as f:

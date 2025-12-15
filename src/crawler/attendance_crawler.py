@@ -21,10 +21,10 @@ class SMCLabAttendanceCrawler(SMCLabClient):
         self.page_size = config.da_page_size
         self.group_name = config.da_group_name
         self.group_info_path = config.da_group_info_path
-        self.update_group_info = config.da_update_group_info
         # 会根据 group_name 来获取 group_id
         self.group_id = 0
         self.group_users_id_list = []
+        self.group_users_name_list = []
         # 组会相关配置
         self.seminar_weekday = config.sa_seminar_weekday
         self.seminar_start_time = config.sa_seminar_start_time
@@ -70,7 +70,9 @@ class SMCLabAttendanceCrawler(SMCLabClient):
         # 参考：https://open.feishu.cn/document/attendance-v1/group/list_user
         if not self.group_id:
             self._get_group_id()
-            
+        if not self.info_manager:
+            self._set_info_manager()
+        id_name_pair, _, _ = self.info_manager.map_fields("user_id", "姓名")
         has_more = True
         page_token = ""
         page_cnt = 0
@@ -101,7 +103,9 @@ class SMCLabAttendanceCrawler(SMCLabClient):
             page_cnt += 1
 
         users_id_list = [user.user_id for user in users_list]
+        users_name_list = [id_name_pair[user_id] for user_id in users_id_list]
         self.group_users_id_list = users_id_list
+        self.group_users_name_list = users_name_list
     
     def _remove_past_daily_record(self):
         search_pattern = os.path.join(self.raw_data_path, "*daily_attendance*.json")
@@ -117,11 +121,10 @@ class SMCLabAttendanceCrawler(SMCLabClient):
         #     os.remove(file_path)
 
 
-    def get_group_info(self):
+    def get_group_info(self, update: bool = True):
         '''
         该函数用于从 attendance_group_info.json 获取考勤组成员的user_id
         ''' 
-        update = self.update_group_info
         group_info_path = self.group_info_path
         if not update and os.path.exists(group_info_path):
             self.logger.info("找到已有考勤组信息!")
@@ -130,6 +133,7 @@ class SMCLabAttendanceCrawler(SMCLabClient):
             self.group_name = group_info.get("group_name", "")
             self.group_id = group_info.get("group_id", 0)
             self.group_users_id_list = group_info.get("group_users_id_list", [])
+            self.group_users_name_list = group_info.get("group_users_name_list", [])
         else:
             self._get_group_list_user()
             group_info={}
@@ -137,6 +141,7 @@ class SMCLabAttendanceCrawler(SMCLabClient):
             group_info["group_name"] = self.group_name
             group_info["group_id"] = self.group_id
             group_info["group_users_id_list"] = self.group_users_id_list
+            group_info["group_users_name_list"] = self.group_users_name_list
             with open(group_info_path, 'w', encoding='utf-8') as f:
                 json.dump(group_info,
                           f, ensure_ascii=False, indent=4)
@@ -174,14 +179,16 @@ class SMCLabAttendanceCrawler(SMCLabClient):
                 f.write(resp_json)
 
 
-    def get_last_week_daily_records(self):
+    def get_last_week_daily_records(self, 
+                                    update_group_info: bool = True):
+        # TODO: 写成get_daily_records_byweek
         # 收集方式参考: https://open.feishu.cn/document/server-docs/attendance-v1/user_stats_data/query-3?appId=cli_a8cd4e246b70d013
         # 数据结构参考：https://open.feishu.cn/document/server-docs/attendance-v1/user_stats_data/query-2?appId=cli_a8cd4e246b70d013
         # 与组会打卡查询不同，这里下载的是考勤统计数据：UserStatsData
         # 我们只需要看这个字段：
         # 1. 51503-1-1: 每天第一次上班的打卡结果
         if not self.group_id:
-            self.get_group_info()
+            self.get_group_info(update_group_info)
         self._remove_past_daily_record()
         raw_data_path = self.raw_data_path
         last_monday, last_friday = TimeParser.get_last_week_period()
@@ -220,7 +227,8 @@ class SMCLabAttendanceCrawler(SMCLabClient):
 
     def get_seminar_records_byweek(self, 
                                     week: int, 
-                                    seminar_weekday: int = None):
+                                    seminar_weekday: int = None,
+                                    update_group_info: bool = True):
         # 参考https://open.feishu.cn/document/server-docs/attendance-v1/user_task/query-2
         # 与日常考勤查询不同，这里下载的是打卡流水数据：UserFlow
         def split_ids_into_chunks(user_ids):
@@ -230,7 +238,7 @@ class SMCLabAttendanceCrawler(SMCLabClient):
                 return [user_ids]
         
         if not self.group_id:
-            self.get_group_info() # 保证self.group_users_id_list存在
+            self.get_group_info(update_group_info) # 保证self.group_users_id_list存在
         self._remove_past_seminar_record()
         raw_data_path = self.raw_data_path
         # 返回周几开会
@@ -253,7 +261,7 @@ class SMCLabAttendanceCrawler(SMCLabClient):
         user_ids_chunks = split_ids_into_chunks(self.group_users_id_list)
 
         # 构造请求对象
-        self.logger.info("下载这周的组会出勤:")
+        self.logger.info(f"下载{self._this_week}周的组会出勤:")
         count = 0
         for user_ids in user_ids_chunks:
             request: QueryUserFlowRequest = QueryUserFlowRequest.builder() \
@@ -278,8 +286,12 @@ class SMCLabAttendanceCrawler(SMCLabClient):
 
         self.logger.info("下载完成!")
 
-    def get_this_week_seminar_records(self):
-        self.get_seminar_records_byweek(self._this_week)
+    def get_this_week_seminar_records(self, 
+                                      seminar_weekday: int = None,
+                                      update_group_info: bool = True):
+        self.get_seminar_records_byweek(self._this_week, seminar_weekday, update_group_info)
 
-    def get_last_week_seminar_records(self):
-        self.get_seminar_records_byweek(self._this_week-1)
+    def get_last_week_seminar_records(self,
+                                      seminar_weekday: int = None,
+                                      update_group_info: bool = True):
+        self.get_seminar_records_byweek(self._this_week-1, seminar_weekday, update_group_info)
