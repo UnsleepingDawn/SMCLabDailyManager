@@ -54,6 +54,7 @@ class Config:
         self.last_tenant_path = path_config.get("last_tenant_path", "configs/last_tenant.json")
         self.sysu_schedule_path = path_config.get("sysu_schedule_path", "configs/sysu_schedule.json")
         self.sysu_semesters_path = path_config.get("sysu_semesters_path", "configs/sysu_semesters.json")
+        self.weekly_todo_path = path_config.get("weekly_todo_path", "configs/weekly_todo.json")
         
         self.post_template_path = path_config.get("post_template_path", "configs/post_template/smc_sum_last_week.json")
 
@@ -80,7 +81,6 @@ class Config:
         self.da_group_name = daily_attendance_config.get("group_name", "SMC考勤")
         self.da_raw_path = daily_attendance_config.get("raw_path", "data_raw/attendance_raw_data")
         self.da_group_info_path = daily_attendance_config.get("group_info_path", "data_raw/attendance_raw_data/group_info.json")
-        self.da_update_group_info = daily_attendance_config.get("update_group_info", True)
         self.da_output_path = daily_attendance_config.get("output_path", "data_raw/attendance.json")
 
         seminar_attendance_config = self._config.get("seminar_attendance", {})

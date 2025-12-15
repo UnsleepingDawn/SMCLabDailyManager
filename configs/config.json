@@ -22,6 +22,7 @@
         "last_tenant_path": "configs/last_tenant.json",
         "sysu_schedule_path": "configs/sysu_schedule.json",
         "sysu_semesters_path": "configs/sysu_semesters.json",
+        "weekly_todo_path": "configs/weekly_todo.json",
 
         "post_template_path": "configs/post_template/smc_sum_last_week.json"
     },
@@ -37,7 +38,6 @@
         "group_name": "SMC考勤",
         "raw_path": "data_raw/attendance_raw_data",
         "group_info_path": "data_raw/attendance_raw_data/group_info.json",
-        "update_group_info": true,
         "output_name": "daily_attendance"
     },
     "seminar_attendance": {

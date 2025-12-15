@@ -1,6 +1,8 @@
 import os, sys, glob
 import logging
+import json
 from logging.handlers import RotatingFileHandler
+from typing import List
 
 from openpyxl.descriptors.base import NoneSet
 
@@ -37,6 +39,7 @@ from src.message.sender import (
     SMCLabMessageSender
 )
 from src.config import Config
+from src.utils import get_semester_and_week
 
 class SMCLabDailyManager:
     def __init__(self, config: Config = None):
@@ -45,6 +48,10 @@ class SMCLabDailyManager:
         self.config = config
         
         self.set_logger()
+
+        _, this_week = get_semester_and_week(config.sysu_semesters_path)
+        self._this_week = this_week
+
         # 发送模块
         self.sender = SMCLabMessageSender(config)
         # 下载模块
@@ -70,7 +77,7 @@ class SMCLabDailyManager:
             os.remove(file)
         # 控制台输出器：INFO级别以上的日志输出到控制台
         console_handler = logging.StreamHandler()
-        console_formatter = logging.Formatter("%(levelname)s - %(message)s")
+        console_formatter = logging.Formatter(self.config.logger_format)
         console_handler.setFormatter(console_formatter)
         console_handler.setLevel(logging.INFO)
         self.logger.addHandler(console_handler)
@@ -105,24 +112,116 @@ class SMCLabDailyManager:
         self.sender.send_this_week_seminar_attendance(user)
 
     def send_last_week_summary(self, 
-                               users: str or List[str] = "梁涵",
-                               update_schedule: bool = False,
+                               users: str | List[str] = "梁涵",
+                               update_all: bool = False,
                                update_address_book: bool = False,
-                               use_relay: bool = True):
+                               update_schedule: bool = False,
+                               use_relay: bool = False):
+        if update_all:
+            update_address_book = True
+            update_schedule = True
         # 更新通讯录
-        if update_address_book: # TODO: 不够智能，这里的条件应该判断是否存在文件，如果没有文件依然需要更新
+        if update_address_book or update_all: # TODO: 不够智能，这里的条件应该判断是否存在文件，如果没有文件依然需要更新
             self.update_address_book()
         # 更新课表
-        if update_schedule: # TODO: 不够智能，这里的条件应该判断是否存在文件，如果没有文件依然需要更新
+        if update_schedule or update_all: # TODO: 不够智能，这里的条件应该判断是否存在文件，如果没有文件依然需要更新
             self.schedule_crawler.get_raw_records() 
             self.schedule_parser.make_period_summary_json()
-        # 下载出席记录
-        self.attendance_crawler.get_last_week_daily_records()
-        self.attendance_crawler.get_last_week_seminar_records()
-        self.seminar_attendance_parser.get_last_week_attended_names(use_relay=use_relay)
-        self.daily_attendance_parser.last_week_daily_attendance_to_excel()
-        # 周报部分
-        self.weekly_report_crawler.get_last_week_records()
-        self.weekly_report_parser.last_week_weekly_report_to_txt()
+        
+        # 读取 weekly_todo.json 并根据未完成事项执行
+        last_week = self._this_week - 1
+        todo_items = self._get_todo_items_byweek(week=last_week)
+        updated_flags = {}
+        
+        # 根据待办事项状态决定是否执行
+        # 下载日常出勤信息
+        if not todo_items.get("下载日常出勤信息", False):
+            self.logger.info("执行: 下载日常出勤信息")
+            self.attendance_crawler.get_last_week_daily_records()
+            self.daily_attendance_parser.last_week_daily_attendance_to_excel()
+            updated_flags["下载日常出勤信息"] = True
+        else:
+            self.logger.info("跳过: 下载日常出勤信息（已完成）")
+        
+        # 下载组会出勤信息
+        if not todo_items.get("下载组会出勤信息", False):
+            self.logger.info("执行: 下载组会出勤信息")
+            self.attendance_crawler.get_last_week_seminar_records()
+            self.seminar_attendance_parser.get_last_week_attended_names(use_relay=use_relay)
+            updated_flags["下载组会出勤信息"] = True
+        else:
+            self.logger.info("跳过: 下载组会出勤信息（已完成）")
+        
+        # 下载周报提交情况
+        if not todo_items.get("下载周报提交情况", False):
+            self.logger.info("执行: 下载周报提交情况")
+            self.weekly_report_crawler.get_last_week_records()
+            self.weekly_report_parser.last_week_weekly_report_to_txt()
+            updated_flags["下载周报提交情况"] = True
+        else:
+            self.logger.info("跳过: 下载周报提交情况（已完成）")
+
+        # 将完成的任务写回 weekly_todo.json
+        if updated_flags:
+            self._update_weekly_todo(week=last_week, updates=updated_flags)
 
         self.sender.send_last_week_summary(users=users)
+
+    def _get_last_week_todo_items(self) -> dict:
+        """
+        读取上一周的待办事项，返回一个包含状态的字典。
+        若读取失败或不存在对应周数据，返回空字典，调用方将执行所有操作。
+        """
+        last_week = self._this_week - 1
+        return self._get_todo_items_byweek(week=last_week)
+
+    def _get_todo_items_byweek(self, week: int) -> dict:
+        """
+        读取指定周的待办事项，返回一个包含状态的字典。
+        若读取失败或不存在对应周数据，返回空字典，调用方将执行所有操作。
+        """
+        weekly_todo_path = os.path.join("configs", "weekly_todo.json")
+        if not os.path.exists(weekly_todo_path):
+            return {}
+        try:
+            with open(weekly_todo_path, 'r', encoding='utf-8') as f:
+                weekly_todo_data = json.load(f)
+            week_key = f"week{week}"
+            weekly_map = weekly_todo_data.get("weekly_todo", {})
+            if week_key in weekly_map:
+                todo_items = weekly_map[week_key]
+                self.logger.info(f"读取到第{week}周的待办事项: {todo_items}")
+                return todo_items
+        except Exception as e:
+            self.logger.warning(f"读取 weekly_todo.json 失败: {e}，将执行所有操作")
+        return {}
+
+    def _update_weekly_todo(self, week: int, updates: dict):
+        """
+        将指定周的待办状态更新为 True，若文件不存在则创建基础结构。
+        """
+        weekly_todo_path = os.path.join("configs", "weekly_todo.json")
+        data = {"last_address_book_update": "", 
+                "last_schedule_update": "", 
+                "weekly_todo": {}}
+        if os.path.exists(weekly_todo_path):
+            try:
+                with open(weekly_todo_path, 'r', encoding='utf-8') as f:
+                    data = json.load(f)
+            except Exception as e:
+                self.logger.warning(f"读取 weekly_todo.json 失败，将重新写入基础结构: {e}")
+                data = {"last_address_book_update": "", "last_schedule_update": "", "weekly_todo": {}}
+
+        week_key = f"week{week}"
+        weekly_map = data.get("weekly_todo", {})
+        week_items = weekly_map.get(week_key, {})
+        week_items.update({k: True for k in updates.keys()})
+        weekly_map[week_key] = week_items
+        data["weekly_todo"] = weekly_map
+
+        try:
+            with open(weekly_todo_path, 'w', encoding='utf-8') as f:
+                json.dump(data, f, ensure_ascii=False, indent=4)
+            self.logger.info(f"已更新 weekly_todo.json 的 {week_key}: {updates}")
+        except Exception as e:
+            self.logger.error(f"写入 weekly_todo.json 失败: {e}")

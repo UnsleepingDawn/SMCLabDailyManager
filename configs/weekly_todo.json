@@ -1,0 +1,11 @@
+{
+    "last_address_book_update": "",
+    "last_schedule_update": "",
+    "weekly_todo": {
+        "week14": {
+            "下载日常出勤信息": true,
+            "下载组会出勤信息": true,
+            "下载周报提交情况": true
+        }
+    }
+}
