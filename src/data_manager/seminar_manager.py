@@ -93,6 +93,7 @@ class SMCLabSeminarManager(SMCLabBaseParser):
         
         return None
     
+    # TODO: 把这个函数写成TimeParser的函数之一
     def _calculate_week_and_weekday(self, date_obj: datetime) -> tuple:
         """
         根据日期计算周数和星期几
