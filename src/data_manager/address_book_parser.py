@@ -12,32 +12,23 @@ class SMCLabAddressBookParser(SMCLabBaseParser):
         if config is None:
             config = Config()
         super().__init__(config)
-        self.excel_path = os.path.join(config.incre_data_path, "SMCLab学生基本信息.xlsx")
+        # 已经有的, 没有也能立刻创建的
         self.raw_data_path = os.path.join(config.raw_data_path, "address_book_raw_data")
+        # 需要提前处理的
+        self.excel_path = os.path.join(config.incre_data_path, "SMCLab学生基本信息.xlsx")
         if not os.path.exists(self.raw_data_path):
             os.makedirs(self.raw_data_path, exist_ok=True)
+        # 需要提前下载的
         self.address_book_path = os.path.join(self.raw_data_path, "address_book.json")
+        self.group_info_path = config.da_group_info_path
+        # 输出路径
         self.output_path = os.path.join(config.incre_data_path, "SMCLab学生扩展信息.xlsx")
         self.merged_df = None
-
-    def _read_excel(self):
-        # 用于init
-        assert os.path.exists(self.excel_path), "请首先运行SMCLabMemberInfoParser, parse_all方法"
-
-        df = pd.read_excel(self.excel_path)
-        self.logger.info("读取Excel成功, 共 %d 行", len(df))
-        return df
-
-    def _read_json(self):
-        # 用于init
+    
+    def _extract_users_from_bitable(self):
+        members = []
         with open(self.address_book_path, "r", encoding="utf-8") as f:
             json_data = json.load(f)
-        self.logger.info("读取JSON成功")
-        return json_data
-    
-    def _extract_json_members(self):
-        members = []
-        json_data = self._read_json()
         for department, primary_members in json_data.items():
             for user in primary_members.get("primary_members", []):
                 members.append({
@@ -49,27 +40,33 @@ class SMCLabAddressBookParser(SMCLabBaseParser):
                     "电话": user.get("mobile", ""),
                     "培养类型": user.get("cultivation", ""),
                     "导师user_id": user.get("mentor_id", ""),
-                    "部门": department
+                    "部门": department,
+                    "需要考勤": 0
                 })
         return pd.DataFrame(members)
-    
-    # def _build_mentor_mapping(self, json_df):
-    #     """根据JSON中的所有成员构建 user_id -> 姓名 映射"""
-    #     mapping = {}
-    #     for _, row in json_df.iterrows():
-    #         if row["部门"] != "Tenure": continue
-    #         uid = row.get("user_id")
-    #         name = row.get("姓名")
-    #         if pd.notna(uid) and uid:
-    #             mapping[uid] = name
-    #     return mapping
-    
-    def merge(self):
-        """合并并标记冲突"""
-        json_df = self._extract_json_members()
-        excel_df = self._read_excel()
 
-        merged = pd.merge(
+    def _fetch_attendance_id(self):
+        """从 group_info.json 读取并返回 group_users_name_list 字段"""
+        assert os.path.exists(self.group_info_path), f"group_info.json 文件不存在, 请先调用SMCLabAttendanceCrawler的get_group_info"
+        with open(self.group_info_path, "r", encoding="utf-8") as f:
+            group_info = json.load(f)
+        group_users_id_list = group_info.get("group_users_id_list", [])
+        self.logger.info("读取考勤组信息成功, 共 %d 个成员", len(group_users_id_list))
+        return group_users_id_list
+
+    def merge_dataframe(self):
+        """合并并标记冲突"""
+        # 读多维表格的信息
+        json_df = self._extract_users_from_bitable()
+        self.logger.info("读取SMCLab扩展信息成功, 共 %d 行", len(json_df))
+        # 读通讯录的信息
+        assert os.path.exists(self.excel_path), "请首先运行SMCLabMemberInfoParser, parse_all方法"
+        excel_df = pd.read_excel(self.excel_path)
+        self.logger.info("读取SMCLab基本信息成功, 共 %d 行", len(excel_df))
+        # 读需要打卡的人的信息
+        group_users_id_list = self._fetch_attendance_id()
+
+        merged_df = pd.merge(
             excel_df,
             json_df,
             on="飞书账号",
@@ -78,48 +75,54 @@ class SMCLabAddressBookParser(SMCLabBaseParser):
             indicator=True
         )
 
-        # 更新已有行
-        for idx, row in merged.iterrows():
+        # 根据user_id将需要打卡的人的"需要考勤"字段设为1
+        # 将group_users_id_list中的user_id对应的"需要考勤"设为1
+        merged_df.loc[merged_df["user_id"].isin(group_users_id_list), "需要考勤"] = 1
+        self.logger.info("已将 %d 个需要打卡的人员的'需要考勤'字段设为1", 
+                        merged_df[merged_df["user_id"].isin(group_users_id_list)].shape[0])
+
+        # 用 Excel 和 JSON 数据进行缺失值的相互填充以尽量补足姓名和培养类型
+        for idx, row in merged_df.iterrows():
             if not pd.notna(row["姓名_JSON"]) and pd.notna(row["姓名_Excel"]):
-                merged.at[idx, "姓名_JSON"] = row["姓名_Excel"]
+                merged_df.at[idx, "姓名_JSON"] = row["姓名_Excel"]
             if not pd.notna(row["姓名_Excel"]) and pd.notna(row["姓名_JSON"]):
-                merged.at[idx, "姓名_Excel"] = row["姓名_JSON"]
+                merged_df.at[idx, "姓名_Excel"] = row["姓名_JSON"]
             if not pd.notna(row["培养类型_JSON"]) and pd.notna(row["培养类型_Excel"]):
-                merged.at[idx, "培养类型_JSON"] = row["培养类型_Excel"]
+                merged_df.at[idx, "培养类型_JSON"] = row["培养类型_Excel"]
             if not pd.notna(row["培养类型_Excel"]) and pd.notna(row["培养类型_JSON"]):
-                merged.at[idx, "培养类型_Excel"] = row["培养类型_JSON"]
+                merged_df.at[idx, "培养类型_Excel"] = row["培养类型_JSON"]
+
 
         conflict_cols = []
         # 对于姓名, 培养类型, 有冲突就记录, 没冲突就合并
         for col in ["姓名", "培养类型"]:
             col_excel = f"{col}_Excel"
             col_json = f"{col}_JSON"
-            if col_excel in merged.columns and col_json in merged.columns:
+            if col_excel in merged_df.columns and col_json in merged_df.columns:
 
-                merged[f"{col}_冲突"] = merged[col_excel] != merged[col_json] 
+                merged_df[f"{col}_冲突"] = merged_df[col_excel] != merged_df[col_json] 
 
-                if merged[f"{col}_冲突"].any():
+                if merged_df[f"{col}_冲突"].any():
                     self.logger.warning("********* %s 字段有冲突！请优先处理！ *********", col)
                     conflict_cols.append(col)
                 else:
-                    merged.rename(columns={
+                    merged_df.rename(columns={
                                             f"{col_excel}": f"{col}",
                                         }, inplace=True)
-                    merged.drop(columns=col_json, inplace=True)
-                    merged.drop(columns=f"{col}_冲突", inplace=True)
+                    merged_df.drop(columns=col_json, inplace=True)
+                    merged_df.drop(columns=f"{col}_冲突", inplace=True)
 
-        self.merged_df = merged
+        self.merged_df = merged_df
         self.conflict_cols = conflict_cols
-        self.logger.info("合并完成，共 %d 行，其中 %d 个字段存在冲突", len(merged), len(conflict_cols))
+        self.merged_df.to_excel(self.output_path, index=False)
+        self.logger.info("合并完成，共 %d 行，其中 %d 个字段存在冲突", len(merged_df), len(conflict_cols))
 
-    def merge_info_to_excel(self):
+    def mark_info_in_excel(self, update: bool=True):
         """保存Excel并对冲突单元格标红加粗"""
-        if not self.merged_df:
-            self.merge()
-        output_path = self.output_path
-        self.merged_df.to_excel(output_path, index=False)
+        if not os.path.exists(self.output_path) or update:
+            self.merge_dataframe()
 
-        wb = load_workbook(output_path)
+        wb = load_workbook(self.output_path)
         ws = wb.active
 
         # 样式：红底、白字、加粗
@@ -149,11 +152,8 @@ class SMCLabAddressBookParser(SMCLabBaseParser):
                     self.logger.warning("\t%s\t的*%s*字段有冲突: %s vs. %s", name, col, ws.cell(idx, excel_col_idx).value, ws.cell(idx, json_col_idx).value)
 
 
-        wb.save(output_path)
-        self.logger.info("文件已保存：%s", output_path)
+        wb.save(self.output_path)
+        self.logger.info("文件已保存：%s", self.output_path)
         self.logger.info("红色加粗部分表示Excel与JSON存在差异")
 
-# ---------------- 使用示例 ----------------
-if __name__ == "__main__":
-    parser = SMCLabAddressBookParser()
-    parser.merge_info_to_excel()
+
