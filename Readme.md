@@ -96,7 +96,6 @@ system.send_last_week_summary(
 如有问题或需求，欢迎提Issue或参与贡献！
 
 # 未来更新(悬赏! 欢迎大家fork开发)
-- 把group_info.json也加入到"SMCLab学生扩展信息.xlsx"中
 - SeminarParser在爬取之后，要去解析未来周的组会信息，并与SeminarAttendanceParser联动，因为或许本学期的组会不一定会在每周三。
 - Config中应该有一个字段用于指定本学期组会的时间, 2025-Fall默认为每周三的晚上。
 - 按导师划分sheet处理周报的原始数据
