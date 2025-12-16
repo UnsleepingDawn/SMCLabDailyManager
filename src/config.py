@@ -61,7 +61,7 @@ class Config:
         # 日志模块配置
         logger_config = self._config.get("logger", {})
         self.logger_name = logger_config.get("name", "SMCLabDailyManager")
-        self.logger_format = logger_config.get("format", "")
+        self.logger_format = logger_config.get("format", "%(asctime)s - %(levelname)s - %(filename)s - %(funcName)s - %(message)s")
         self.logger_level = logger_config.get("level", "INFO")
         self.logger_file = logger_config.get("file", "logs/smclab_daily_manager.log")
         self.logger_max_bytes = logger_config.get("max_bytes", 10485760)
@@ -84,7 +84,6 @@ class Config:
         self.da_output_path = daily_attendance_config.get("output_path", "data_raw/attendance.json")
 
         seminar_attendance_config = self._config.get("seminar_attendance", {})
-        self.sa_seminar_weekday = seminar_attendance_config.get("seminar_weekday", 3)
         self.sa_seminar_start_time = seminar_attendance_config.get("seminar_start_time", 1900)
         self.sa_seminar_end_time = seminar_attendance_config.get("seminar_end_time", 2030)
 
