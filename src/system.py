@@ -98,10 +98,12 @@ class SMCLabDailyManager:
         self.seminar_crawler.get_raw_records()
         # 下载通讯录
         self.address_book_crawler.get_raw_records()
+        # 下载考勤名单
+        self.attendance_crawler.get_group_info(update=True)
         # 把组会表格保存到Excel
         self.seminar_parser.save_to_excel()
         # 合并信息到Excel
-        self.address_book_parser.merge_info_to_excel()
+        self.address_book_parser.mark_info_in_excel(update=True)
 
     def send_this_week_seminar_attendance(self, 
                                           user: str = "梁涵",
