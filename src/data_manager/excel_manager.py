@@ -10,7 +10,7 @@ class SMCLabInfoManager:
         try:
             self.df = pd.read_excel(self.filepath)
         except Exception as e:
-            raise FileNotFoundError(f"无法读取文件 {self.filepath}，错误信息：{e}")
+            raise FileNotFoundError(f"请先运行SMCLabAddressbookParser")
 
     def map_fields(self, field1: str, field2: str):
         """
@@ -63,3 +63,5 @@ class SMCLabInfoManager:
                 mapping_dict[val1] = val2
 
         return mapping_dict, missing_names, one2one_flag
+
+    # TODO: 导出签名表
