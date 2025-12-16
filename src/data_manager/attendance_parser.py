@@ -11,6 +11,7 @@ from ..config import Config
 
 from .schedule_parser import SMCLabScheduleParser
 from .excel_manager import SMCLabInfoManager
+from .seminar_manager import SMCLabSeminarManager
 
 class SMCLabDailyAttendanceParser(SMCLabBaseParser):
     def __init__(self, config: Config = None):
@@ -226,15 +227,19 @@ class SMCLabSeminarAttendanceParser(SMCLabBaseParser):
         self.group_info_path = config.da_group_info_path
         
         # Seminar 相关配置
-        self.seminar_weekday = config.sa_seminar_weekday
         self.seminar_start_time = config.sa_seminar_start_time
         self.seminar_end_time = config.sa_seminar_end_time
 
         self.name_and_id = None
+        self.seminar_weekday_map = None
 
     def _set_info_manager(self):
         info_manager = SMCLabInfoManager()
         self.name_and_id, _, _ = info_manager.map_fields("user_id","姓名")
+
+    def _set_seminar_manager(self):
+        seminar_manager = SMCLabSeminarManager()
+        self.seminar_weekday_map = seminar_manager.get_seminar_weekday_map()
 
     def _get_attendance_group_list(self):
         '''
@@ -302,7 +307,9 @@ class SMCLabSeminarAttendanceParser(SMCLabBaseParser):
                 print(f"{user_input} 不在未出勤名单中")
         return not_attended_names
 
-    def _amend_course_absence(self, not_attended_names: set, seminar_weekday: int=None):
+    def _amend_course_absence(self, 
+                              not_attended_names: set, 
+                              seminar_weekday: int):
         """
         修正班级缺卡人员
         """
@@ -313,10 +320,7 @@ class SMCLabSeminarAttendanceParser(SMCLabBaseParser):
         with open(schedule_path, "r", encoding="utf-8") as f:
             schedule = json.load(f)
         # 做一下组会信息的对应
-        if seminar_weekday:
-            weekday_str = TimeParser.get_weekday_iso(seminar_weekday) 
-        else:
-            weekday_str = TimeParser.get_weekday_iso(self.seminar_weekday) # 如"周一"
+        weekday_str = TimeParser.get_weekday_iso(seminar_weekday) 
         day_period = TimeParser.get_day_period(int(self.seminar_start_time)) # 如"上午"
         class_absent_names = schedule[weekday_str][day_period]
         self.logger.info(f"删去课程缺卡人员: {class_absent_names}")
@@ -324,10 +328,9 @@ class SMCLabSeminarAttendanceParser(SMCLabBaseParser):
         return not_attended_names
 
     def _get_attended_names_byweek(self, 
-                                  use_relay: bool = True,
-                                  week: int = None,
-                                  seminar_weekday: int = None,
-                                  backdoor_delete: bool = False):
+                                   week: int = None,
+                                   use_relay: bool = True,
+                                   backdoor_delete: bool = False):
         """
         获取指定周所有考勤文件中出现的人员姓名列表（去重）
         """
@@ -336,58 +339,70 @@ class SMCLabSeminarAttendanceParser(SMCLabBaseParser):
             week = self._this_week
         if not self.name_and_id:
             self._set_info_manager()
-        raw_data_files = sorted(glob.glob(os.path.join(self.raw_data_path, f"{self._year_semester}_Week{week}*seminar_attendance_raw*.json"), recursive=True))
-
-        # 使用集合来去重
-        attended_names = set()
-        self._get_attendance_group_list()
-
-        not_attended_names = self.expected_attendees
-        if use_relay:
-            # 通过群里的接龙结果输出出勤
-            attended_names = self._load_attendees_from_relay(week)
-            not_attended_names -= attended_names
-        if not use_relay or (use_relay and not attended_names):
-            # 通过打卡流水输出出勤
-            for file_path in raw_data_files:
-                try:
-                    with open(file_path, 'r', encoding='utf-8') as f:
-                        data = json.load(f)
-                    # 提取所有user_id
-                    user_flow_results = data.get("user_flow_results", [])
-                    for record in user_flow_results:
-                        user_id = record.get("user_id", None)
-                        type_attendance = record.get("type")
-                        if user_id and user_id in self.name_and_id:
-                            name = self.name_and_id[user_id]
-                            if name and (type_attendance==0 or type_attendance==6):  # 确保姓名不为空
-                                attended_names.add(name)
-                                not_attended_names.discard(name)
-                except (json.JSONDecodeError, KeyError, FileNotFoundError) as e:
-                    self.logger.error("处理文件 %s 时出错: %s", file_path, e)
-                    continue
-
-        # 根据上课情况进行自动排除，但是目前只能这么干
-        not_attended_names = self._amend_course_absence(not_attended_names, seminar_weekday)
-
-        # 打印未出勤人员名单
-        self.logger.info("=== 未出勤人员名单 ===")
-        if not_attended_names:
-            self.logger.info("共有 %d 人未出勤：", len(not_attended_names))
-            for i, name in enumerate(sorted(not_attended_names), 1):
-                self.logger.info("%d. %s", i, name)
+        if not self.seminar_weekday_map:
+            self._set_seminar_manager()
+        seminar_weekday = self.seminar_weekday_map.get(str(week), None)
+        if not seminar_weekday:
+            self.logger.info(f"第{week}周没有组会")
+            attended_str = "(本周无组会)"
+            not_attended_str = "(本周无组会)"
         else:
-            self.logger.info("所有人员均已出勤")
-        
-        # TODO: 根据请假排除, 但是目前还是只能交互式排除人员
-        if backdoor_delete:
-            not_attended_names = self._backdoor_delete_spec_names(not_attended_names)
-        
-        # 保存到文件
-        attended_names_list = sorted(list(attended_names))
-        not_attended_names_list = sorted(list(not_attended_names))
-        attended_str = ", ".join(attended_names_list) if len(attended_names_list) else "本周未收集到同学们的打卡流水"
-        not_attended_str = ", ".join(not_attended_names_list) if len(not_attended_names_list) else "本周打卡流水全齐"
+            pass
+            raw_data_files = sorted(glob.glob(os.path.join(self.raw_data_path, f"{self._year_semester}_Week{week}*seminar_attendance_raw*.json"), recursive=True))
+
+            # 使用集合来去重
+            attended_names = set()
+            self._get_attendance_group_list()
+
+            not_attended_names = self.expected_attendees
+            if use_relay:
+                # 通过群里的接龙结果输出出勤
+                attended_names = self._load_attendees_from_relay(week)
+                not_attended_names -= attended_names
+            if not use_relay or (use_relay and not attended_names):
+                # 通过打卡流水输出出勤
+                for file_path in raw_data_files:
+                    try:
+                        with open(file_path, 'r', encoding='utf-8') as f:
+                            data = json.load(f)
+                        # 提取所有user_id
+                        user_flow_results = data.get("user_flow_results", [])
+                        for record in user_flow_results:
+                            user_id = record.get("user_id", None)
+                            type_attendance = record.get("type")
+                            if user_id and user_id in self.name_and_id:
+                                name = self.name_and_id[user_id]
+                                if name and (type_attendance==0 or type_attendance==6):  # 确保姓名不为空
+                                    attended_names.add(name)
+                                    not_attended_names.discard(name)
+                    except (json.JSONDecodeError, KeyError, FileNotFoundError) as e:
+                        self.logger.error("处理文件 %s 时出错: %s", file_path, e)
+                        continue
+
+            # 根据上课情况进行自动排除，但是目前只能这么干
+            not_attended_names = self._amend_course_absence(not_attended_names, seminar_weekday)
+
+            # 打印未出勤人员名单
+            self.logger.info("=== 未出勤人员名单 ===")
+            if not_attended_names:
+                self.logger.info("共有 %d 人未出勤：", len(not_attended_names))
+                for i, name in enumerate(sorted(not_attended_names), 1):
+                    self.logger.info("%d. %s", i, name)
+            else:
+                self.logger.info("所有人员均已出勤")
+            
+            # TODO: 根据请假排除, 但是目前还是只能交互式排除人员
+            if backdoor_delete:
+                not_attended_names = self._backdoor_delete_spec_names(not_attended_names)
+            
+            # 保存到文件
+            attended_names_list = sorted(list(attended_names))
+            not_attended_names_list = sorted(list(not_attended_names))
+            attended_str = ", ".join(attended_names_list) if len(attended_names_list) else "本周未收集到同学们的打卡流水"
+            not_attended_str = ", ".join(not_attended_names_list) if len(not_attended_names_list) else "本周打卡流水全齐"
+            self.logger.info("组会出勤: %s", attended_names)
+            self.logger.info("组会未出勤: %s", not_attended_names)
+
         sem_week_path = os.path.join(self.this_sem_path, f"week{week}")
         output_path = os.path.join(sem_week_path, f"SMCLab第{week}周组会考勤统计.txt")
         if not os.path.exists(sem_week_path):
@@ -395,12 +410,14 @@ class SMCLabSeminarAttendanceParser(SMCLabBaseParser):
         with open(output_path, 'w', encoding='utf-8') as f:
             f.write(f"{attended_str}\n")  # 第一行：出现的姓名
             f.write(f"{not_attended_str}")  # 第二行：未出现的姓名
-        self.logger.info("组会出勤: %s", attended_names)
-        self.logger.info("组会未出勤: %s", not_attended_names)
         # 转换为列表并按字母排序返回
 
-    def get_last_week_attended_names(self, use_relay: bool = False):
-        return self._get_attended_names_byweek(week=self._this_week-1, use_relay=use_relay)
+    def get_last_week_attended_names(self, 
+                                     use_relay: bool = False, 
+                                     backdoor_delete: bool = False):
+        return self._get_attended_names_byweek(self._this_week-1, use_relay, backdoor_delete)
 
-    def get_this_week_attended_names(self, use_relay: bool = True):
-        return self._get_attended_names_byweek(week=self._this_week, use_relay=use_relay)
+    def get_this_week_attended_names(self, 
+                                     use_relay: bool = False, 
+                                     backdoor_delete: bool = False):
+        return self._get_attended_names_byweek(self._this_week, use_relay, backdoor_delete)

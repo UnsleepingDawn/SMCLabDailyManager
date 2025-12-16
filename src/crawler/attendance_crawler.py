@@ -27,7 +27,6 @@ class SMCLabAttendanceCrawler(SMCLabClient):
         self.group_users_id_list = []
         self.group_users_name_list = []
         # 组会相关配置
-        self.seminar_weekday = config.sa_seminar_weekday # 本学期默认
         self.seminar_start_time = config.sa_seminar_start_time
         self.seminar_end_time = config.sa_seminar_end_time
 
@@ -195,11 +194,12 @@ class SMCLabAttendanceCrawler(SMCLabClient):
         # 1. 51503-1-1: 每天第一次上班的打卡结果
         if not self.group_id:
             self.get_group_info(update_group_info)
+        if not self.info_manager:
+            self._set_info_manager()
+
         self._remove_past_daily_record()
         raw_data_path = self.raw_data_path
         last_monday, last_friday = TimeParser.get_last_week_period()
-        if not self.info_manager:
-            self._set_info_manager()
         name_id_pair, _, _ = self.info_manager.map_fields("姓名", "user_id")
         user_ids = self.group_users_id_list 
         my_id = name_id_pair["梁涵"]
@@ -232,9 +232,8 @@ class SMCLabAttendanceCrawler(SMCLabClient):
         self.logger.info("下载完成!")
 
     def get_seminar_records_byweek(self, 
-                                    week: int, 
-                                    seminar_weekday: int = None,
-                                    update_group_info: bool = True):
+                                   week: int, 
+                                   update_group_info: bool = True):
         # 参考https://open.feishu.cn/document/server-docs/attendance-v1/user_task/query-2
         # 与日常考勤查询不同，这里下载的是打卡流水数据：UserFlow
         def split_ids_into_chunks(user_ids):
@@ -246,10 +245,14 @@ class SMCLabAttendanceCrawler(SMCLabClient):
         if not self.group_id:
             self.get_group_info(update_group_info) # 保证self.group_users_id_list存在
         self._remove_past_seminar_record()
+        if not self.seminar_weekday_map:
+            self._set_seminar_manager()
         raw_data_path = self.raw_data_path
         # 返回周几开会
+        seminar_weekday = self.seminar_weekday_map.get(str(week), None)
         if not seminar_weekday:
-            seminar_weekday = self.seminar_weekday
+            self.logger.info(f"第{week}周没有组会")
+            return
         if week > self._this_week:
             raise ValueError(f"week {week} 大于当前周 {self._this_week}")
         if week == self._this_week:
@@ -267,7 +270,7 @@ class SMCLabAttendanceCrawler(SMCLabClient):
         user_ids_chunks = split_ids_into_chunks(self.group_users_id_list)
 
         # 构造请求对象
-        self.logger.info(f"下载{self._this_week}周的组会出勤:")
+        self.logger.info(f"下载{week}周的组会出勤:")
         count = 0
         for user_ids in user_ids_chunks:
             request: QueryUserFlowRequest = QueryUserFlowRequest.builder() \
@@ -293,11 +296,9 @@ class SMCLabAttendanceCrawler(SMCLabClient):
         self.logger.info("下载完成!")
 
     def get_this_week_seminar_records(self, 
-                                      seminar_weekday: int = None,
                                       update_group_info: bool = True):
-        self.get_seminar_records_byweek(self._this_week, seminar_weekday, update_group_info)
+        self.get_seminar_records_byweek(self._this_week, update_group_info)
 
     def get_last_week_seminar_records(self,
-                                      seminar_weekday: int = None,
                                       update_group_info: bool = True):
-        self.get_seminar_records_byweek(self._this_week-1, seminar_weekday, update_group_info)
+        self.get_seminar_records_byweek(self._this_week-1, update_group_info)
