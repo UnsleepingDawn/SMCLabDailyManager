@@ -302,7 +302,7 @@ class SMCLabSeminarAttendanceParser(SMCLabBaseParser):
                 print(f"{user_input} 不在未出勤名单中")
         return not_attended_names
 
-    def _amend_course_absence(self, not_attended_names: set):
+    def _amend_course_absence(self, not_attended_names: set, seminar_weekday: int=None):
         """
         修正班级缺卡人员
         """
@@ -313,7 +313,10 @@ class SMCLabSeminarAttendanceParser(SMCLabBaseParser):
         with open(schedule_path, "r", encoding="utf-8") as f:
             schedule = json.load(f)
         # 做一下组会信息的对应
-        weekday_str = TimeParser.get_weekday_iso(self.seminar_weekday) # 如"周一"
+        if seminar_weekday:
+            weekday_str = TimeParser.get_weekday_iso(seminar_weekday) 
+        else:
+            weekday_str = TimeParser.get_weekday_iso(self.seminar_weekday) # 如"周一"
         day_period = TimeParser.get_day_period(int(self.seminar_start_time)) # 如"上午"
         class_absent_names = schedule[weekday_str][day_period]
         self.logger.info(f"删去课程缺卡人员: {class_absent_names}")
@@ -323,6 +326,7 @@ class SMCLabSeminarAttendanceParser(SMCLabBaseParser):
     def _get_attended_names_byweek(self, 
                                   use_relay: bool = True,
                                   week: int = None,
+                                  seminar_weekday: int = None,
                                   backdoor_delete: bool = False):
         """
         获取指定周所有考勤文件中出现的人员姓名列表（去重）
@@ -364,7 +368,7 @@ class SMCLabSeminarAttendanceParser(SMCLabBaseParser):
                     continue
 
         # 根据上课情况进行自动排除，但是目前只能这么干
-        not_attended_names = self._amend_course_absence(not_attended_names)
+        not_attended_names = self._amend_course_absence(not_attended_names, seminar_weekday)
 
         # 打印未出勤人员名单
         self.logger.info("=== 未出勤人员名单 ===")

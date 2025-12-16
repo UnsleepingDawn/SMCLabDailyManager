@@ -7,6 +7,7 @@ from lark_oapi.api.attendance.v1 import *
 from ..common.baseclient import SMCLabClient
 from ..utils import TimeParser
 from ..data_manager.excel_manager import SMCLabInfoManager
+from ..data_manager.seminar_manager import SMCLabSeminarManager
 from ..config import Config
 # 下载考勤原始数据(按周/月/学期/每周组会进行下载)
 class SMCLabAttendanceCrawler(SMCLabClient):
@@ -26,14 +27,19 @@ class SMCLabAttendanceCrawler(SMCLabClient):
         self.group_users_id_list = []
         self.group_users_name_list = []
         # 组会相关配置
-        self.seminar_weekday = config.sa_seminar_weekday
+        self.seminar_weekday = config.sa_seminar_weekday # 本学期默认
         self.seminar_start_time = config.sa_seminar_start_time
         self.seminar_end_time = config.sa_seminar_end_time
 
         self.info_manager = None
+        self.seminar_weekday_map = None
     
     def _set_info_manager(self):
         self.info_manager = SMCLabInfoManager()
+
+    def _set_seminar_manager(self):
+        seminar_manager = SMCLabSeminarManager()
+        self.seminar_weekday_map = seminar_manager.get_seminar_weekday_map()
 
     def _check_resp(self, resp: SearchGroupResponse):
         assert resp.code == 0
@@ -254,7 +260,7 @@ class SMCLabAttendanceCrawler(SMCLabClient):
         # 用于查询流水区间
         query_start_time = str(self.seminar_start_time - 100)
         query_end_time = str(self.seminar_end_time + 100)
-        timestamp_from, timestamp_to = TimeParser.get_timestamps(seminar_date,
+        timestamp_from, timestamp_to = TimeParser.get_sec_level_timestamps(seminar_date,
                                                                  start_time=query_start_time,
                                                                  end_time=query_end_time)
         
