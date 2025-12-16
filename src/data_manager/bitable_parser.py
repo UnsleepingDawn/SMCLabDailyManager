@@ -3,6 +3,8 @@ import os
 from glob import glob
 from openpyxl import Workbook
 
+from src.utils import TimeParser
+
 from ..common.baseparser import SMCLabBaseParser
 from ..config import Config
 from .excel_manager import SMCLabInfoManager
@@ -33,15 +35,16 @@ class SMCLabBitableParser(SMCLabBaseParser):
         except (KeyError, IndexError, TypeError):
             return ""
 
-class SMCLabSeminarParser(SMCLabBitableParser):
+class SMCLabInfoParser(SMCLabBitableParser):
     def __init__(self, config: Config = None):
         if config is None:
             config = Config()
         super().__init__(config=config)
+        # 这里使用seminar表格的数据获取数据
         self.raw_data_path = config.seminar.raw_path
         self.info_base_path = config.info_base_path
 
-    def parse_all(self):
+    def _get_info_from_raw_data(self):
         all_records = []
         file_list = sorted(glob(os.path.join(self.raw_data_path, "*seminar_raw*.json")))
         if not file_list:
@@ -63,15 +66,15 @@ class SMCLabSeminarParser(SMCLabBitableParser):
         self.logger.info("共读取 %d 条记录，来自 %d 个 JSON 文件。", len(all_records), len(file_list))
         return all_records
 
-    def save_to_excel(self, output_path: str = None):
+    def save_info_to_excel(self, output_path: str = None):
         """将所有记录保存为 Excel 文件"""
         if not output_path:
             output_path = self.info_base_path
-        records = self.parse_all()
+        records = self._get_info_from_raw_data()
 
         wb = Workbook()
         ws = wb.active
-        ws.title = "飞书多维表格"
+        ws.title = "SMCLab成员信息"
 
         headers = ["姓名", "年级", "导师", "培养类型", "在读情况", "飞书账号", "学号"]
         ws.append(headers)
@@ -81,8 +84,89 @@ class SMCLabSeminarParser(SMCLabBitableParser):
 
         os.makedirs(os.path.dirname(output_path), exist_ok=True)
         wb.save(output_path)
-        self.logger.info("Excel 文件已保存到：%s", output_path)
+        self.logger.info("成员信息文件已保存到：%s", output_path)
 
+class SMCLabSeminarParser(SMCLabBitableParser):
+    def __init__(self, config: Config = None):
+        if config is None:
+            config = Config()
+        super().__init__(config=config)
+        self.raw_data_path = config.seminar.raw_path
+        self.this_sem_path = os.path.join(config.sem_data_path, self._year_semester)
+
+    def _get_all_text_chunk(self, text_chunks):
+        """
+        从文本块数组中提取所有文本并用空格拼接
+        
+        Args:
+            text_chunks: 文本块数组，格式为 [{"text": "...", "type": "text"}, ...]
+        
+        Returns:
+            str: 所有文本用空格拼接后的字符串
+        """
+        if not text_chunks or not isinstance(text_chunks, list):
+            return ""
+        
+        texts = []
+        for chunk in text_chunks:
+            if isinstance(chunk, dict) and "text" in chunk:
+                text = chunk.get("text", "").strip()
+                if text:
+                    texts.append(text)
+        
+        return " ".join(texts)
+
+    def _get_info_from_raw_data(self):
+        all_records = []
+        file_list = sorted(glob(os.path.join(self.raw_data_path, "*seminar_raw*.json")))
+        if not file_list:
+            raise FileNotFoundError(f"未在 {self.raw_data_path} 中找到任何 seminar*.json 文件")
+        for file in file_list:
+            data = self._load_json(file)
+            for item in data.get("items", []):
+                fields = item.get("fields", {})
+                last_seminar_date = fields.get("上次讲组会时间", None)
+                next_seminar_date = fields.get("近期预期", None)
+                if last_seminar_date:
+                    last_seminar_date = TimeParser.timestamp_ms_to_date_int(last_seminar_date)
+                if next_seminar_date:
+                    next_seminar_date = TimeParser.timestamp_ms_to_date_int(next_seminar_date)
+
+                record = {
+                    "姓名": self._get_nested(fields, ["姓名", 0, "text"]),
+                    "上次讲组会时间": last_seminar_date,
+                    "近期预期": next_seminar_date,
+                    "是否确认": fields.get("是否确认", ""),
+                    "会议室": fields.get("_会议室", ""),
+                    "顺序": fields.get("_Track", None),
+                    "分享主题": self._get_nested(fields, ["分享主题", 0, "text"]),
+                    "摘要": self._get_all_text_chunk(fields.get("摘要", []))
+                }
+                all_records.append(record)
+        self.logger.info("共读取 %d 条记录，来自 %d 个 JSON 文件。", len(all_records), len(file_list))
+        return all_records
+
+    def save_info_to_excel(self, output_path: str = None):
+        """将所有记录保存为 Excel 文件"""
+        if not output_path:
+            output_path = os.path.join(self.this_sem_path, "seminar_information.xlsx")
+        records = self._get_info_from_raw_data()
+
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "组会信息"
+
+        headers = ["姓名", "上次讲组会时间", "近期预期", "是否确认", "会议室", "顺序", "分享主题", "摘要"]
+        ws.append(headers)
+
+        for record in records:
+            ws.append([record[h] for h in headers])
+
+        os.makedirs(os.path.dirname(output_path), exist_ok=True)
+        wb.save(output_path)
+        self.logger.info("组会信息已保存到：%s", output_path)
+
+    
 
 class SMCLabWeeklyReportParser(SMCLabBitableParser):
     def __init__(self, config: Config = None):
@@ -204,5 +288,5 @@ class SMCLabWeeklyReportParser(SMCLabBitableParser):
 if __name__ == "__main__":
     output_file = "output/飞书多维表格汇总.xlsx"
 
-    parser = SMCLabSeminarParser()
-    parser.save_to_excel()
+    parser = SMCLabInfoParser()
+    parser.save_info_to_excel()
