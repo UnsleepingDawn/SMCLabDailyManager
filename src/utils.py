@@ -1,5 +1,6 @@
 import time, os, json, logging
 from datetime import datetime, timedelta
+from typing import Union
 
 def get_semester(current_time: str = None,
                       sysu_semesters_path: str = "configs/sysu_semesters.json"):
@@ -101,11 +102,25 @@ def get_semester_start_date(semester: str = None,
     return datetime.strptime(semester_map[semester], "%Y%m%d")
 
 class TimeParser:
-    # 获取上周一和周五的int
+    """时间解析工具类，提供学期周次计算、日期转换等功能"""
 
     @staticmethod
-    def get_week_period(sem_start_date: datetime or str = None,
+    def get_week_period(sem_start_date: Union[datetime, str] = None,
                         week: int = None):
+        """
+        根据学期起始日期和周数，计算指定周的周一和周五日期
+        
+        Args:
+            sem_start_date: 学期起始日期，可以是datetime对象或"YYYYMMDD"格式字符串，默认为当前学期起始日期
+            week: 周数（从1开始），默认为当前周
+        
+        Returns:
+            tuple: (周一日期整数, 周五日期整数)，格式为YYYYMMDD
+        
+        Example:
+            >>> monday, friday = TimeParser.get_week_period(week=5)
+            >>> print(monday, friday)  # 20250106 20250110 (假设第5周)
+        """
         if sem_start_date is None:
             sem_start_date = get_semester_start_date()
         if isinstance(sem_start_date, str):
@@ -125,6 +140,20 @@ class TimeParser:
     @staticmethod
     def get_week_date(weekday: int,
                       week: int = None):
+        """
+        根据周数和星期几，计算指定周的具体日期
+        
+        Args:
+            weekday: 星期几（1=周一, 2=周二, ..., 7=周日）
+            week: 周数（从1开始），默认为当前周
+        
+        Returns:
+            int: 日期整数，格式为YYYYMMDD
+        
+        Example:
+            >>> date = TimeParser.get_week_date(weekday=3, week=5)
+            >>> print(date)  # 20250108 (假设第5周的周三)
+        """
         assert weekday in [1, 2, 3, 4, 5, 6, 7]
         if week is None:
             week = get_semester_and_week()[1]
@@ -136,7 +165,16 @@ class TimeParser:
     
     @staticmethod
     def get_last_week_period():
-
+        """
+        获取上周的周一和周五日期
+        
+        Returns:
+            tuple: (上周周一日期整数, 上周周五日期整数)，格式为YYYYMMDD
+        
+        Example:
+            >>> last_monday, last_friday = TimeParser.get_last_week_period()
+            >>> print(last_monday, last_friday)  # 20241230 20250103 (假设当前是2025年第1周)
+        """
         today = datetime.now()
         current_weekday = today.weekday()
         # 计算上周周一：当前日期 - 当前星期几 - 上周的6天（因为要回到上周）
@@ -151,6 +189,19 @@ class TimeParser:
 
     @staticmethod
     def get_last_week_date(weekday: int):
+        """
+        获取上周指定星期几的日期
+        
+        Args:
+            weekday: 星期几（1=周一, 2=周二, ..., 7=周日）
+        
+        Returns:
+            int: 日期整数，格式为YYYYMMDD
+        
+        Example:
+            >>> date = TimeParser.get_last_week_date(weekday=5)
+            >>> print(date)  # 20250103 (假设上周五是2025年1月3日)
+        """
         today = datetime.now()
         current_weekday = today.weekday()
         # 计算上周周一：当前日期 - 当前星期几 - 上周的6天（因为要回到上周）
@@ -160,18 +211,41 @@ class TimeParser:
     
     @staticmethod
     def get_this_week_period():
+        """
+        获取本周的周一和周五日期
+        
+        Returns:
+            tuple: (本周周一日期整数, 本周周五日期整数)，格式为YYYYMMDD
+        
+        Example:
+            >>> this_monday, this_friday = TimeParser.get_this_week_period()
+            >>> print(this_monday, this_friday)  # 20250106 20250110 (假设本周是2025年1月6日到10日)
+        """
         today = datetime.now()
         current_weekday = today.weekday()
-        # 计算上周周一：当前日期 - 当前星期几 - 上周的6天（因为要回到上周）
+        # 计算本周周一：当前日期 - 当前星期几
         this_monday = today - timedelta(days=current_weekday)
         this_friday = this_monday + timedelta(days=4)
         last_monday_int = int(this_monday.strftime("%Y%m%d"))
         last_friday_int = int(this_friday.strftime("%Y%m%d"))
         
-        return this_monday, this_friday
+        return last_monday_int, last_friday_int
     
     @staticmethod
     def get_this_week_date(weekday: int):
+        """
+        获取本周指定星期几的日期
+        
+        Args:
+            weekday: 星期几（1=周一, 2=周二, ..., 7=周日）
+        
+        Returns:
+            tuple: (日期整数, 天数差)，日期格式为YYYYMMDD，天数差表示距离今天的天数
+        
+        Example:
+            >>> date, delta = TimeParser.get_this_week_date(weekday=3)
+            >>> print(date, delta)  # 20250108 -2 (假设今天是周二，获取周三，差-2天)
+        """
         today = datetime.now()
         current_weekday = today.weekday()
         
@@ -185,6 +259,17 @@ class TimeParser:
 
     @staticmethod
     def get_last_week_date_maping():
+        """
+        获取上周所有日期与星期几的映射字典
+        
+        Returns:
+            dict: 日期字符串到星期几的映射，格式为{"YYYYMMDD": "周X"}
+        
+        Example:
+            >>> mapping = TimeParser.get_last_week_date_maping()
+            >>> print(mapping)  
+            # {"20241230": "周一", "20241231": "周二", ..., "20250105": "周日"}
+        """
         today = datetime.now()
         current_weekday = today.weekday()
         
@@ -203,7 +288,25 @@ class TimeParser:
                 days[7]: weekdays[7]}
     
     @staticmethod
-    def get_weekday_iso(date: str or int):
+    def get_weekday_iso(date: Union[str, int]):
+        """
+        获取日期对应的星期几（ISO 8601标准：周一为一周的第一天）
+        
+        Args:
+            date: 日期，可以是以下格式之一：
+                - 整数1-7：直接表示星期几（1=周一, 7=周日）
+                - 整数YYYYMMDD：日期整数，如20250108
+                - 字符串"YYYYMMDD"：日期字符串
+        
+        Returns:
+            str: 星期几的中文表示（"周一"到"周日"）
+        
+        Example:
+            >>> weekday = TimeParser.get_weekday_iso(20250108)
+            >>> print(weekday)  # "周三"
+            >>> weekday = TimeParser.get_weekday_iso(3)
+            >>> print(weekday)  # "周三"
+        """
         # ISO 8601 标准定义: 星期一为一周的第一天, 星期日为一周的最后一天
         if isinstance(date, int) and date < 8:
             weekday_num = date
@@ -222,7 +325,21 @@ class TimeParser:
     @staticmethod
     def get_day_period(time: int):
         """
-        根据时间获取时间范围，如"上午"、"下午"、"晚上"
+        根据时间（24小时制）获取时间段，如"上午"、"下午"、"晚上"
+        
+        Args:
+            time: 时间整数，格式为HHMM（如930表示9:30，1400表示14:00）
+        
+        Returns:
+            str: 时间段（"上午"、"下午"、"晚上"或"错误时间"）
+        
+        Example:
+            >>> period = TimeParser.get_day_period(930)
+            >>> print(period)  # "上午"
+            >>> period = TimeParser.get_day_period(1430)
+            >>> print(period)  # "下午"
+            >>> period = TimeParser.get_day_period(2000)
+            >>> print(period)  # "晚上"
         """
         if time > 600 and time < 1200:
             return "上午"
@@ -235,20 +352,25 @@ class TimeParser:
 
 
     @staticmethod
-    def get_timestamps(start_date: int, 
+    def get_sec_level_timestamps(start_date: int, 
                        end_date: int = None, 
                        start_time: str = "0700", 
                        end_time: str = "2300"):
         """
-        获取某一天起始和终点时间的秒级时间戳
+        获取指定日期时间范围的秒级时间戳
         
         Args:
-            date_int: 日期整数，格式如20251203
-            start_time_str: 起始时间字符串，格式如0930
-            end_time_str: 终点时间字符串，格式如0930
+            start_date: 起始日期整数，格式为YYYYMMDD，如20250108
+            end_date: 结束日期整数，格式为YYYYMMDD，如20250110。如果为None，则与start_date相同
+            start_time: 起始时间字符串，格式为HHMM（24小时制），如"0930"表示9:30
+            end_time: 结束时间字符串，格式为HHMM（24小时制），如"2300"表示23:00
         
         Returns:
-            tuple: (起始时间戳字符串, 终点时间戳字符串)
+            tuple: (起始时间戳字符串, 结束时间戳字符串)，均为秒级时间戳
+        
+        Example:
+            >>> start_ts, end_ts = TimeParser.get_sec_level_timestamps(20250108, start_time="0900", end_time="1800")
+            >>> print(start_ts, end_ts)  # "1704691200" "1704754800" (示例时间戳)
         """
         # 将整数日期转换为字符串并解析
         if not end_date:
@@ -283,11 +405,32 @@ class TimeParser:
         
         return start_timestamp, end_timestamp
 
+    @staticmethod
+    def timestamp_ms_to_date_int(timestamp_ms: int):
+        """
+        将毫秒级时间戳转换为年月日整数
+        
+        Args:
+            timestamp_ms: 毫秒级时间戳（整数），如1751558400000
+        
+        Returns:
+            int: 日期整数，格式为YYYYMMDD，如20250703
+        
+        Example:
+            >>> date_int = TimeParser.timestamp_ms_to_date_int(1751558400000)
+            >>> print(date_int)  # 20250703
+        """
+        if not timestamp_ms or timestamp_ms == 0:
+            raise ValueError("时间戳不能为空或0")
+        # 将毫秒时间戳转换为秒
+        dt = datetime.fromtimestamp(timestamp_ms / 1000)
+        return int(dt.strftime("%Y%m%d"))
+
 
 # 使用示例
 if __name__ == "__main__":
-    
-    # last_monday, last_friday = TimeParser.get_last_week_date()
-    # get_year_semester(True)
+    # last_monday, last_friday = TimeParser.get_last_week_period()
+    # get_semester_and_week(True)
     today = datetime.now()
     current_weekday = today.weekday()
+    pass

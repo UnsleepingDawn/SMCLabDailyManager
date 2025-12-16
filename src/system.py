@@ -32,7 +32,7 @@ from src.data_manager.attendance_parser import (
     SMCLabSeminarAttendanceParser
 )
 from src.data_manager.bitable_parser import (
-    SMCLabSeminarParser,
+    SMCLabInfoParser,
     SMCLabWeeklyReportParser
 )
 from src.message.sender import (
@@ -65,7 +65,7 @@ class SMCLabDailyManager:
         self.seminar_attendance_parser = SMCLabSeminarAttendanceParser(config)
         self.schedule_parser = SMCLabScheduleParser(config)
         self.weekly_report_parser = SMCLabWeeklyReportParser(config)
-        self.seminar_parser = SMCLabSeminarParser(config)
+        self.seminar_parser = SMCLabInfoParser(config)
         self.address_book_parser = SMCLabAddressBookParser(config)
 
     def set_logger(self):
@@ -101,7 +101,7 @@ class SMCLabDailyManager:
         # 下载考勤名单
         self.attendance_crawler.get_group_info(update=True)
         # 把组会表格保存到Excel
-        self.seminar_parser.save_to_excel()
+        self.seminar_parser.save_info_to_excel()
         # 合并信息到Excel
         self.address_book_parser.mark_info_in_excel(update=True)
 
