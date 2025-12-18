@@ -45,6 +45,10 @@
         "seminar_start_time": 1900,
         "seminar_end_time": 2030
     },
+    "group_meeting_scheduler": {
+        "max_groups_per_period": 4,
+        "default_periods": ["周四上午", "周四下午"]
+    },
     "bitable": {
         "bitable_info_path": "configs/bitable_info.json",
         "weekly_report": {

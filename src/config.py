@@ -94,3 +94,7 @@ class Config:
         self.schedule = BitableConfig.from_dict(bitable_config.get("schedule", {}))
         self.seminar = BitableConfig.from_dict(bitable_config.get("seminar", {}))
 
+        # 小组会议安排配置
+        group_meeting_config = self._config.get("group_meeting_scheduler", {})
+        self.max_groups_per_period = group_meeting_config.get("max_groups_per_period", 4)
+        self.default_periods = group_meeting_config.get("default_periods", [])
