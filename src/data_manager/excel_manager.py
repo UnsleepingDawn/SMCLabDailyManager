@@ -16,7 +16,12 @@ class SMCLabInfoManager:
         except Exception as e:
             raise FileNotFoundError(f"请先运行SMCLabAddressbookParser")
 
-    def map_fields(self, field1: str, field2: str):
+    def map_fields(self, field1: str, 
+                         field2: str, 
+                         judge_field: str=None,
+                         judge_condition: str="is",
+                         judge_value: str| int | list[any]=None
+                         ):
         """
         建立两个字段之间的映射关系。
         字段包括: 
@@ -39,22 +44,44 @@ class SMCLabInfoManager:
             mapping_dict: {field1_value: field2_value}
             missing_names: list[姓名]
         """
-        if field1 not in self.df.columns or field2 not in self.df.columns:
-            raise ValueError(f"字段名错误：'{field1}' 或 '{field2}' 不存在于Excel中, 请检查'SMCLab学生扩展信息.xlsx'中是否有学生姓名不一致")
-
+        if field1 not in self.df.columns or \
+           field2 not in self.df.columns:
+            raise ValueError(f"字段名不存在于Excel中, 请检查'SMCLab学生扩展信息.xlsx'")
+        if judge_field:
+            assert judge_field in self.df.columns, f"字段名{judge_field}不存在于Excel中, 请检查'SMCLab学生扩展信息.xlsx'"
+            assert judge_value
+            assert judge_condition in {"is", "is not", "in", "not in"}
+            if judge_condition in {"is", "is not"}:
+                assert not isinstance(judge_value, list), "判断条件为是否时，不允许判断值为列表"
+            if judge_condition in {"in", "not in"}:
+                assert isinstance(judge_value, list), "判断条件为在不在时，判断值必须为列表"
         mapping_dict = {} # 映射结果
         missing_names = [] # 统计缺失这两个字段的人员的姓名
         one2one_flag = True # 该映射是否是一对一映射
 
         for _, row in self.df.iterrows():
             val1, val2 = row[field1], row[field2]
+
             name = row.get("姓名", None)
 
             # 判断是否有缺失
             if pd.isna(val1) or pd.isna(val2):
                 missing_names.append(name)
                 continue  # 跳过这行，不加入映射
-
+            # 根据 judge_field 进行筛选
+            if judge_field is not None:
+                judge_val = row[judge_field]
+                should_skip = False
+                if judge_condition == "is":
+                    should_skip = judge_val != judge_value
+                elif judge_condition == "is not":
+                    should_skip = judge_val == judge_value
+                elif judge_condition == "in":
+                    should_skip = judge_val not in judge_value
+                elif judge_condition == "not in":
+                    should_skip = judge_val in judge_value
+                if should_skip:
+                    continue
             # 若 val1 已存在，则追加到列表
             if val1 in mapping_dict:
                 # 若不是列表则转为列表
