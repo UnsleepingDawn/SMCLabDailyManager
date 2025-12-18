@@ -1,0 +1,386 @@
+[
+  {
+    "week": 2,
+    "weekday": 3,
+    "happened": true,
+    "room": "",
+    "presentations": [
+      {
+        "presenter": "欧阳蓓",
+        "track": 1,
+        "title": "Parrot: Efficient Serving of LLM-based Applications with Semantic Variable",
+        "abstract": "The rise of large language models (LLMs) has enabled LLM-based applications (a.k.a. AI agents or co-pilots), a new software paradigm that combines the strength of LLM and conventional software. Diverse LLM applications from different tenants could design complex workflows using multiple LLM requests to accomplish one task. However, they have to use the over-simplified request-level API provided by today’s public LLM services, losing essential application-level information. Public LLM services have to blindly optimize individual LLM requests, leading to sub-optimal end-to-end performance of LLM applications. This paper introduces Parrot, an LLM service system that focuses on the end-to-end experience of LLM-based applications. Parrot proposes Semantic Variable, a unified abstraction to expose application-level knowledge to public LLM services. A Semantic Variable annotates an input/output variable in the prompt of a request, and creates the data pipeline when connecting multiple LLM requests, providing a natural way to program LLM applications. Exposing Semantic Variables to the public LLM service allows it to perform conventional data flow analysis to uncover the correlation across multiple LLM requests. This correlation opens a brand-new optimization space for the end-to-end performance of LLMbased applications. Extensive evaluations demonstrate that Parrot can achieve up to an order-of-magnitude improvement for popular and practical use cases of LLM applications."
+      },
+      {
+        "presenter": "刘嘉俊",
+        "track": 1,
+        "title": "AssistPDA: An Online Video Surveillance Assistant for Video Anomaly Prediction, Detection, and Analysis",
+        "abstract": "We introduce AssistPDA, the first real-time LLM-based system for unified video anomaly Prediction, Detection, and Analysis (VAPDA) on streaming video. It supports interactive use and introduces event-level anomaly prediction for early warning. Our Spatio-Temporal Relation Distillation (STRD) module transfers offline VLMs’ long-range modeling to real-time settings. We also release VAPDA-127K, the first large-scale benchmark for online VAPDA. Experiments show SOTA real-time performance."
+      }
+    ]
+  },
+  {
+    "week": 5,
+    "weekday": 4,
+    "happened": true,
+    "room": "",
+    "presentations": [
+      {
+        "presenter": "钱甜奕",
+        "track": 1,
+        "title": "VideoTree: Adaptive Tree-based Video Representation\n",
+        "abstract": "Long-form video understanding is complicated by the high redundancy of video data and the abundance of queryirrelevant information. To tackle these challenges, we propose VIDEOTREE, a training-free framework which builds a query-adaptive and hierarchical video representation for LLM reasoning over long-form videos. First, VIDEOTREE extracts query-relevant information from the input video through an iterative process, progressively refining the selection of keyframes based on their relevance to the query. Furthermore, VIDEOTREE leverages the inherent hierarchical structure of long video data, which is often overlooked by existing LLM-based methods. Specifically, we incorporate multi-granularity information into a tree-based representation, allowing VIDEOTREE to extract query-relevant details from long videos in a coarse-to-fine manner. This enables the model to effectively handle a wide range of video queries with varying levels of detail. Finally, VIDEOTREE aggregates the hierarchical query-relevant information within the tree structure and feeds it into an LLM reasoning model to answer the query. Our experiments show that our method improves both reasoning accuracy and efficiency. Specifically, VIDEOTREE outperforms existing training-free approaches on EgoSchema and NExT-QA with less inference time, achieving 61.1% and 75.6% accuracy on the test set without additional video-specific training. Moreover, on the long split of Video-MME (average 44 minutes), VIDEOTREE achieves better performance than GPT-4V and many other MLLMs that were extensively trained on video data."
+      },
+      {
+        "presenter": "王柔懿",
+        "track": 1,
+        "title": "WebAssembly for Container Runtime: Are We There Yet?",
+        "abstract": "To pursue more efficient software deployment with containers, WebAssembly (abbreviated as Wasm) has long been regarded as a promising alternative to native container runtime (such as Docker container) due to its features of secure memory sandbox, lightweight isolation, portability, and multi-language support. However, it remains unknown whether and how much Wasm indeed brings benefits for containerized software applications. To fill the knowledge gap, this paper presents the first measurement study on Wasm-based container runtime (i.e., Wasm container) by comparison with the Docker container and native standalone Wasm runtime for execution performance in terms of the startup, computation, system interface access, and resource consumption. Surprisingly, we find that the Wasm container does not achieve better performance versus the Docker container as expected and introduces significant overhead compared to the standalone Wasm runtime. Through comparison, we identify the main causes of performance degradation for Wasm containers. Some stem from the heavy containerization overhead similar to Docker containers, while others are inherently caused by Wasm VMs and the WASI interface. Our findings can help software developers, Wasm container developers and the Wasm community improve the efficiency of utilizing Wasm-based container runtime, ultimately optimizing software performance."
+      },
+      {
+        "presenter": "杨晋",
+        "track": 1,
+        "title": "Router-R1: Teaching LLMs Multi-Round Routing and Aggregation via Reinforcement Learning",
+        "abstract": "The rapid emergence of diverse large language models (LLMs) has spurred the development of LLM routers that assign user queries to the most suitable model. However, existing LLM routers typically perform a single round, one-to-one mapping (i.e., assigning each query to a single model in isolation), which limits their capability to tackle complex tasks that demand the complementary strengths of multiple LLMs. In this paper, we present Router-R1, a reinforcement learning (RL)-based framework that formulates multi-LLM routing and aggregation as a sequential decision process. Router-R1 instantiates the router itself as a capable LLM, leveraging its reasoning ability to interleave “think” actions (internal deliberation) with “route” actions (dynamic model invocation), and integrates each response into its evolving context. To facilitate learning, we employ a lightweight rule-based reward comprising format rewards, final outcome rewards, and a novel cost reward for optimizing the balance between performance and cost, opening a pathway toward enhancing performance-cost trade-offs via RL. Router-R1 also conditions only on simple model descriptors such as pricing, latency, and example performance, enabling strong generalization to unseen model selection. Experiments on seven general and multi-hop QA benchmarks show that Router-R1 outperforms several strong baselines, achieving superior performance while maintaining robust generalization and cost management."
+      }
+    ]
+  },
+  {
+    "week": 6,
+    "weekday": 3,
+    "happened": true,
+    "room": "",
+    "presentations": [
+      {
+        "presenter": "陈金浩",
+        "track": 1,
+        "title": "ReFT: Reasoning with Reinforced Fine-Tuning",
+        "abstract": "Reinforced Fine-Tuning (ReFT) enhances LLM reasoning by combining Supervised Fine-Tuning (SFT) with reinforcement learning (PPO). Unlike SFT, which learns from single Chain-of-Thought (CoT) annotations, ReFT samples multiple reasoning paths during training and rewards those leading to correct answers. Evaluated on GSM8K, MathQA, and SVAMP, ReFT outperforms SFT without additional training data, demonstrating stronger generalization. Further gains come from inference-time strategies like majority voting and re-ranking. ReFT’s key advantage is learning diverse reasoning patterns from the same questions, improving robustness in math problem-solving."
+      },
+      {
+        "presenter": "许雨桐",
+        "track": 1,
+        "title": "Advanced Methods for Improving Multimodal Fusion",
+        "abstract": "This presentation focused on two cutting-edge studies that advance multimodal fusion. The first introduces One-Versus-Others Attention, which integrates multimodal information with linear complexity. The second presents Orthogonal Sequential Fusion, uncovering complementary cues via stepwise fusion and orthogonal constraints. Both methods break the quadratic bottleneck of traditional fusion, markedly reducing computation while maintaining or boosting performance on sentiment and medical tasks, offering efficient and practical paradigms for multimodal learning."
+      },
+      {
+        "presenter": "肖婕",
+        "track": 1,
+        "title": "BLOCK-ATTENTION FOR EFFICIENT PREFILLING",
+        "abstract": "In RAG scenarios, by defining each passage as a block, Block-attention enables us to reuse the KV states of passages that have been seen before, thereby significantly reducing the latency and the computation overhead during inference. The implementation of Block-attention involves block segmentation, position re-encoding, and fine-tuning the LLM to adapt to the Block-attention mechanism. Experiments on 11 diverse benchmarks, including RAG, ICL, and general domains, demonstrate that after block fine-tuning, the Block-attention model not only achieves performance comparable to that of fullattention models, but can also seamlessly switch between the block and full attention modes without any performance loss. Notably, Block-attention significantly reduces the time to first token (TTFT) and floating point operations (FLOPs) to a very low level. It only takes 45 ms to output the first token for an input sequence with a total length of 32K."
+      }
+    ]
+  },
+  {
+    "week": 7,
+    "weekday": 3,
+    "happened": true,
+    "room": "",
+    "presentations": [
+      {
+        "presenter": "杨恒毅",
+        "track": 1,
+        "title": "Efficient and Dependency-AwarePlacement of Serverless Functionson Edge Infrastructures",
+        "abstract": "Serverless computing is a promising paradigm for deploying and managing applications on edge infrastructures. It provides small granularity and high flexibility by decomposing applications into lightweight functions.Although this modularity facilitates efficient resource allocation and function placement on edge nodes, complex dependencies among functions pose significant challenges to their effective management.we propose PLUTO,an efficient solution for the placement of serverless functions that supports complex dependencies.First,we present an optimal non-linear formulation of the placement problem.Then, we introduce a heuristic approach,derived from the optimal formulation,that ensures efficiency as the number of functions increases."
+      },
+      {
+        "presenter": "洪桂航",
+        "track": 1,
+        "title": "ChatSOP: An SOP-Guided MCTS Planning Framework\n",
+        "abstract": "Dialogue agents powered by Large Language Models (LLMs) show superior performance in various tasks. Despite the better user understanding and human-like responses, their lack of controllability remains a key challenge, often leading to unfocused conversations or task failure. To address this, we introduce Standard Operating Procedure (SOP) to regulate dialogue flow. Specifically, we propose ChatSOP, a novel SOP-guided Monte Carlo Tree Search (MCTS) planning framework designed to enhance the controllability of LLMdriven dialogue agents. To enable this, we curate a dataset comprising SOP-annotated multiscenario dialogues, generated using a semiautomated role-playing system with GPT-4o and validated through strict manual quality control. Additionally, we propose a novel method that integrates Chain of Thought reasoning with supervised fine-tuning for SOP prediction and utilizes SOP-guided Monte Carlo Tree Search for optimal action planning during dialogues. Experimental results demonstrate the effectiveness of our method, such as achieving a 27.95% improvement in action accuracy compared to baseline models based on GPT-3.5 and also showing notable gains for open-source models."
+      },
+      {
+        "presenter": "彭利铭",
+        "track": 1,
+        "title": "Grounded Vision-Language Navigation for UAVs with Open-Vocabulary Goal Understanding",
+        "abstract": "Vision-and-language navigation (VLN) is a long-standing challenge in autonomous robotics, aiming to empower agents with the ability to follow human instructions while navigating complex environments. Two key bottlenecks remain in this field: generalization to out-of-distribution environments and reliance on fixed discrete action spaces. To address these challenges, we propose Vision-Language Fly (VLFly), a framework tailored for Unmanned Aerial Vehicles (UAVs) to execute language-guided flight. Without the requirement for localization or active ranging sensors, VLFly outputs continuous velocity commands purely from egocentric observations captured by an onboard monocular camera. The VLFly integrates three modules: an instruction encoder based on a large language model (LLM) that reformulates high-level language into structured prompts, a goal retriever powered by a vision-language model (VLM) that matches these prompts to goal images via vision-language similarity, and a waypoint planner that generates executable trajectories for real-time UAV control. VLFly is evaluated across diverse simulation environments without additional fine-tuning and consistently outperforms all baselines. Moreover, real-world VLN tasks in indoor and outdoor environments under direct and indirect instructions demonstrate that VLFly achieves robust open-vocabulary goal understanding and generalized navigation capabilities, even in the presence of abstract language input."
+      }
+    ]
+  },
+  {
+    "week": 8,
+    "weekday": 3,
+    "happened": true,
+    "room": "",
+    "presentations": [
+      {
+        "presenter": "罗志成",
+        "track": 1,
+        "title": "反向散射(Backscater)技术在救援场景中的应用案例",
+        "abstract": "本报告围绕“反向散射（Backscatter）技术在紧急救援场景中的应用”展开。首先介绍了反向散射技术的基本原理与特点，并结合应急需求分析其在救援任务中的潜力。随后，报告从四个方面展开应用探讨：在应急定位中，利用反向散射实现低功耗、快速部署的目标定位；在应急感知中，通过无源感知节点实现灾害环境信息的实时采集；在应急通信中，依托反向散射链路构建临时低成本通信网络，保障信息传递；在应急响应中，展示了该技术在协同救援和资源调度中的支持作用。整体来看，反向散射技术具备低功耗、低成本和可大规模部署的优势，有望为复杂环境下的紧急救援提供有效的技术支撑。"
+      },
+      {
+        "presenter": "梁允楷",
+        "track": 1,
+        "title": "Injecting Adrenaline into LLM Serving: Boosting Resource Utilization and Throughput via Attention Disaggregation",
+        "abstract": "To prevent performance interference between the two phases, current LLM serving systems typically adopt prefill-decoding disaggregation. However, we observe this approach leads to significant resource underutilization. To address this problem, this paper proposes Adrenaline, an attention disaggregation and offloading mechanism designed to enhance resource utilization and performance in LLM serving systems. Adrenaline's key innovation lies in disaggregating part of the attention computation in the decoding phase and offloading them to prefill instances, yielding two com plementary advantages: (1) improved memory capacity and bandwidth utilization in prefill instances, and (2) increased decoding batch sizes that enhance compute utilization in decoding instances — collectively boosting overall system performance."
+      },
+      {
+        "presenter": "曾谞旺",
+        "track": 1,
+        "title": "MEDUSA: Simple LLM Inference Acceleration Framework with Multiple  Decoding Heads",
+        "abstract": "Large Language Models (LLMs) employ autoregressive decoding that requires sequential computation, with each step reliant on the previous one’s output. This creates a bottleneck as each step necessitates moving the full model parameters from High-Bandwidth Memory (HBM) to the accelerator’s cache. While methods such as speculative decoding have been suggested to address this issue, their implementation is impeded by the challenges associated with acquiring and maintaining a separate draft model. In this paper, we present MEDUSA, an efficient method that augments LLM inference by adding extra decoding heads to predict multiple subsequent tokens in parallel. Using a tree-based attention mechanism, MEDUSA constructs multiple candidate continuations and verifies them simultaneously in each decoding step. By leveraging parallel processing, MEDUSA substantially reduces the number of decoding steps required."
+      }
+    ]
+  },
+  {
+    "week": 9,
+    "weekday": 3,
+    "happened": true,
+    "room": "",
+    "presentations": [
+      {
+        "presenter": "張健宁",
+        "track": 1,
+        "title": "AFlow：Automating Agentic Workflow Generation",
+        "abstract": "We present AFlow, a Monte Carlo Tree Search (MCTS)-based framework designed to systematically explore and discover optimal agentic workflows. AFLOW represents workflows as flexible nodes connected by code-based edges, which encapsulate possible relationships such as logical flows, conditions, and dependencies. These edges allow the workflow to bemodeled as a graph or network, offering a powerful structure for capturing complex interactions between LLM invocations. To enhance the search process and improve efficiency, AFLOW introduces a novel concept of operators – predefined, reusable combinations of nodes representing common agentic operations (e.g., Ensemble, Review & Revise). These operators serve as foundational building blocks for constructing workflows and are integrated into the search space, ensuring that the exploration process leverages known patterns of effective agentic operations. AFLOW employs the MCTS algorithm to navigate this infinite search space. The framework’s workflow optimization process incorporates several key innovations: a soft mixed-probability selection mechanism for node exploration, LLM-driven node expansion to introduce new possibilities, execution evaluation to assess workflow performance, and backpropagation of experience to refine future search iterations. This combination of techniques ensures that AFLOW efficiently discovers workflows that adapt to the complexity of diverse tasks while reducing reliance on manual intervention."
+      },
+      {
+        "presenter": "张漪航",
+        "track": 1,
+        "title": "Frequency-Aware Neural Radio-Frequency Radiance Fields",
+        "abstract": "we present the neural radio-frequency radiance field, or NeRF2. This represents a continuous volumetric scene function that effectively models RF signal propagation. Remarkably, after only a sparse amount of training with signal measurements, NeRF2 can accurately predict the nature and origin of signals received at any location, assuming the transmitter’s position is known. Additionally, we propose the frequency-aware NeRF2 to enhance channel prediction performance for wideband signals using an RF prism module. Compared to the vanilla NeRF2, the frequency-aware NeRF2 achieves a 4 dB improvement in SNR for FDD OFDM channel estimation and is nearly 3.5 × faster. Functioning as a physical-layer neural network, NeRF2 also supports applicationlayer artificial neural networks (ANNs) by generating synthetic training datasets. Our empirical results demonstrate that augmented sensing enhances the accuracy of AoA estimation, achieving an approximate 50% improvement."
+      },
+      {
+        "presenter": "陈石翰",
+        "track": 1,
+        "title": "Unified Understanding and Generation in a Visual Autoregressive \n",
+        "abstract": "We present VARGPT, a novel multimodal large language model (MLLM) that unifies visual understanding and gener ation within a single autoregressive framework. VARGPT employs a next-token prediction paradigm for visual under standing and a next-scale prediction paradigm for visual autoregressive generation. VARGPT innovatively extends the LLaVA architecture, achieving efficient scale-wise au toregressive visual generation within MLLMs while seam lessly accommodating mixed-modal input and output within a single model framework. Our VARGPT undergoes a three-stage unified training process on specially curated datasets, comprising a pre-training phase and two mixed visual instruction-tuning phases. The unified training strat egy are designed to achieve alignment between visual and textual features, enhance instruction following for both un derstanding and generation, and improve visual generation quality, respectively. Despite its LLAVA-based architecture for multimodel understanding, VARGPT significantly outper forms LLaVA-1.5 across various vision-centric benchmarks, such as visual question-answering and reasoning tasks. No tably, VARGPT naturally supports capabilities in autoregres sive visual generation and instruction-to-image synthesis, showcasing its versatility in both visual understanding and generation tasks"
+      }
+    ]
+  },
+  {
+    "week": 10,
+    "weekday": 3,
+    "happened": true,
+    "room": "",
+    "presentations": [
+      {
+        "presenter": "叶盛源",
+        "track": 1,
+        "title": "",
+        "abstract": ""
+      },
+      {
+        "presenter": "周嘉慧",
+        "track": 1,
+        "title": "Sparse VideoGen2: Accelerate Video Generation with Sparse Attention via Semantic-Aware Permutation",
+        "abstract": "Diffusion Transformers (DiTs) are SOTA for video generation but are bottlenecked by 3D attention's O(N^2) complexity. Prior sparse methods are sub-optimal, suffering from: (1) Inaccurate Identification (position-based clustering) and (2) Computation Waste (scattered tokens mismatching GPU hardware). This paper introduces Sparse VideoGen2 (SVG2), a training-free framework solving both flaws with Semantic-Aware Permutation. SVG2 uses k-means to cluster tokens by semantics (for accuracy) and then permutes them into dense, contiguous memory blocks (for efficiency). This co-design achieves a new Pareto frontier, delivering up to 2.3x speedup while improving visual quality."
+      },
+      {
+        "presenter": "杨许",
+        "track": 1,
+        "title": "AdaptInfer: Adaptive Token Pruning for Vision–Language Model Inference with\n",
+        "abstract": "Vision–language models (VLMs) have achieved impressive performance on multimodal reasoning tasks such as visual question answering (VQA), but their inference cost remains a significant challenge due to the large number of vision tokens processed during the prefill stage. Existing pruning methods often rely on directly using the attention patterns or static text prompt guidance, failing to exploit the dynamic internal signals generated during inference. To address these issues, we propose AdaptInfer, a plug-and-play framework for adaptive vision token pruning in VLMs. First, we introduce a finegrained, dynamic text-guided pruning mechanism that reuses layer-wise text-to-text attention maps to construct soft priors over text-token importance, allowing more informed scoring of vision tokens at each stage. Second, we perform an offline analysis of cross-modal attention shifts and identify consistent inflection locations in inference, which inspire us to propose a more principled and efficient pruning schedule. This method is lightweight and plug-and-play, also generalizable across multi-modal tasks. Experimental results have verified the effectiveness of the proposed method. For example, it reduces CUDA latency by 61.3% while maintaining an average accuracy of 92.9% on vanilla LLaVA-1.5-7B. Under the same token budget, AdaptInfer surpasses SOTA in accuracy."
+      },
+      {
+        "presenter": "常鹏",
+        "track": 1,
+        "title": "HoloTrace: LLM-based Bidirectional Causal Knowledge Graph for Edge-Cloud Video Anomaly Detection",
+        "abstract": "Video anomaly detection (VAD) is vital for public safety, yet current approaches struggle with limited generalization, low interpretability, and high resource demands. To address these challenges, we propose HoloTrace, an edge-cloud collaborative VAD system that integrates large language models (LLMs) to construct and update a novel bidirectional causal knowledge graph. At the edge, HoloTrace leverages LLM-based cross-modal understanding and employs Hidden Markov Model (HMM) for bidirectional event reasoning, obtaining anomaly boundaries with low computational overhead. On the cloud side, LLMs are leveraged to dynamically update the Bi-CKG graph with key frames sent from the edge, in order to update causal relationships between events. Additionally, we introduce SVAD, a new large-scale VAD dataset comprising 632 real-world surveillance videos across 10 anomaly types and diverse scenes, with manually labeled frame-level annotations. Experimental results demonstrate that HoloTrace not only achieves the highest accuracy but also enhances interpretability and efficiency, paving the way for more generalizable and explainable video anomaly detection systems."
+      }
+    ]
+  },
+  {
+    "week": 11,
+    "weekday": 3,
+    "happened": true,
+    "room": "",
+    "presentations": [
+      {
+        "presenter": "陈梁坤",
+        "track": 1,
+        "title": "SP-MoE: Speculative Decoding and Prefetching for Accelerating MoE-based Model Inference",
+        "abstract": "The Mixture-of-Experts (MoE) architecture has been widely adopted in large language models (LLMs) to reduce computation cost through model sparsity. Employing speculative decoding (SD) can further accelerate MoE inference by drafting multiple tokens per step and verifying them in parallel. However, combining MoE with SD inflates GPU memory and aggravates CPU-GPU bandwidth contention during multi-token verification. Existing MoE offloading systems are SD-agnostic and do not address this bottleneck. We present SP-MoE, the first SD-aware expert-offloading and compute-communication pipelining framework. SP-MoE introduces: (1) speculative expert prefetching that exploits structural correspondence between the draft and target models to prefetch likely experts ahead of verification; (2) a cutoff-layer policy that bounds per-layer prefetch depth based on empirical profiles and an analytical latency model, guaranteeing just-in-time availability without overfetch; and (3) a pipelined runtime with asynchronous prefetch threads and batched I/O to hide loading latency. Extensive experiments demonstrate that SP-MoE achieves a 1.07-3.5 times TPOT speedup over state-of-the-art methods across diverse datasets, environments, and MoE-based models."
+      },
+      {
+        "presenter": "吕俊霖",
+        "track": 1,
+        "title": "MoE-Lightning: High-Throughput MoE Inference on Memory-constrained GPUs",
+        "abstract": "Efficient deployment of large language models, particularly Mixture of Experts (MoE) models, on resource-constrained platforms presents significant challenges in terms of computational efficiency and memory utilization. The MoE architecture, renowned for its ability to increase model capacity without a proportional increase in inference cost, greatly reduces the token generation latency compared with dense models. However, the large model size makes MoE models inaccessible to individuals without high-end GPUs. In this paper, we propose a high-throughput MoE batch inference system, MoE-Lightning, that significantly outperforms past work. MoE-Lightning introduces a novel CPU-GPU-I/O pipelining schedule, CGOPipe, with pagedweights to achieve high resource utilization, and a performance model, HRM, based on a Hierarchical Roofline Model we introduce to help find policies with higher throughput than existing systems. MoE-Lightning can achieve up to 10.3× higher throughput than state-of-the-art offloading-enabled LLM inference systems for Mixtral 8x7B on a single T4 GPU (16GB). When the theoretical system throughput is bounded by the GPU memory, MoE-Lightning can reach the throughput upper bound with 2–3× less CPU memory, significantly increasing resource utilization. MoE-Lightning also supports efficient batch inference for much larger MoEs (e.g., Mixtral 8x22B and DBRX) on multiple low-cost GPUs (e.g., 2–4 T4s)."
+      },
+      {
+        "presenter": "廖芷萱",
+        "track": 1,
+        "title": "Efficient Multi-modal Large Language Models via \n",
+        "abstract": "Visual tokens consume substantial computational resources in multi-modal large models (MLLMs), significantly compromising their efficiency. Recent works have attempted to improve efficiency by compressing visual tokens during training, either through modifications to model components or by introducing additional parameters. However, they often overlook the increased learning difficulty caused by such compression, as the model’s parameter space struggles to quickly adapt to the substantial perturbations in the feature space induced by token compression. In this work, we propose to develop Efficient MLLMs via ProgressIve Consistency Distillation (EPIC), a progressive learning framework. Specifically, by decompos ing the feature space perturbations introduced by token compression along the token-wise and layer-wise dimensions, we introduce token consistency distillation and layer consistency distillation, respectively, aiming to reduce the training dif ficulty by leveraging guidance from a teacher model and following a progressive learning trajectory. Extensive experiments demonstrate the superior effectiveness, robustness, and generalization capabilities of our proposed framework."
+      }
+    ]
+  },
+  {
+    "week": 12,
+    "weekday": 3,
+    "happened": true,
+    "room": "",
+    "presentations": [
+      {
+        "presenter": "王军艳",
+        "track": 1,
+        "title": "Efficient On-Orbit Remote Sensing Imagery Processing via Satellite Edge Computing Resource Scheduling Optimization",
+        "abstract": "With the enormous scale of remote sensing imagery  generation, on-orbit computing has become a crucial paradigm  to enable near-real-time processing. Due to the limited onboard  resources and on-orbit power supply, satellite edge computing (SEC) is developed for satellite–ground collaboration, aiding onorbit computation. However, the intermittent satellite-to-ground  transmission link poses an efficiency challenge when collaborating SEC resources. Therefore, this article proposes a satellite edge  computing resource scheduling technique for on-orbit remote  sensing imagery processing (SECORS). First, we design a remote  sensing mission-specific SEC architecture, which involves an  offline–online satellite working mode. Subsequently, a computational resource scheduling model (SEC-RSM) is established,  including the directed acyclic graph (DAG) model and mathematical problem formulation. Next, to obtain effective scheduling  solutions, we develop an end-to-end algorithm leveraging the  multiagent proximal policy optimization and heuristic rule of the  earliest finish time (SEC-MPH). Finally, we build a simulation SEC platform to carry out experiments and implement several  methods as the comparison including multiobjective evolutionary  algorithms, deep reinforcement learning approaches, and the  scheme without optimization (baseline). Simulation results show  that SECORS achieves 68.87% and 66.60% reductions in time  and energy for on-orbit computation. Moreover, our method  improves the energy efficiency ratio (EER) by three times and  achieves high processing capacity with 548 pixels per unit of  power (W) and time (ms)."
+      },
+      {
+        "presenter": "曾嵘",
+        "track": 1,
+        "title": "RobustMerge: Parameter-Efficient Model Merging for MLLMs with Direction Robustness",
+        "abstract": "This work addresses the challenge of efficiently merging parameter-efficiently fine-tuned (e.g., LoRA) expert models into a universal multi-task model—where existing full-model merging methods fail. Through analysis via low-rank decomposition, the authors identify *direction robustness* as key to successful merging, and find that mitigating disparities in singular values enhances such robustness. They propose RobustMerge, a training-free merging method that (1) prunes and rescales parameters based on inter-parameter relations to stabilize weight update directions and reduce task interference, and (2) applies cross-task normalization to improve generalization to unseen tasks. Experiments on a new multimodal multi-task benchmark demonstrate RobustMerge’s superior performance and generalizability."
+      },
+      {
+        "presenter": "吴健强",
+        "track": 1,
+        "title": "AeroDuo: Aerial Duo for UAV-based Vision and Language \n",
+        "abstract": "Aerial Vision-and-Language Navigation (VLN) is an emerging task that enables Unmanned Aerial Vehicles (UAVs) to navigate outdoor environments using natural language instructions and visual cues. However, due to the extended trajectories and complex maneuverability of UAVs, achieving reliable UAV-VLN performance is challenging and often requires human intervention or overly detailed instructions. To harness the advantages of UAVs’ high mobility, which could provide multi-grained perspectives, while maintaining a manageable motion space for learning, we introduce a novel task called Dual-Altitude UAV Collaborative VLN (DuAl-VLN). In this task, two UAVs operate at distinct altitudes: a high-altitude UAV responsible for broad environmental reasoning, and a low-altitude UAV tasked with precise navigation. To support the training and evaluation of the DuAl-VLN, we construct the HaL-13k, a dataset comprising $13,838$ collaborative high-low UAV demonstration trajectories, each paired with target-oriented language instructions. This dataset includes both unseen maps and an unseen object validation set to systematically evaluate the model's generalization capabilities across novel environments and unfamiliar targets. To consolidate their complementary strengths, we propose a dual-UAV collaborative VLN framework, AeroDuo, where the high-altitude UAV integrates a multimodal large language model (Pilot-LLM) for target reasoning, while the low-altitude UAV employs a lightweight multi-stage policy for navigation and target grounding. The two UAVs work collaboratively and only exchange minimal coordinate information to ensure efficiency. Experimental results indicate that AeroDuo achieves an evident 9.71\\% improvement in success rates compared to existing single-UAV methods, demonstrating the effectiveness of dual-altitude collaboration in balancing environmental coverage, precision, and operational autonomy."
+      }
+    ]
+  },
+  {
+    "week": 13,
+    "weekday": 3,
+    "happened": true,
+    "room": "",
+    "presentations": [
+      {
+        "presenter": "罗思奇",
+        "track": 1,
+        "title": "InternVLA-N1: An Open Dual-System Vision-Language Navigation Foundation Model with Learned Latent Plans",
+        "abstract": "We introduce InternVLA-N1, the first open dual-system vision-language navigation foundation model. Unlike previous navigation foundation models that can only take short-term actions from a limited discrete space, InternVLA-N1 decouples the task as pixel-goal planning with System 2 and agile execution with System 1. A curriculum two-stage training paradigm is devised for this framework: First, two systems are pretrained with explicit pixel goals as supervision or condition. Subsequently, we freeze System 2 and finetune the newly added latent plans with System 1 in an asynchronous end-to-end manner. Such a paradigm relying on latent plans as the intermediate representation removes the ambiguity of pixel goal planning and provides new potentials for pretraining extensions with video prediction. To enable scalable training, we develop an efficient navigation data generation pipeline in simulation and introduce InternData-N1, the largest navigation dataset to date. InternData-N1 comprises over 50 million egocentric images collected from more than 3,000 scenes, amounting to 4,839 kilometers of robot navigation experience. We evaluate InternVLA-N1 across 6 challenging navigation benchmarks, where it consistently achieves state-of-the-art performance, with improvements ranging from 3% to 28%. In particular, although only trained with simulation data, it can be zero-shot generalized across diverse embodiments (wheeled, quadruped, humanoid) and in-the-wild environments, and demonstrates synergistic integration of long-horizon planning (>150m) and real-time decision-making (>30Hz) capabilities in the real world. All code, models, and datasets are publicly available."
+      },
+      {
+        "presenter": "薛沐恩",
+        "track": 1,
+        "title": " FILM: FOLLOWING INSTRUCTIONS IN LANGUAGE WITH MODULAR METHODS",
+        "abstract": "Recent methods for embodied instruction following are typically trained end-to end using imitation learning. This often requires the use of expert trajectories and low-level language instructions. Such approaches assume that neural states will integrate multimodal semantics to perform state tracking, building spatial memory, exploration, and long-term planning. In contrast, we propose a modular method with structured representations that (1) builds a semantic map of the scene and (2) performs exploration with a semantic search policy, to achieve the natural language goal. Our modular method achieves SOTA performance (24.46%) with a substantial (8.17 % absolute) gap from previous work while using less data by es chewing both expert trajectories and low-level instructions. Leveraging low-level language, however, can further increase our performance (26.49%). Our findings suggest that an explicit spatial memory and a semantic search policy can provide a stronger and more general representation for state-tracking and guidance, even in the absence of expert trajectories or low-level instructions."
+      },
+      {
+        "presenter": "阙紫娴",
+        "track": 1,
+        "title": "ReKep: Spatio-Temporal Reasoning of Relational\n",
+        "abstract": "Representing robotic manipulation tasks as constraints that associate the robot and the environment is a promising way to encode desired robot be- haviors. However, it remains unclear how to formulate the constraints such that they are 1) versatile to diverse tasks, 2) free of manual labeling, and 3) optimiz- able by off-the-shelf solvers to produce robot actions in real-time. In this work, we introduce Relational Keypoint Constraints (ReKep), a visually-grounded repre- sentation for constraints in robotic manipulation. Specifically, ReKep is expressed as Python functions mapping a set of 3D keypoints in the environment to a numer- ical cost. We demonstrate that by representing a manipulation task as a sequence of Relational Keypoint Constraints, we can employ a hierarchical optimization procedure to solve for robot actions (represented by a sequence of end-effector poses in SE(3)) with a perception-action loop at a real-time frequency. Further- more, in order to circumvent the need for manual specification of ReKep for each new task, we devise an automated procedure that leverages large vision models and vision-language models to produce ReKep from free-form language instruc- tions and RGB-D observations. We present system implementations on a wheeled single-arm platform and a stationary dual-arm platform that can perform a large variety of manipulation tasks, featuring multi-stage, in-the-wild, bimanual, and reactive behaviors, all without task-specific data or environment models."
+      }
+    ]
+  },
+  {
+    "week": 14,
+    "weekday": 3,
+    "happened": true,
+    "room": "",
+    "presentations": [
+      {
+        "presenter": "王晨裕",
+        "track": 1,
+        "title": "In the era of large language models (LLMs), weight-activation\n",
+        "abstract": "Energy-Efficient and Dequantization-Free Q-LLMs: A Spiking Neural Network Approach to Salient Value Mitigation"
+      },
+      {
+        "presenter": "钟荆徽",
+        "track": 1,
+        "title": "MEMORYLLM: Towards Self-Updatable Large Language Models",
+        "abstract": "MEMORYLLM is a new language model designed to fix the problem of \"static\" AI; unlike standard models that stop learning after training, it has a built-in memory pool that allows it to continuously learn, store, and recall new information without breaking, even after a million updates."
+      }
+    ]
+  },
+  {
+    "week": 15,
+    "weekday": 3,
+    "happened": false,
+    "room": "",
+    "presentations": [
+      {
+        "presenter": "戴泳涛",
+        "track": 1,
+        "title": "WholeBodyVLA: Towards Unified Latent VLA for Whole-body Loco-manipulation Control",
+        "abstract": "Humanoid robots require coordinated locomotion and manipulation, yet existing methods are constrained by scarce teleoperation data and unreliable manipulation-aware locomotion. We propose WholeBodyVLA, a unified Vision-Language-Action framework that learns locomotion–manipulation priors from low-cost action-free egocentric videos via unified latent learning, and executes them with a loco-manipulation-oriented RL policy for precise and stable motion. Real-world experiments on the AgiBot X2 humanoid demonstrate large-space loco-manipulation and a 21.3% improvement over prior baselines."
+      },
+      {
+        "presenter": "宫昌昊",
+        "track": 2,
+        "title": "mmTremor: Practical Tremor Monitoring for Parkinson's Disease and Essential Tremor in Daily Life",
+        "abstract": "Published in MobiCom 2025, this work proposes mmTremor, a non-contact system for monitoring hand tremors in Parkinson’s Disease (PD) and Essential Tremor (ET) patients during daily life. It addresses three key challenges of existing solutions: dynamic tremor sources, severe ADL interference, and domain diversity. By fusing mmWave radar (high sensitivity) and depth cameras (spatial tracking), mmTremor uses three core modules—source separation, DeepTremor retrieval, and ConAda unsupervised adaptation—to locate tremor sources, extract pure signals, and adapt to new users. Experiments on 28 patients/9 healthy subjects across 20 environments show high accuracy (Macro-F1=0.877), robustness, and clinical relevance (e.g., r=0.84 with UPDRS scores), supporting objective tremor assessment."
+      },
+      {
+        "presenter": "陈键文",
+        "track": 3,
+        "title": "Beware of Fragmentation: Scheduling GPU-Sharing Workloads with\n",
+        "abstract": "Large tech companies are piling up a massive number of GPUs in their server fleets to run diverse machine learning (ML) workloads. However, these expensive devices often suffer from significant underutilization. To tackle this issue, GPU sharing techniques have been developed to enable mul- tiple ML tasks to run on a single GPU. Nevertheless, our analysis of Alibaba production traces reveals that allocating partial GPUs can result in severe GPU fragmentation in large clusters, leaving hundreds of GPUs unable to be allocated. Existing resource packing algorithms fall short in addressing this problem, as GPU sharing mandates a new scheduling formulation beyond the classic bin packing. In this paper, we propose a novel measure of fragmenta- tion to statistically quantify the extent of GPU fragmentation caused by different sources. Building upon this measure, we propose to schedule GPU-sharing workloads towards the di- rection of the steepest descent of fragmentation, an approach we call Fragmentation Gradient Descent (FGD). Intuitively, FGD packs tasks to minimize the growth of GPU fragmen- tation, thereby achieving the maximum GPU allocation rate. We have implemented FGD as a new scheduler in Kubernetes and evaluated its performance using production traces on an emulated cluster comprising more than 6,200 GPUs. Com- pared to the existing packing-based schedulers, FGD reduces unallocated GPUs by up to 49%, resulting in the utilization of additional 290 GPUs."
+      }
+    ]
+  },
+  {
+    "week": 16,
+    "weekday": 3,
+    "happened": false,
+    "room": "",
+    "presentations": [
+      {
+        "presenter": "叶子林",
+        "track": 1,
+        "title": "",
+        "abstract": ""
+      },
+      {
+        "presenter": "黄军龙",
+        "track": 2,
+        "title": "",
+        "abstract": ""
+      },
+      {
+        "presenter": "梁晋熙",
+        "track": 3,
+        "title": "",
+        "abstract": ""
+      }
+    ]
+  },
+  {
+    "week": 18,
+    "weekday": 4,
+    "happened": false,
+    "room": "",
+    "presentations": [
+      {
+        "presenter": "李炜",
+        "track": 1,
+        "title": "",
+        "abstract": ""
+      },
+      {
+        "presenter": "陈鹏宇",
+        "track": 2,
+        "title": "",
+        "abstract": ""
+      },
+      {
+        "presenter": "郑博铿",
+        "track": 3,
+        "title": "",
+        "abstract": ""
+      }
+    ]
+  },
+  {
+    "week": 19,
+    "weekday": 3,
+    "happened": false,
+    "room": "",
+    "presentations": [
+      {
+        "presenter": "余铭贤",
+        "track": 1,
+        "title": "",
+        "abstract": ""
+      },
+      {
+        "presenter": "沈格格",
+        "track": 2,
+        "title": "",
+        "abstract": ""
+      },
+      {
+        "presenter": "刘俊杰",
+        "track": 3,
+        "title": "",
+        "abstract": ""
+      }
+    ]
+  }
+]

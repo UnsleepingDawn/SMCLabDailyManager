@@ -4,25 +4,20 @@
 # 特定文件夹下内容
 .vscode/**
 __pycache__/**
-old_repo/**
-data_sem/**
-data_raw/**
 data_incre/**
+# 冗余文件
+data_sem/*-*/week*/**
+data_raw/**
+old_repo/**
+# 隐私文件
+configs/app_tokens.json
+configs/last_tenant.json
+configs/ori_config.json
 # 特定文件类型
-*.xlsx
-*.json
 *.pyc
 *.log
 *.pid
 # 测试用代码
 test*.py
-# 不忽略
-!bitable_info.json
-!user_stats_fields.json
-!sysu_schedule.json
-!sysu_semesters.json
-!smc_sum_last_week.json
-!config.json
-!weekly_todo.json
 # 特定文件
 Readmeysy.md
