@@ -7,5 +7,11 @@
             "下载组会出勤信息": true,
             "下载周报提交情况": true
         }
+    },
+    "done_last_time": {
+        "last_address_book_crawle": 1766125789,
+        "last_address_book_update": 1766125789,
+        "last_seminar_crawle": 1766125789,
+        "last_schedule_crawle": 1766125790
     }
 }

@@ -21,3 +21,4 @@ configs/ori_config.json
 test*.py
 # 特定文件
 Readmeysy.md
+schedule_by_period.json

@@ -7,6 +7,8 @@ import os, sys
 if __name__ == "__main__":
     config = Config()
     system = SMCLabDailyManager(config)
-    system.send_last_week_summary(use_relay=False,
-                                  users = ["梁涵"])
+    system.send_last_week_summary(users = ["梁涵"],
+                                  use_relay=False, 
+                                #   update_all=True,
+                                  )
     # system.update_address_book()
