@@ -12,6 +12,7 @@ from openpyxl.descriptors.base import NoneSet
 from src.crawler.bitable_crawler import (
     SMCLabWeeklyReportCrawler, 
     SMCLabSeminarCrawler,
+    SMCLabSeminarLeaveCrawler,
     SMCLabScheduleCrawler
 )
 
@@ -67,6 +68,7 @@ class SMCLabDailyManager:
         self.schedule_crawler = SMCLabScheduleCrawler(config)
         self.weekly_report_crawler = SMCLabWeeklyReportCrawler(config)
         self.seminar_crawler = SMCLabSeminarCrawler(config)
+        self.seminar_leave_crawler = SMCLabSeminarLeaveCrawler(config)
         self.address_book_crawler = SMCLabAddressBookCrawler(config)
         # 解析模块
         self.daily_attendance_parser = SMCLabDailyAttendanceParser(config)
@@ -193,6 +195,7 @@ class SMCLabDailyManager:
         if not todo_items.get("下载组会出勤信息", False) or update_all:
             self.logger.info("执行: 下载组会出勤信息")
             self.attendance_crawler.get_last_week_seminar_records()
+            self.seminar_leave_crawler.get_last_week_records()
             self.seminar_attendance_parser.get_last_week_attended_names(use_relay, backdoor_delete)
             weekly_todo_updated["下载组会出勤信息"] = True
         else:
@@ -213,6 +216,9 @@ class SMCLabDailyManager:
         if last_time_updated:
             self._update_done_last_time(updates=last_time_updated)
         self.sender.send_last_week_summary(users=users)
+
+    def test(self):
+        self.seminar_leave_crawler.get_last_week_records()
 
     # TODO: 把以下五个函数封装成一个单独的类
     def _get_last_week_todo_items(self) -> dict:

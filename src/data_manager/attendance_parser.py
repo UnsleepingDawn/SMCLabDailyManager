@@ -12,6 +12,7 @@ from ..config import Config
 from .schedule_parser import SMCLabScheduleParser
 from .excel_manager import SMCLabInfoManager
 from .seminar_manager import SMCLabSeminarManager
+from .bitable_parser import SMCLabSeminarLeaveParser
 
 class SMCLabDailyAttendanceParser(SMCLabBaseParser):
     def __init__(self, config: Config = None):
@@ -311,7 +312,7 @@ class SMCLabSeminarAttendanceParser(SMCLabBaseParser):
                               not_attended_names: set, 
                               seminar_weekday: int):
         """
-        修正班级缺卡人员
+        修正因为上课缺卡人员
         """
         schedule_path = os.path.join(self.this_sem_path, "schedule_by_period.json")
         if not os.path.exists(schedule_path):
@@ -326,6 +327,28 @@ class SMCLabSeminarAttendanceParser(SMCLabBaseParser):
         self.logger.info(f"删去课程缺卡人员: {class_absent_names}")
         not_attended_names -= set(class_absent_names)
         return not_attended_names
+
+    def _amend_leave_absence(self,
+                             not_attended_names: set,
+                             week: int):
+        """
+        从未出勤名单中排除请假人员
+        
+        Args:
+            not_attended_names: 未出勤人员集合
+            week: 周数
+        
+        Returns:
+            tuple: (处理后的未出勤人员集合, 请假人员集合)
+        """
+        leave_parser = SMCLabSeminarLeaveParser()
+        leave_names = set(leave_parser.get_leave_list(week))
+        
+        # 从未出勤名单中减去请假人员
+        not_attended_names = not_attended_names - leave_names
+        
+        return not_attended_names, leave_names
+
 
     def _get_attended_names_byweek(self, 
                                    week: int = None,
@@ -379,8 +402,13 @@ class SMCLabSeminarAttendanceParser(SMCLabBaseParser):
                         self.logger.error("处理文件 %s 时出错: %s", file_path, e)
                         continue
 
-            # 根据上课情况进行自动排除，但是目前只能这么干
+            # 根据上课情况进行自动排除
             not_attended_names = self._amend_course_absence(not_attended_names, seminar_weekday)
+
+            # 根据请假排除未出勤人员
+            not_attended_names, leave_names = self._amend_leave_absence(not_attended_names, week)
+            if leave_names:
+                self.logger.info("已排除请假人员 %d 人：%s", len(leave_names), ", ".join(sorted(leave_names)))
 
             # 打印未出勤人员名单
             self.logger.info("=== 未出勤人员名单 ===")
@@ -391,15 +419,18 @@ class SMCLabSeminarAttendanceParser(SMCLabBaseParser):
             else:
                 self.logger.info("所有人员均已出勤")
             
-            # TODO: 根据请假排除, 但是目前还是只能交互式排除人员
             if backdoor_delete:
                 not_attended_names = self._backdoor_delete_spec_names(not_attended_names)
             
             # 保存到文件
             attended_names_list = sorted(list(attended_names))
             not_attended_names_list = sorted(list(not_attended_names))
+            leave_names_list = sorted(list(leave_names))
             attended_str = ", ".join(attended_names_list) if len(attended_names_list) else "本周未收集到同学们的打卡流水"
             not_attended_str = ", ".join(not_attended_names_list) if len(not_attended_names_list) else "本周打卡流水全齐"
+            leave_str = ", ".join(leave_names_list) if len(attended_names_list) else "本周无人请假"
+            leave_str = f"(请假: {leave_str})"
+            attended_str += leave_str
             self.logger.info("组会出勤: %s", attended_names)
             self.logger.info("组会未出勤: %s", not_attended_names)
 

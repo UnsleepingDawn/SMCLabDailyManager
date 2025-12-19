@@ -93,6 +93,7 @@ class Config:
         self.weekly_report = BitableConfig.from_dict(bitable_config.get("weekly_report", {}))
         self.schedule = BitableConfig.from_dict(bitable_config.get("schedule", {}))
         self.seminar = BitableConfig.from_dict(bitable_config.get("seminar", {}))
+        self.seminar_leave = BitableConfig.from_dict(bitable_config.get("seminar_leave", {}))
 
         # 小组会议安排配置
         group_meeting_config = self._config.get("group_meeting_scheduler", {})

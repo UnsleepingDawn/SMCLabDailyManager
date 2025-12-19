@@ -62,6 +62,10 @@
         "seminar": {
             "page_size": 50,
             "raw_path": "data_raw/seminar_raw_data"
+        },
+        "seminar_leave": {
+            "page_size": 50,
+            "raw_path": "data_raw/seminar_leave_raw_data"
         }
     }
 

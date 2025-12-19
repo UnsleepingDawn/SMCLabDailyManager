@@ -166,7 +166,48 @@ class SMCLabSeminarParser(SMCLabBitableParser):
         wb.save(output_path)
         self.logger.info("组会信息已保存到：%s", output_path)
 
-    
+class SMCLabSeminarLeaveParser(SMCLabBitableParser):
+    def __init__(self, config: Config = None):
+        if config is None:
+            config = Config()
+        super().__init__(config=config)
+        self.raw_data_path = config.seminar_leave.raw_path
+        self.this_sem_path = os.path.join(config.sem_data_path, self._year_semester)
+
+    def get_leave_list(self, week: int):
+        """
+        从组会请假下载的源文件中提取名字列表
+        
+        Returns:
+            list: 请假人的名字列表
+        """
+        file_pattern = os.path.join(
+            self.raw_data_path, 
+            f"{self._year_semester}_Week{week}_seminar_leave_byweek_raw*.json"
+        )
+        file_list = sorted(glob(file_pattern))
+        
+        if not file_list:
+            return []
+        
+        name_list = []
+        for file in file_list:
+            data = self._load_json(file)
+            for item in data.get("items", []):
+                fields = item.get("fields", {})
+                # 从请假人字段中提取名字
+                name = self._get_nested(fields, ["请假人", 0, "name"])
+                if name:  # 只添加非空的名字
+                    name_list.append(name)
+        
+        self.logger.info(
+            "共读取 %d 个请假人名字，来自 %d 个 JSON 文件。", 
+            len(name_list), len(file_list)
+        )
+        return name_list
+
+    def get_last_week_leave_list(self):
+        return self.get_leave_list(self._this_week - 1)
 
 class SMCLabWeeklyReportParser(SMCLabBitableParser):
     def __init__(self, config: Config = None):
