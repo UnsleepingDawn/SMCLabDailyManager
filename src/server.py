@@ -6,6 +6,7 @@ import sys
 from datetime import datetime
 import logging
 import os
+from typing import List
 
 from .common.baseclient import SMCLabClient
 from .crawler.bitable_crawler import (
@@ -100,7 +101,7 @@ class SMCLabServer:
         self.send_last_week_attendence()
         logging.info("发送SMC每周总结: %s", datetime.now())
     
-    def send_last_week_attendence(self, receivers: str or List[str] = ["梁涵"]):
+    def send_last_week_attendence(self, receivers: str | List[str] = ["梁涵"]):
         self.schedule_crawler.get_raw_records() # 下载最新课表数据
         self.schedule_parser.make_period_summary_json() # 处理最新的课表数据
         self.attendance_crawler.get_last_week_daily_records() # 下载上周的考勤数据

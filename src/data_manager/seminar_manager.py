@@ -44,13 +44,9 @@ class SMCLabSeminarManager(SMCLabBaseParser):
         if not os.path.exists(self.excel_file_path):
             raise FileNotFoundError(f"Excel文件不存在: {self.excel_file_path}")
         
-        try:
-            df = pd.read_excel(self.excel_file_path)
-            self.logger.info(f"成功从Excel文件读取 {len(df)} 条组会记录")
-            return df
-        except Exception as e:
-            self.logger.error(f"读取Excel文件失败: {e}")
-            raise
+        df = pd.read_excel(self.excel_file_path)
+        self.logger.info(f"成功从Excel文件读取 {len(df)} 条组会记录")
+        return df
     
     def _date_to_datetime(self, date_value) -> Optional[datetime]:
         """
