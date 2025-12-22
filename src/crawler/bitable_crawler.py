@@ -19,7 +19,7 @@ class SMCLabBitableCrawler(SMCLabClient):
         self.raw_data_path = None
 
         # 需要读取多维表格token的配置
-        self._bitable_tokens_path = config.bitable_info_path
+        self._semester_info_path = config.semester_info_path
         self._table_id = None
         self._app_token = None
         
@@ -90,11 +90,11 @@ class SMCLabWeeklyReportCrawler(SMCLabBitableCrawler):
             os.makedirs(self.raw_data_path, exist_ok=True)
 
     def _set_table_tokens(self):
-        with open(self._bitable_tokens_path, "r", encoding="utf-8") as f:
-            all_table_info = json.load(f)
+        with open(self._semester_info_path, "r", encoding="utf-8") as f:
+            all_table_info = json.load(f)[self._year_semester]["bitable"]
         table_info = all_table_info[self.table_name]
         self._app_token = table_info["app_token"]
-        self._table_id = table_info["table_id"][self._year_semester]
+        self._table_id = table_info["table_id"]
 
     def get_raw_records_by_week(self, week: int = None):
         # 按周筛选返回响应
@@ -174,11 +174,11 @@ class SMCLabSeminarLeaveCrawler(SMCLabBitableCrawler):
             os.makedirs(self.raw_data_path, exist_ok=True)
 
     def _set_table_tokens(self):
-        with open(self._bitable_tokens_path, "r", encoding="utf-8") as f:
-            all_table_info = json.load(f)
+        with open(self._semester_info_path, "r", encoding="utf-8") as f:
+            all_table_info = json.load(f)[self._year_semester]["bitable"]
         table_info = all_table_info[self.table_name]
         self._app_token = table_info["app_token"]
-        self._table_id = table_info["table_id"][self._year_semester]
+        self._table_id = table_info["table_id"]
 
     def get_raw_records_by_week(self, week: int = None):
         # 按周筛选返回响应
@@ -253,8 +253,8 @@ class SMCLabSeminarCrawler(SMCLabBitableCrawler):
             os.makedirs(self.raw_data_path, exist_ok=True)
 
     def _set_table_tokens(self):
-        with open(self._bitable_tokens_path, "r", encoding="utf-8") as f:
-            all_table_info = json.load(f)
+        with open(self._semester_info_path, "r", encoding="utf-8") as f:
+            all_table_info = json.load(f)[self._year_semester]["bitable"]
         table_info = all_table_info[self.table_name]
         self._app_token = table_info["app_token"]
         self._table_id = table_info["table_id"]
@@ -273,8 +273,8 @@ class SMCLabScheduleCrawler(SMCLabBitableCrawler):
             os.makedirs(self.raw_data_path, exist_ok=True)
 
     def _set_table_tokens(self):
-        with open(self._bitable_tokens_path, "r", encoding="utf-8") as f:
-            all_table_info = json.load(f)
+        with open(self._semester_info_path, "r", encoding="utf-8") as f:
+            all_table_info = json.load(f)[self._year_semester]["bitable"]
         table_info = all_table_info[self.table_name]
         self._app_token = table_info["app_token"]
-        self._table_id = table_info["table_id"][self._year_semester]
+        self._table_id = table_info["table_id"]

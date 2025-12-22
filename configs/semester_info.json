@@ -10,19 +10,23 @@
         "bitable":{
             "weekly_report":{
                 "app_token": "bascnNZHLLxh0ZKJ9zOvhtTaMAb",
-                "table_id": "tblhrAOhccTHJauv"
+                "table_id": "tblhrAOhccTHJauv",
+                "url": "https://sysu-smclab.feishu.cn/base/bascnNZHLLxh0ZKJ9zOvhtTaMAb?table=tblhrAOhccTHJauv&view=vewqm1Sd5B"
             },
             "schedule":{
                 "app_token": "EGTXb1D1kaWnYUsTFLsc39rnntg",
-                "table_id": "tblvPa6Jzl7xogce"
+                "table_id": "tblvPa6Jzl7xogce",
+                "url": "https://sysu-smclab.feishu.cn/base/EGTXb1D1kaWnYUsTFLsc39rnntg?table=tblvPa6Jzl7xogce&view=vewFUQ7STo"
             },
             "seminar":{
                 "app_token": "L5ZAbqlF4aG1EQsRszbcAa2JnWc",
-                "table_id": "tbl3n3I1oKuO0KPT"
+                "table_id": "tbl3n3I1oKuO0KPT",
+                "url": "https://sysu-smclab.feishu.cn/base/L5ZAbqlF4aG1EQsRszbcAa2JnWc?table=tbl3n3I1oKuO0KPT&view=vew4SqBurs"
             },
             "seminar_leave":{
                 "app_token": "SAGSb336oa8QfPsJD4TcqCSin8b",
-                "table_id": "tblvPa6Jzl7xogce"
+                "table_id": "tblW7icX1N2mONai",
+                "url": "https://sysu-smclab.feishu.cn/base/SAGSb336oa8QfPsJD4TcqCSin8b?from=from_copylink"
             }
         }
     },

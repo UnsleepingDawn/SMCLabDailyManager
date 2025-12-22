@@ -23,7 +23,6 @@ class SMCLabMessageSender(SMCLabClient):
         if config is None:
             config = Config()
         super().__init__(config)
-        self.bitable_info = self._fetch_bitable_info(config.bitable_info_path)
         self.semester_info_path = config.semester_info_path
         self.weekly_summary_template_path = config.weekly_summary_template_path
         self.seminar_preview_template_path = config.seminar_preview_template_path
@@ -32,13 +31,6 @@ class SMCLabMessageSender(SMCLabClient):
     def _set_info_manager(self):
         info_manager = SMCLabInfoManager()
         self.name_account, _, _ = info_manager.map_fields("姓名", "飞书账号")
-
-    def _fetch_bitable_info(self, path: str):
-        # 获得
-        bitable_info_file = path
-        with open(bitable_info_file, 'r', encoding='utf-8') as f:
-            bitable_info = json.load(f)
-        return bitable_info
 
     def _fetch_daily_attendance(self, 
                                           sem: str, 
@@ -88,7 +80,7 @@ class SMCLabMessageSender(SMCLabClient):
 
         seminar_info_path = os.path.join(self._sem_data_path, sem, f"seminar_information.json")
         assert os.path.exists(seminar_info_path), "请先下载组会多维表格"
-        seminar_info_path
+        
         with open(seminar_info_path, "r", encoding="utf-8") as f:
             seminar_info = json.load(f)
 
@@ -155,10 +147,12 @@ class SMCLabMessageSender(SMCLabClient):
         return post_message
 
     def _fetch_weekly_report_submission(self,
-                                      sem: str, 
-                                      week: int):
+                                        sem: str, 
+                                        week: int):
         # 生成周报链接
-        weekly_report_url = self.bitable_info["weekly_report"]["url"][sem]
+        with open(self.semester_info_path, "r", encoding="utf-8") as f:
+            seminar_info = json.load(f)
+        weekly_report_url = seminar_info[sem]["bitable"]["weekly_report"]["url"]
 
         weekly_report_txt_path = os.path.join(self._sem_data_path, sem, f"week{week}", f"SMCLab第{week}周周报统计.txt")
         assert os.path.exists(weekly_report_txt_path), "请先调用SMCLabWeeklyReportParser.last_week_weekly_report_to_txt()"
@@ -283,9 +277,9 @@ class SMCLabMessageSender(SMCLabClient):
                 
                 resp: CreateMessageResponse = self._client.im.v1.message.create(request)
                 self._check_resp(resp)
-                self.logger.info("SMC每周总结发送成功: To %s", receive_names)
+                self.logger.info("组会预告发送成功: To %s", receive_names)
             else:
-                self.logger.warning("SMC每周总结发送失败: To %s", receive_names)
+                self.logger.warning("组会预告发送失败: To %s", receive_names)
                     
         return
 

@@ -53,7 +53,6 @@ class Config:
         self.info_plus_path = path_config.get("info_plus_path", "data_incre/SMCLab学生扩展信息.xlsx")
 
         self.app_tokens_path = path_config.get("app_tokens_path", "configs/app_tokens.json")
-        self.bitable_info_path = path_config.get("bitable_info_path", "configs/bitable_info.json")
         self.last_tenant_path = path_config.get("last_tenant_path", "configs/last_tenant.json")
         self.sysu_schedule_path = path_config.get("sysu_schedule_path", "configs/sysu_schedule.json")
         self.semester_info_path = path_config.get("semester_info_path", "configs/semester_info.json")
@@ -93,7 +92,6 @@ class Config:
 
         # 多维表格配置
         bitable_config = self._config.get("bitable", {})
-        self.bitable_info_path = bitable_config.get("bitable_info_path", "configs/bitable_info.json")
         self.weekly_report = BitableConfig.from_dict(bitable_config.get("weekly_report", {}))
         self.schedule = BitableConfig.from_dict(bitable_config.get("schedule", {}))
         self.seminar = BitableConfig.from_dict(bitable_config.get("seminar", {}))

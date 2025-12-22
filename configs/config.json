@@ -21,7 +21,6 @@
         "info_plus_path": "data_incre/SMCLab学生扩展信息.xlsx",
 
         "app_tokens_path": "configs/app_tokens.json",
-        "bitable_info_path": "configs/bitable_info.json",
         "last_tenant_path": "configs/last_tenant.json",
         "sysu_schedule_path": "configs/sysu_schedule.json",
         "semester_info_path": "configs/semester_info.json",
@@ -54,7 +53,6 @@
         "default_periods": ["周四上午", "周四下午"]
     },
     "bitable": {
-        "bitable_info_path": "configs/bitable_info.json",
         "weekly_report": {
             "page_size": 500,
             "raw_path": "data_raw/weekly_report_raw_data"
