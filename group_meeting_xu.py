@@ -2,12 +2,12 @@
 测试SMCLabSeminarManager类
 """
 from src.config import Config
-from src.operate.gourp_meeting_scheduler import SMCLabGourpMeetingScheduler
+from src.operate.gourp_meeting_scheduler import SMCLabGroupMeetingScheduler
 
 
 if __name__ == "__main__":
     config = Config
-    gms = SMCLabGourpMeetingScheduler()
+    gms = SMCLabGroupMeetingScheduler()
     schedule = gms.schedule_group_meeting(["周四上午", "周四下午"])
     for key in schedule.keys():
         print(key, ":")

@@ -242,6 +242,10 @@ class SMCLabDailyManager:
                                        users: str | List[str] = "梁涵"):
         self.sender.send_this_week_seminar_preview(users)
 
+    def test(self):
+        self.seminar_leave_crawler.get_last_week_records()
+        return
+
     # TODO: 把以下五个函数封装成一个单独的类
     def _get_last_week_todo_items(self) -> dict:
         """

@@ -10,7 +10,7 @@ from ..utils import get_semester_and_week
 from ..data_manager.excel_manager import SMCLabInfoManager
 
 
-class SMCLabGourpMeetingScheduler:
+class SMCLabGroupMeetingScheduler:
     """小组会议调度器，用于自动安排小组会议时间"""
 
     def __init__(self, config: Config = None) -> None:

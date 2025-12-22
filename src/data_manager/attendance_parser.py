@@ -429,7 +429,7 @@ class SMCLabSeminarAttendanceParser(SMCLabBaseParser):
             attended_str = ", ".join(attended_names_list) if len(attended_names_list) else "本周未收集到同学们的打卡流水"
             not_attended_str = ", ".join(not_attended_names_list) if len(not_attended_names_list) else "本周打卡流水全齐"
             leave_str = ", ".join(leave_names_list) if len(attended_names_list) else "本周无人请假"
-            leave_str = f"(请假: {leave_str})"
+            leave_str = f" (请假: {leave_str})"
             attended_str += leave_str
             self.logger.info("组会出勤: %s", attended_names)
             self.logger.info("组会未出勤: %s", not_attended_names)
