@@ -1,0 +1,20 @@
+{
+    "weekly_todo": {
+        "week14": {
+            "下载日常出勤信息": true,
+            "下载组会出勤信息": true,
+            "下载周报提交情况": true
+        },
+        "week15": {
+            "下载日常出勤信息": true,
+            "下载组会出勤信息": true,
+            "下载周报提交情况": true
+        }
+    },
+    "done_last_time": {
+        "last_address_book_crawle": 1766372965,
+        "last_address_book_update": 1766372965,
+        "last_seminar_crawle": 1766372965,
+        "last_schedule_crawle": 1766372966
+    }
+}

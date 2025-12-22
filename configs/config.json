@@ -22,7 +22,7 @@
         "last_tenant_path": "configs/last_tenant.json",
         "sysu_schedule_path": "configs/sysu_schedule.json",
         "sysu_semesters_path": "configs/sysu_semesters.json",
-        "weekly_todo_path": "configs/weekly_todo.json",
+        "todo_path": "configs/todo.json",
 
         "post_template_path": "configs/post_template/smc_sum_last_week.json"
     },

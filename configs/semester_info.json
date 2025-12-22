@@ -1,0 +1,28 @@
+{
+    "2025-Fall": {
+        "start_date": "20250908",
+        "default_seminar_weekday": 3,
+        "default_seminar_tecent_id": "491-2838-9630",
+        "default_seminar_tecent_link": "https://meeting.tencent.com/dm/YsOphIAZr6uv",
+        "bitable":{
+            "weekly_report":{
+                "app_token": "bascnNZHLLxh0ZKJ9zOvhtTaMAb",
+                "table_id": "tblhrAOhccTHJauv"
+            },
+            "schedule":{
+                "app_token": "EGTXb1D1kaWnYUsTFLsc39rnntg",
+                "table_id": "tblvPa6Jzl7xogce"
+            },
+            "seminar":{
+                "app_token": "L5ZAbqlF4aG1EQsRszbcAa2JnWc",
+                "table_id": "tbl3n3I1oKuO0KPT"
+            },
+            "seminar_leave":{
+                "app_token": "SAGSb336oa8QfPsJD4TcqCSin8b",
+                "table_id": "tblvPa6Jzl7xogce"
+            }
+        }
+    },
+    "2025-Spring": {
+    }
+}

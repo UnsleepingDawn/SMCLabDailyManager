@@ -58,7 +58,7 @@ class SMCLabDailyManager:
         
         self.set_logger()
 
-        _, this_week = get_semester_and_week(config.sysu_semesters_path)
+        _, this_week = get_semester_and_week()
         self._this_week = this_week
 
         # 发送模块
@@ -144,6 +144,9 @@ class SMCLabDailyManager:
             update_address_book = True
             update_schedule = True
             update_seminar_info = True
+        
+        info_changed_flag = True if update_address_book or update_schedule else False
+            
         weekly_todo_updated = {}
         last_time_updated = {}
         # 更新通讯录
@@ -183,7 +186,7 @@ class SMCLabDailyManager:
         
         # 根据待办事项状态决定是否执行
         # 下载日常出勤信息
-        if not todo_items.get("下载日常出勤信息", False) or update_all:
+        if not todo_items.get("下载日常出勤信息", False) or update_all or info_changed_flag:
             self.logger.info("执行: 下载日常出勤信息")
             self.attendance_crawler.get_last_week_daily_records()
             self.daily_attendance_parser.last_week_daily_attendance_to_excel()
@@ -192,7 +195,7 @@ class SMCLabDailyManager:
             self.logger.info("跳过: 下载日常出勤信息（已完成）")
         
         # 下载组会出勤信息
-        if not todo_items.get("下载组会出勤信息", False) or update_all:
+        if not todo_items.get("下载组会出勤信息", False) or update_all or info_changed_flag:
             self.logger.info("执行: 下载组会出勤信息")
             self.attendance_crawler.get_last_week_seminar_records()
             self.seminar_leave_crawler.get_last_week_records()
@@ -202,7 +205,7 @@ class SMCLabDailyManager:
             self.logger.info("跳过: 下载组会出勤信息（已完成）")
         
         # 下载周报提交情况
-        if not todo_items.get("下载周报提交情况", False) or update_all:
+        if not todo_items.get("下载周报提交情况", False) or update_all or info_changed_flag:
             self.logger.info("执行: 下载周报提交情况")
             self.weekly_report_crawler.get_last_week_records()
             self.weekly_report_parser.last_week_weekly_report_to_txt()
@@ -218,7 +221,8 @@ class SMCLabDailyManager:
         self.sender.send_last_week_summary(users=users)
 
     def test(self):
-        self.seminar_leave_crawler.get_last_week_records()
+        self.weekly_report_crawler.get_last_week_records()
+        self.weekly_report_parser.last_week_weekly_report_to_txt()
 
     # TODO: 把以下五个函数封装成一个单独的类
     def _get_last_week_todo_items(self) -> dict:
@@ -234,7 +238,7 @@ class SMCLabDailyManager:
         读取指定周的待办事项，返回一个包含状态的字典。
         若读取失败或不存在对应周数据，返回空字典，调用方将执行所有操作。
         """
-        weekly_todo_path = os.path.join("configs", "weekly_todo.json")
+        weekly_todo_path = os.path.join("configs", "todo.json")
         if not os.path.exists(weekly_todo_path):
             return {}
         try:
@@ -254,7 +258,7 @@ class SMCLabDailyManager:
         """
         将指定周的待办状态更新为 True，若文件不存在则创建基础结构。
         """
-        weekly_todo_path = os.path.join("configs", "weekly_todo.json")
+        weekly_todo_path = os.path.join("configs", "todo.json")
         data = {"done_last_time": {},
                 "weekly_todo": {}}
         if os.path.exists(weekly_todo_path):
@@ -279,7 +283,7 @@ class SMCLabDailyManager:
             self.logger.error(f"写入 weekly_todo.json 失败: {e}")
 
     def _get_done_last_time(self):
-        weekly_todo_path = os.path.join("configs", "weekly_todo.json")
+        weekly_todo_path = os.path.join("configs", "todo.json")
         if not os.path.exists(weekly_todo_path):
             return {}
         try:
@@ -294,7 +298,7 @@ class SMCLabDailyManager:
     def _update_done_last_time(self, updates: dict):
         """
         """
-        weekly_todo_path = os.path.join("configs", "weekly_todo.json")
+        weekly_todo_path = os.path.join("configs", "todo.json")
         data = {"done_last_time": {},
                 "weekly_todo": {}}
         if os.path.exists(weekly_todo_path):

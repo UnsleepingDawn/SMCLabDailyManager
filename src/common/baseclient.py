@@ -38,7 +38,7 @@ class SMCLabClient(object):
         self._sem_data_path = config.sem_data_path
 
         self._sysu_semesters_path = config.sysu_semesters_path
-        self._year_semester, self._this_week = get_semester_and_week(self._sysu_semesters_path)
+        self._year_semester, self._this_week = get_semester_and_week()
 
     @property
     def app_table_record(self) -> base_rsc.AppTableRecord:
@@ -118,4 +118,4 @@ class SMCLabClient(object):
         assert resp.msg == "success"
     
     def reset_time(self):
-        self._year_semester, self._this_week = get_semester_and_week(self._sysu_semesters_path)
+        self._year_semester, self._this_week = get_semester_and_week()

@@ -29,7 +29,7 @@ class SMCLabSeminarManager(SMCLabBaseParser):
         # Excel文件路径
         self.excel_file_path = os.path.join(self.this_sem_path, "seminar_information.xlsx")
         # 学期起始日期
-        self.sem_start_date = get_semester_start_date(self._year_semester, config.sysu_semesters_path)
+        self.sem_start_date = get_semester_start_date(self._year_semester)
     
     def load_from_excel(self) -> pd.DataFrame:
         """

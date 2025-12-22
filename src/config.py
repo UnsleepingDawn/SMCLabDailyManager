@@ -54,7 +54,7 @@ class Config:
         self.last_tenant_path = path_config.get("last_tenant_path", "configs/last_tenant.json")
         self.sysu_schedule_path = path_config.get("sysu_schedule_path", "configs/sysu_schedule.json")
         self.sysu_semesters_path = path_config.get("sysu_semesters_path", "configs/sysu_semesters.json")
-        self.weekly_todo_path = path_config.get("weekly_todo_path", "configs/weekly_todo.json")
+        self.todo_path = path_config.get("todo_path", "configs/todo.json")
         
         self.post_template_path = path_config.get("post_template_path", "configs/post_template/smc_sum_last_week.json")
 

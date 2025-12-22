@@ -155,7 +155,7 @@ class SMCLabWeeklyReportCrawler(SMCLabBitableCrawler):
     
     def _remove_past_weekly_records(self):
         # 删除所有的上周记录
-        search_pattern = os.path.join(self.raw_data_path, f"{self._year_semester}_Week{self._this_week - 1}*{self.table_name}*.json")
+        search_pattern = os.path.join(self.raw_data_path, f"*{self.table_name}*.json")
         for file_path in glob.glob(search_pattern, recursive=True):
             os.remove(file_path)
         return
@@ -234,7 +234,7 @@ class SMCLabSeminarLeaveCrawler(SMCLabBitableCrawler):
 
     def _remove_past_weekly_records(self):
         # 删除所有的上周记录
-        search_pattern = os.path.join(self.raw_data_path, f"{self._year_semester}_Week{self._this_week - 1}*{self.table_name}*.json")
+        search_pattern = os.path.join(self.raw_data_path, f"*{self.table_name}*.json")
         for file_path in glob.glob(search_pattern, recursive=True):
             os.remove(file_path)
         return

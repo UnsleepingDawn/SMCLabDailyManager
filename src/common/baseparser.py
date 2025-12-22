@@ -11,7 +11,7 @@ class SMCLabBaseParser:
         self.logger = logging.getLogger(config.logger_name)
         self._incre_data_path = config.incre_data_path
         self._sem_data_path = config.sem_data_path
-        self._year_semester, self._this_week = get_semester_and_week(config.sysu_semesters_path)    
+        self._year_semester, self._this_week = get_semester_and_week()    
         
     def reset_time(self):
         self._year_semester, self._this_week = get_semester_and_week()

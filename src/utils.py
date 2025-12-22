@@ -3,14 +3,14 @@ from datetime import datetime, timedelta
 from typing import Union
 
 def get_semester(current_time: str = None,
-                      sysu_semesters_path: str = "configs/sysu_semesters.json"):
-    sysu_semesters_path = os.path.join("configs", "sysu_semesters.json")
+                 semester_info_path: str = "configs/semester_info.json"):
     # 1. 读取JSON文件
-    with open(sysu_semesters_path, 'r', encoding='utf-8') as f:
+    with open(semester_info_path, 'r', encoding='utf-8') as f:
         semester_map = json.load(f)
     # 2. 将字符串日期转换为 datetime 对象
     semester_dates = []
-    for sem, date_str in semester_map.items():
+    for sem, sem_info in semester_map.items():
+        date_str = sem_info["start_date"]
         date_obj = datetime.strptime(date_str, "%Y%m%d")
         semester_dates.append((sem, date_obj))
 
@@ -41,9 +41,8 @@ def get_semester(current_time: str = None,
     assert current_semester is not None, "未找到对应学期"
     return current_semester
 
-def get_semester_and_week(print_info=True,
-                          current_time: str = None,
-                          sysu_semesters_path: str = "configs/sysu_semesters.json"):
+def get_semester_and_week(current_time: str = None,
+                          semester_info_path: str = "configs/semester_info.json"):
     """
     根据json文件中学期起始时间（周一）映射，
     判断当前日期属于哪个学期，并返回第几周。
@@ -55,12 +54,13 @@ def get_semester_and_week(print_info=True,
         current_time = datetime.strptime(current_time, "%Y%m%d")
 
     # 读取JSON文件
-    with open(sysu_semesters_path, 'r', encoding='utf-8') as f:
+    with open(semester_info_path, 'r', encoding='utf-8') as f:
         semester_map = json.load(f)
 
     # 转换为 (学期, 起始日期) 列表，并按时间排序
     semester_dates = []
-    for sem, date_str in semester_map.items():
+    for sem, sem_info in semester_map.items():
+        date_str = sem_info["start_date"]
         date_obj = datetime.strptime(date_str, "%Y%m%d")
         semester_dates.append((sem, date_obj))
     semester_dates.sort(key=lambda x: x[1])
@@ -94,12 +94,12 @@ def get_semester_and_week(print_info=True,
     return current_semester, week_number
 
 def get_semester_start_date(semester: str = None,
-                            sysu_semesters_path: str = "configs/sysu_semesters.json"):
-    with open(sysu_semesters_path, 'r', encoding='utf-8') as f:
+                            semester_info_path: str = "configs/semester_info.json"):
+    with open(semester_info_path, 'r', encoding='utf-8') as f:
         semester_map = json.load(f)
     if semester is None:
         semester = get_semester()
-    return datetime.strptime(semester_map[semester], "%Y%m%d")
+    return datetime.strptime(semester_map[semester]["start_date"], "%Y%m%d")
 
 class TimeParser:
     """时间解析工具类，提供学期周次计算、日期转换等功能"""
