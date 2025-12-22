@@ -243,7 +243,7 @@ class SMCLabDailyManager:
         self.sender.send_this_week_seminar_preview(users)
 
     def test(self):
-        self.seminar_leave_crawler.get_last_week_records()
+        self.schedule_parser.make_period_summary_json()
         return
 
     # TODO: 把以下五个函数封装成一个单独的类

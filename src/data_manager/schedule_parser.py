@@ -102,7 +102,7 @@ class SMCLabScheduleParser(SMCLabBaseParser):
                 period, _ = slot.split("-")
                 summary[day][period].update(names)
         # 转换为列表形式
-        summary = {d: {p: list(v) for p, v in ps.items()} for d, ps in summary.items()}
+        summary = {d: {p: sorted(list(v)) for p, v in ps.items()} for d, ps in summary.items()}
         with open(output_path, "w", encoding="utf-8") as f:
             json.dump(summary, f, ensure_ascii=False, indent=4)
         self.logger.info("每日三时段学生名单JSON已保存: %s", Path(output_path).absolute())
