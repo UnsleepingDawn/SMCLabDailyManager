@@ -1,11 +1,12 @@
 import json, os
+import copy
 
 import lark_oapi as lark
 from lark_oapi.api.im.v1 import *
 
 from ..common.baseclient import SMCLabClient
 from ..data_manager.excel_manager import SMCLabInfoManager
-from ..utils import get_semester_and_week
+from ..utils import TimeParser, get_semester_and_week
 from ..config import Config
 
 ABS_PATH = os.path.abspath(__file__)        # SMCLabDailyManager\source_code\message\sender.py
@@ -15,14 +16,17 @@ REPO_PATH = os.path.dirname(SRC_PATH)       # SMCLabDailyManager
 RAW_DATA_PATH = os.path.join(REPO_PATH, "data_raw")
 SEM_DATA_PATH = os.path.join(REPO_PATH, "data_semester")
 
+
+
 class SMCLabMessageSender(SMCLabClient):
     def __init__(self, config: Config = None):
         if config is None:
             config = Config()
         super().__init__(config)
         self.bitable_info = self._fetch_bitable_info(config.bitable_info_path)
-        self.post_template_path = config.post_template_path
-        self.post_message = None
+        self.semester_info_path = config.semester_info_path
+        self.weekly_summary_template_path = config.weekly_summary_template_path
+        self.seminar_preview_template_path = config.seminar_preview_template_path
         self.name_account = None
 
     def _set_info_manager(self):
@@ -66,6 +70,90 @@ class SMCLabMessageSender(SMCLabClient):
             not_appeared_str = lines[1].strip()
         return appeared_str, not_appeared_str
     
+    def _fetch_seminar_preview(self, sem: str, week: int):
+        def check_seminar_item(seminar_info_item):
+            assert seminar_info_item.get("happened", True) == False, "该周组会已经开过"
+            assert seminar_info_item.get("room", None), "请指定开会地点"
+            presentations = seminar_info_item.get("presentations", [])
+            assert len(presentations) > 0
+            count = 1
+            for presentation in presentations:
+                presenter = presentation.get("presenter", None)
+                track = presentation.get("track", None)
+                assert presenter, "怎么没有名字"
+                assert track == count, f"{presenter}的顺序({track})应该是{count}"
+                assert presentation.get("title", None), f"{presenter}怎么没有提交标题!"
+                assert presentation.get("abstract", None), f"{presenter}怎么没有提交摘要!"
+                count += 1
+
+        seminar_info_path = os.path.join(self._sem_data_path, sem, f"seminar_information.json")
+        assert os.path.exists(seminar_info_path), "请先下载组会多维表格"
+        seminar_info_path
+        with open(seminar_info_path, "r", encoding="utf-8") as f:
+            seminar_info = json.load(f)
+
+        target_seminar_info = None
+        for seminar_info_item in seminar_info:
+            if seminar_info_item.get("week", None) == week:
+                check_seminar_item(seminar_info_item)
+                target_seminar_info = seminar_info_item 
+        assert target_seminar_info, "没有找到对应周的组会信息"
+        return target_seminar_info
+
+    def _build_seminar_preview_content(self):
+        
+        # 加载发送给陈旭老师的模板
+        with open(self.seminar_preview_template_path, "r", encoding="utf-8") as f:
+            post_message = json.load(f)
+
+        # 在此处构造数据
+        target_seminar_info = self._fetch_seminar_preview(self._year_semester, self._this_week)
+        presentations = target_seminar_info.get("presentations")
+        
+        post_message["zh_cn"]["title"] = f"{self._year_semester}-第{self._this_week}周组会通知"
+        template_content_list = post_message["zh_cn"]["content"]
+        new_content_list = []
+        # 处理三个演讲者的预告
+        for pre in presentations:
+            presentation_content = copy.deepcopy(template_content_list[0])
+            presentation_content[1]["text"] = str(pre["track"])
+            presentation_content[3]["text"] = str(pre["title"])
+            presentation_content[5]["text"] = str(pre["presenter"])
+            presentation_content[7]["text"] = str(pre["abstract"])
+            new_content_list.append(presentation_content)
+        # 根据实际情况是否
+        with open(self.semester_info_path, "r", encoding="utf-8") as f:
+            semester_info = json.load(f)
+        this_semester_info = semester_info[self._year_semester]
+        # 添加预告时间段的文本
+        period_content = template_content_list[1].copy()
+        period_content[2]["text"] = TimeParser.get_weekday_iso(target_seminar_info["weekday"])
+        seminar_start_time = str(this_semester_info["default_seminar_start_time"])
+        seminar_end_time = str(this_semester_info["default_seminar_end_time"])
+        seminar_start_time = seminar_start_time[:2]+":"+seminar_start_time[2:]
+        seminar_end_time = seminar_end_time[:2]+":"+seminar_end_time[2:]
+        seminar_period = seminar_start_time+"-"+seminar_end_time
+        period_content[3]["text"] = seminar_period
+        new_content_list.append(period_content)
+        # 添加地点的文本
+        room_content = template_content_list[2].copy()
+        room_content[1]["text"] = target_seminar_info["room"]
+        new_content_list.append(room_content)
+        # 根据是否既定组会日期, 决定是否发送线上链接
+        tecent_content = template_content_list[3].copy()
+        if this_semester_info["default_seminar_weekday"] == target_seminar_info["weekday"]:
+            tecent_meeting_str = "(点击链接入会，或添加至会议列表)\n"
+            tecent_meeting_str += this_semester_info["default_seminar_tecent_link"]
+            tecent_meeting_str += "\n腾讯会议: "
+            tecent_meeting_str += this_semester_info["default_seminar_tecent_id"]
+            tecent_content[1]["text"] = tecent_meeting_str
+        else:
+            tecent_content[1]["text"] = "(由于本周组会时间调整, 腾讯会议号另行通知)"
+        new_content_list.append(tecent_content)
+
+        post_message["zh_cn"]["content"] = new_content_list
+        return post_message
+
     def _fetch_weekly_report_submission(self,
                                       sem: str, 
                                       week: int):
@@ -84,7 +172,7 @@ class SMCLabMessageSender(SMCLabClient):
     
     def _send_weekly_summary_byweek(self,
                             week: int = None,
-                            users: str or List[str] = "梁涵"):
+                            users: str | List[str] = "梁涵"):
         if not self.name_account:
             self._set_info_manager()
         name_account = self.name_account
@@ -99,22 +187,22 @@ class SMCLabMessageSender(SMCLabClient):
         week = self._this_week if not week else week
 
         # 加载发送给陈旭老师的模板
-        with open(self.post_template_path, "r", encoding="utf-8") as f:
-            self.post_message = json.load(f)
+        with open(self.weekly_summary_template_path, "r", encoding="utf-8") as f:
+            post_message = json.load(f)
 
         # 在此处构造数据
         image_key = self._fetch_daily_attendance(semester, week)
         weekly_report_url, appeared_str, not_appeared_str =self._fetch_weekly_report_submission(semester, week)
         attended_str, not_attended_str = self._fetch_seminar_attendance(semester, week)
-        self.post_message["zh_cn"]["title"] = f"{semester}-第{week}周总结"
-        self.post_message["zh_cn"]["content"][1][0]["image_key"] = image_key
-        self.post_message["zh_cn"]["content"][3][0]["href"] = weekly_report_url
-        self.post_message["zh_cn"]["content"][4][1]["text"] = appeared_str
-        self.post_message["zh_cn"]["content"][5][1]["text"] = not_appeared_str
-        self.post_message["zh_cn"]["content"][7][1]["text"] = attended_str
-        self.post_message["zh_cn"]["content"][8][1]["text"] = not_attended_str
+        post_message["zh_cn"]["title"] = f"{semester}-第{week}周总结"
+        post_message["zh_cn"]["content"][1][0]["image_key"] = image_key
+        post_message["zh_cn"]["content"][3][0]["href"] = weekly_report_url
+        post_message["zh_cn"]["content"][4][1]["text"] = appeared_str
+        post_message["zh_cn"]["content"][5][1]["text"] = not_appeared_str
+        post_message["zh_cn"]["content"][7][1]["text"] = attended_str
+        post_message["zh_cn"]["content"][8][1]["text"] = not_attended_str
 
-        post_string = json.dumps(self.post_message, ensure_ascii=False)
+        post_string = json.dumps(post_message, ensure_ascii=False)
         # 构造请求对象
         for receive_id, receive_name in zip(receive_ids, receive_names):
             if receive_name == "梁涵":
@@ -141,22 +229,66 @@ class SMCLabMessageSender(SMCLabClient):
         return
 
     def send_this_week_summary(self,
-                               users: str or List[str] = "梁涵"):
+                               users: str | List[str] = "梁涵"):
         self._send_weekly_summary_byweek(week=self._this_week, users=users)
         return
 
     def send_last_week_summary(self,
-                               users: str or List[str] = "梁涵"):
+                               users: str | List[str] = "梁涵"):
         self._send_weekly_summary_byweek(week=self._this_week-1, users=users)
         return
 
     def send_this_week_seminar_attendance(self,
-                                          users: str):
-        self.logger.info("发送第%s周组会考勤给 %s", self._this_week, users)
+                                          user: str):
+        self.logger.info("发送第%s周组会考勤给 %s", self._this_week, user)
         attended_str, not_attended_str = self._fetch_seminar_attendance(self._year_semester, self._this_week)
         message_string = f"{self._year_semester}-第{self._this_week}周组会考勤:\n" + f"参会: {attended_str}" + "\n" + f"未参会: {not_attended_str}"
-        self.send_text(user = users, message = message_string)
+        self.send_text(user = user, message = message_string)
         return
+
+    def send_this_week_seminar_preview(self,
+                                       users: str):
+        if not self.name_account:
+            self._set_info_manager()
+        name_account = self.name_account
+        if isinstance(users, str):
+            users = [users]
+        
+        for user in users:
+            assert user in name_account.keys(), f"没有找到该用户: {user}"
+
+        receive_names = users
+        receive_ids = [name_account[user] for user in users]
+
+
+        post_message = self._build_seminar_preview_content()
+
+        post_string = json.dumps(post_message, ensure_ascii=False)
+        # 构造请求对象
+        for receive_id, receive_name in zip(receive_ids, receive_names):
+            if receive_name == "梁涵":
+                user_input = "yes"
+            else:
+                user_input = input(f"即将发送给'{receive_name}', 请确认(yes/y): ").strip()
+                
+            if user_input.lower() == "yes" or "y":
+                request: CreateMessageRequest = CreateMessageRequest.builder() \
+                    .receive_id_type("open_id") \
+                    .request_body(CreateMessageRequestBody.builder()
+                        .receive_id(receive_id)
+                        .msg_type("post")
+                        .content(post_string)
+                        .build()) \
+                    .build()
+                
+                resp: CreateMessageResponse = self._client.im.v1.message.create(request)
+                self._check_resp(resp)
+                self.logger.info("SMC每周总结发送成功: To %s", receive_names)
+            else:
+                self.logger.warning("SMC每周总结发送失败: To %s", receive_names)
+                    
+        return
+
 
     def send_text(self,
                   user: str,

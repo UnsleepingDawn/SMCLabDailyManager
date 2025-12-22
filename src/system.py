@@ -238,9 +238,9 @@ class SMCLabDailyManager:
             self._update_done_last_time(updates=last_time_updated)
         self.sender.send_last_week_summary(users=users)
 
-    def test(self):
-        self.weekly_report_crawler.get_last_week_records()
-        self.weekly_report_parser.last_week_weekly_report_to_txt()
+    def send_this_week_seminar_preview(self,
+                                       users: str | List[str] = "梁涵"):
+        self.sender.send_this_week_seminar_preview(users)
 
     # TODO: 把以下五个函数封装成一个单独的类
     def _get_last_week_todo_items(self) -> dict:

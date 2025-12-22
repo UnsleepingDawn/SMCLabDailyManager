@@ -11,4 +11,4 @@ if __name__ == "__main__":
                                   # update_address_book=True
                                   update_all=True,
                                   )
-    # system.test()
+    # system.send_this_week_seminar_preview(users = ["梁涵"])
