@@ -10,7 +10,9 @@ def get_semester(current_time: str = None,
     # 2. 将字符串日期转换为 datetime 对象
     semester_dates = []
     for sem, sem_info in semester_map.items():
-        date_str = sem_info["start_date"]
+        date_str = sem_info.get("start_date","")
+        if not date_str:
+            continue
         date_obj = datetime.strptime(date_str, "%Y%m%d")
         semester_dates.append((sem, date_obj))
 
@@ -60,7 +62,9 @@ def get_semester_and_week(current_time: str = None,
     # 转换为 (学期, 起始日期) 列表，并按时间排序
     semester_dates = []
     for sem, sem_info in semester_map.items():
-        date_str = sem_info["start_date"]
+        date_str = sem_info.get("start_date","")
+        if not date_str:
+            continue
         date_obj = datetime.strptime(date_str, "%Y%m%d")
         semester_dates.append((sem, date_obj))
     semester_dates.sort(key=lambda x: x[1])

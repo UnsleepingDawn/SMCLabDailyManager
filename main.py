@@ -9,6 +9,6 @@ if __name__ == "__main__":
     system.send_last_week_summary(users = ["梁涵"],
                                   use_relay=False, 
                                   # update_address_book=True
-                                  # update_all=True,
+                                  update_all=True,
                                   )
     # system.test()

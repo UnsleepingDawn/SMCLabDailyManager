@@ -13,6 +13,7 @@
         "sem_data_path": "data_sem",
         "incre_data_path": "data_incre",
         "configs_path": "configs",
+        "logs_path": "logs",
 
         "info_base_path": "data_incre/SMCLab学生基本信息.xlsx",
         "info_plus_path": "data_incre/SMCLab学生扩展信息.xlsx",

@@ -70,14 +70,14 @@ class SMCLabAttendanceCrawler(SMCLabClient):
         # 取最前面那一个作为目标考勤组
         self.group_id = resp.data.group_list[0].group_id
 
-    def _get_group_list_user(self):   
+    def _get_group_list_user(self, save_name_list: bool = False):   
         # 下载考勤组成员
         # 参考：https://open.feishu.cn/document/attendance-v1/group/list_user
         if not self.group_id:
             self._get_group_id()
-        if not self.info_manager:
+        if not self.info_manager and save_name_list:
             self._set_info_manager()
-        id_name_pair, _, _ = self.info_manager.map_fields("user_id", "姓名")
+            id_name_pair, _, _ = self.info_manager.map_fields("user_id", "姓名")
         has_more = True
         page_token = ""
         page_cnt = 0
@@ -108,9 +108,11 @@ class SMCLabAttendanceCrawler(SMCLabClient):
             page_cnt += 1
 
         users_id_list = [user.user_id for user in users_list]
-        users_name_list = [id_name_pair[user_id] for user_id in users_id_list]
+        if save_name_list:
+            users_name_list = [id_name_pair[user_id] for user_id in users_id_list]
+            self.group_users_name_list = users_name_list
         self.group_users_id_list = users_id_list
-        self.group_users_name_list = users_name_list
+        
     
     def _remove_past_daily_record(self):
         search_pattern = os.path.join(self.raw_data_path, "*daily_attendance*.json")

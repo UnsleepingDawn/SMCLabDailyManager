@@ -56,6 +56,7 @@ class SMCLabDailyManager:
             config = Config()
         self.config = config
         
+        self.ensure_directories()
         self.set_logger()
 
         _, this_week = get_semester_and_week()
@@ -105,6 +106,23 @@ class SMCLabDailyManager:
         file_handler.setLevel(logging.DEBUG)
         self.logger.addHandler(file_handler)
         self.logger.propagate = False
+
+    def ensure_directories(self):
+        """
+        检查并创建必要的文件夹路径。
+        依次检查 config.py 中定义的文件夹是否存在，不存在则创建。
+        """
+        directories = [
+            self.config.raw_data_path,
+            self.config.sem_data_path,
+            self.config.incre_data_path,
+            self.config.logs_path,
+            self.config.configs_path
+        ]
+        
+        for directory in directories:
+            if not os.path.exists(directory):
+                os.makedirs(directory, exist_ok=True)
 
     def update_address_book(self):
         # 下载最新的组会表格

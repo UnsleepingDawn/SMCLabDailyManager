@@ -44,6 +44,7 @@ class Config:
         self.raw_data_path = path_config.get("raw_data_path", "data_raw")
         self.sem_data_path = path_config.get("sem_data_path", "data_sem")
         self.incre_data_path = path_config.get("incre_data_path", "data_incre")
+        self.logs_path = path_config.get("logs_path", "logs")
         self.configs_path = path_config.get("configs_path", "configs")
 
         self.info_base_path = path_config.get("info_base_path", "data_incre/SMCLab学生基础信息.xlsx")
