@@ -15,6 +15,8 @@
         "configs_path": "configs",
         "logs_path": "logs",
 
+        "post_template_path": "configs/post_template",
+
         "info_base_path": "data_incre/SMCLab学生基本信息.xlsx",
         "info_plus_path": "data_incre/SMCLab学生扩展信息.xlsx",
 
@@ -22,10 +24,11 @@
         "bitable_info_path": "configs/bitable_info.json",
         "last_tenant_path": "configs/last_tenant.json",
         "sysu_schedule_path": "configs/sysu_schedule.json",
-        "sysu_semesters_path": "configs/sysu_semesters.json",
+        "semester_info_path": "configs/semester_info.json",
         "todo_path": "configs/todo.json",
 
-        "post_template_path": "configs/post_template/smc_sum_last_week.json"
+        "weekly_summary_template_path": "configs/post_template/weekly_summary.json",
+        "seminar_preview_template_path": "configs/post_template/seminar_preview.json"
     },
     "addressbook": {
         "page_size": 50,

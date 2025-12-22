@@ -1,7 +1,10 @@
 {
     "2025-Fall": {
+        "help": "每学期的日期定义为第一周的周一, 可通过 中山大学公众号/小红书 搜索校历查看具体日期",
         "start_date": "20250908",
         "default_seminar_weekday": 3,
+        "default_seminar_start_time": 1900,
+        "default_seminar_end_time": 2030,
         "default_seminar_tecent_id": "491-2838-9630",
         "default_seminar_tecent_link": "https://meeting.tencent.com/dm/YsOphIAZr6uv",
         "bitable":{
@@ -24,5 +27,6 @@
         }
     },
     "2025-Spring": {
+        "start_date": "20260302"
     }
 }

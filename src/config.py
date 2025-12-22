@@ -47,6 +47,8 @@ class Config:
         self.logs_path = path_config.get("logs_path", "logs")
         self.configs_path = path_config.get("configs_path", "configs")
 
+        self.post_template_path = path_config.get("post_template_path", "configs/post_template")
+
         self.info_base_path = path_config.get("info_base_path", "data_incre/SMCLab学生基础信息.xlsx")
         self.info_plus_path = path_config.get("info_plus_path", "data_incre/SMCLab学生扩展信息.xlsx")
 
@@ -54,10 +56,11 @@ class Config:
         self.bitable_info_path = path_config.get("bitable_info_path", "configs/bitable_info.json")
         self.last_tenant_path = path_config.get("last_tenant_path", "configs/last_tenant.json")
         self.sysu_schedule_path = path_config.get("sysu_schedule_path", "configs/sysu_schedule.json")
-        self.sysu_semesters_path = path_config.get("sysu_semesters_path", "configs/sysu_semesters.json")
+        self.semester_info_path = path_config.get("semester_info_path", "configs/semester_info.json")
         self.todo_path = path_config.get("todo_path", "configs/todo.json")
         
-        self.post_template_path = path_config.get("post_template_path", "configs/post_template/smc_sum_last_week.json")
+        self.weekly_summary_template_path = path_config.get("weekly_summary_template_path", "configs/post_template/weekly_summary.json")
+        self.seminar_preview_template_path = path_config.get("seminar_preview_template_path", "configs/post_template/seminar_preview.json")
 
         # 日志模块配置
         logger_config = self._config.get("logger", {})
