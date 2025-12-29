@@ -2,6 +2,8 @@ import json
 import os
 from glob import glob
 from openpyxl import Workbook
+import re
+from openpyxl.cell.cell import ILLEGAL_CHARACTERS_RE
 
 from src.utils import TimeParser
 
@@ -148,6 +150,12 @@ class SMCLabSeminarParser(SMCLabBitableParser):
 
     def save_info_to_excel(self, output_path: str = None):
         """将所有记录保存为 Excel 文件"""
+        def clean_for_excel(value):
+            """清理字符串中的非法字符，使其可以写入 Excel"""
+            if not isinstance(value, str):
+                return value
+            # 移除 openpyxl 不允许的非法字符
+            return ILLEGAL_CHARACTERS_RE.sub('', value)
         if not output_path:
             output_path = os.path.join(self.this_sem_path, "seminar_information.xlsx")
         records = self._get_info_from_raw_data()
@@ -160,7 +168,8 @@ class SMCLabSeminarParser(SMCLabBitableParser):
         ws.append(headers)
 
         for record in records:
-            ws.append([record[h] for h in headers])
+            cleaned_record = {k: clean_for_excel(v) for k, v in record.items()}
+            ws.append([cleaned_record[h] for h in headers])
 
         os.makedirs(os.path.dirname(output_path), exist_ok=True)
         wb.save(output_path)
