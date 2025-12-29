@@ -266,6 +266,8 @@ system.send_this_week_seminar_attendance(user="梁涵")
 # 已知需要优化 & 已知 Bug
 
 - 现在每次实例化爬虫 client 都要实例化一个单独的 baseclient，可以开发一个类似于 `from_pretrained` 方法，全部的爬虫都指向同一个 baseclient
+- logger格式太复杂需要进行统一
+- 如果当周没有组会，会报错，但是发送空消息即可，不需要assert报错
 
 ---
 
