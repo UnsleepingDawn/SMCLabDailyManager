@@ -89,7 +89,8 @@ class SMCLabMessageSender(SMCLabClient):
             if seminar_info_item.get("week", None) == week:
                 check_seminar_item(seminar_info_item)
                 target_seminar_info = seminar_info_item 
-        assert target_seminar_info, "没有找到对应周的组会信息"
+        # TODO: 不要使用assert进行运行时检查, 为空的时候发送空消息
+        assert target_seminar_info, f"没有找到{week}周的组会信息, 请确认该周是否真的有组会"
         return target_seminar_info
 
     def _build_seminar_preview_content(self):
