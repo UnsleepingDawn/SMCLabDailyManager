@@ -358,6 +358,32 @@
     ]
   },
   {
+    "week": 16,
+    "weekday": 3,
+    "happened": true,
+    "room": "",
+    "presentations": [
+      {
+        "presenter": "叶子林",
+        "track": 1,
+        "title": "AdaptiveNet: Post-deployment Neural Architecture Adaptation for Diverse Edge Environments",
+        "abstract": "Deep learning models are increasingly deployed to edge devices for real-time applications. To ensure stable service quality across diverse edge environments, it is highly desirable to generate tailored model architectures for different conditions. However, conventional pre-deployment model generation approaches are not satisfactory due to the difficulty of handling the diversity of edge environments and the demand for edge information. In this paper, we propose to adapt the model architecture after deployment in the target environment, where the model quality can be precisely measured and private edge data can be retained. To achieve efficient and effective edge model generation, we introduce a pretraining-assisted on-cloud model elastification method and an edge-friendly on-device architecture search method. Model elastification generates a high-quality search space of model architectures with the guidance of a developer-specified oracle model. Each subnet in the space is a valid model with different environment affinity, and each device efficiently finds and maintains the most suitable subnet based on a series of edge-tailored optimizations. Extensive experiments on various edge devices demonstrate that our approach is able to achieve significantly better accuracy-latency tradeoffs (e.g. 46.74% higher on average accuracy with a 60% latency budget) than strong baselines with minimal overhead (13 GPU hours in the cloud and 2 minutes on the edge server)."
+      },
+      {
+        "presenter": "黄军龙",
+        "track": 1,
+        "title": "Multi-agent Architecture Search via Agentic Supernet",
+        "abstract": "MaAS is a multi-agent architecture search framework based on the agentic supernet, designed to address the limitations of existing \"one-size-fits-all\" multi-agent systems. Instead of optimizing a single fixed architecture, it models a probabilistic and continuous distribution of agentic architectures, enabling query-dependent sampling of customized multi-agent systems. By leveraging a controller network for adaptive subnetwork sampling and joint optimization of distribution parameters (via Monte Carlo gradient) and agentic operators (via textual gradient), MaAS achieves both high performance and resource efficiency."
+      },
+      {
+        "presenter": "梁晋熙",
+        "track": 1,
+        "title": "Jenga: Effective Memory Management for Serving LLM with Heterogeneity",
+        "abstract": "Large language models are widely used but expensive to run. To reduce costs, it is crucial to maximize request batch size through efficient GPU memory management. Existing approaches, such as PagedAttention, struggle with modern LLMs because of the growing heterogeneity in the sizes of models’ internal embeddings and attention mechanisms. In this paper, we present Jenga, a memory allocation framework for these heterogeneous LLMs. Jenga tackles two key challenges: (1) memory fragmentation caused by embeddings of different sizes, and (2) unpredictable memory usage from varying attention mechanisms across layers. Jenga employs an attention-property-aware allocator, leveraging the least common multiple (LCM) of embedding sizes to optimize memory usage and performing cache eviction based on attention patterns to enhance memory reuse. We implement Jenga in vLLM, and evaluate it with diverse LLMs, datasets, and GPUs. Evaluations show that Jenga improves GPU memory utilization by up to 83% and serving throughput by up to 2.16× (1.46× on average)."
+      }
+    ]
+  },
+  {
     "week": 18,
     "weekday": 4,
     "happened": false,
@@ -366,8 +392,8 @@
       {
         "presenter": "李炜",
         "track": 1,
-        "title": "",
-        "abstract": ""
+        "title": "DeepSpace: Super Resolution Powered Efficient and Reliable Satellite Image Data Acquistion",
+        "abstract": "Large constellations of low-earth orbit satellites enable frequent high-resolution earth imaging for numerous geospatial applications. They generate large volumes of data in space, hundreds of Terabytes per day, which much be transported to Earth through constrained intermittent connections to ground stations. The large volumes lead to large day-level delay in data download and exorbitant cloud storage costs. We propose DeepSpace, a new deep learning-based super-resolution approach that compresses satellite imagery by over two orders of magnitude, while preserving image quality using a tailored mixture of experts (MoE) superresolution framework. DeepSpace reduces the network bandwidth requirements for space-Earth transfer, and can compress images for cloud storage. DeepSpace achieves such gains with the limited computational power available on small LEO satellites. We extensively evaluate DeepSpace against a wide range of state-of-the-art baselines considering multiple satellite image datasets and demonstrate the above mentioned benefits. We further demonstrate the effectiveness of DeepSpace through several distinct downstream applications (wildfire detection, land use and cropland classification, and fine-grained plastic detection in oceans)"
       },
       {
         "presenter": "陈鹏宇",
