@@ -398,14 +398,40 @@
       {
         "presenter": "陈鹏宇",
         "track": 2,
-        "title": "",
-        "abstract": ""
+        "title": "FlightGPT: Towards Generalizable and Interpretable UAV Vision-and-Language Navigation with Vision-Language Models",
+        "abstract": "Unmanned Aerial Vehicle (UAV) Vision-andLanguage Navigation (VLN) is vital for applications such as disaster response, logistics delivery, and urban inspection. However, existing methods often struggle with insufficient multimodal fusion, weak generalization, and poor interpretability. To address these challenges, we propose FlightGPT, a novel UAV VLN framework built upon Vision-Language Models (VLMs) with powerful multimodal perception capabilities. We design a two-stage training pipeline: first, Supervised Fine-Tuning (SFT) using high-quality demonstrations to improve initialization and structured reasoning; then, Group Relative Policy Optimization (GRPO) algorithm, guided by a composite reward that considers goal accuracy, reasoning quality, and format compliance, to enhance generalization and adaptability. Furthermore, FlightGPT introduces a Chain-ofThought (CoT)-based reasoning mechanism to improve decision interpretability. Extensive experiments on the city-scale dataset CityNav demonstrate that FlightGPT achieves state-ofthe-art performance across all scenarios, with a 9.22% higher success rate than the strongest baseline in unseen environments. Our implementation is publicly available1."
       },
       {
         "presenter": "郑博铿",
         "track": 3,
-        "title": "",
-        "abstract": ""
+        "title": "Learning and Planning Multi-Agent Tasks via an MoE-based World Model",
+        "abstract": "Multi-task multi-agent reinforcement learning (MT-MARL) aims to develop a single model capable of solving a diverse set of tasks. However, existing methods often fall short due to the substantial variation in optimal policies across tasks, making it challenging for a single policy model to generalize effectively. In contrast, we find that many tasks exhibit bounded similarity in their underlying dynamics—highly similar within certain groups (e.g., door-open/close) diverge significantly between unrelated tasks (e.g., door-open & object-catch). To leverage this property, we reconsider the role of modularity in multi-task learning, and propose M3W, a novel approach that applies mixture-of-experts (MoE) to world model instead of policy, enabling both learning and planning. For learning, it uses a SoftMoE-based dynamics model alongside a SparseMoE-based predictor to facilitate knowledge reuse across similar tasks while avoiding gradient conflicts across dissimilar tasks. For planning, it evaluates and optimizes actions using the predicted rollouts from the world model, without relying directly on a explicit policy model, thereby overcoming the limitations of policy-centric methods. As the first MoE-based multi-task world model, M3W demonstrates superior performance, sample efficiency, and multi-task adaptability, as validated on Bi-DexHands with 14 tasks and MA-Mujoco with 24 tasks."
+      }
+    ]
+  },
+  {
+    "week": 18,
+    "weekday": 4,
+    "happened": true,
+    "room": "",
+    "presentations": [
+      {
+        "presenter": "李炜",
+        "track": 1,
+        "title": "DeepSpace: Super Resolution Powered Efficient and Reliable Satellite Image Data Acquistion",
+        "abstract": "Large constellations of low-earth orbit satellites enable frequent high-resolution earth imaging for numerous geospatial applications. They generate large volumes of data in space, hundreds of Terabytes per day, which much be transported to Earth through constrained intermittent connections to ground stations. The large volumes lead to large day-level delay in data download and exorbitant cloud storage costs. We propose DeepSpace, a new deep learning-based super-resolution approach that compresses satellite imagery by over two orders of magnitude, while preserving image quality using a tailored mixture of experts (MoE) superresolution framework. DeepSpace reduces the network bandwidth requirements for space-Earth transfer, and can compress images for cloud storage. DeepSpace achieves such gains with the limited computational power available on small LEO satellites. We extensively evaluate DeepSpace against a wide range of state-of-the-art baselines considering multiple satellite image datasets and demonstrate the above mentioned benefits. We further demonstrate the effectiveness of DeepSpace through several distinct downstream applications (wildfire detection, land use and cropland classification, and fine-grained plastic detection in oceans)"
+      },
+      {
+        "presenter": "陈鹏宇",
+        "track": 1,
+        "title": "FlightGPT: Towards Generalizable and Interpretable UAV Vision-and-Language Navigation with Vision-Language Models",
+        "abstract": "Unmanned Aerial Vehicle (UAV) Vision-andLanguage Navigation (VLN) is vital for applications such as disaster response, logistics delivery, and urban inspection. However, existing methods often struggle with insufficient multimodal fusion, weak generalization, and poor interpretability. To address these challenges, we propose FlightGPT, a novel UAV VLN framework built upon Vision-Language Models (VLMs) with powerful multimodal perception capabilities. We design a two-stage training pipeline: first, Supervised Fine-Tuning (SFT) using high-quality demonstrations to improve initialization and structured reasoning; then, Group Relative Policy Optimization (GRPO) algorithm, guided by a composite reward that considers goal accuracy, reasoning quality, and format compliance, to enhance generalization and adaptability. Furthermore, FlightGPT introduces a Chain-ofThought (CoT)-based reasoning mechanism to improve decision interpretability. Extensive experiments on the city-scale dataset CityNav demonstrate that FlightGPT achieves state-ofthe-art performance across all scenarios, with a 9.22% higher success rate than the strongest baseline in unseen environments. Our implementation is publicly available1."
+      },
+      {
+        "presenter": "郑博铿",
+        "track": 1,
+        "title": "Learning and Planning Multi-Agent Tasks via an MoE-based World Model",
+        "abstract": "Multi-task multi-agent reinforcement learning (MT-MARL) aims to develop a single model capable of solving a diverse set of tasks. However, existing methods often fall short due to the substantial variation in optimal policies across tasks, making it challenging for a single policy model to generalize effectively. In contrast, we find that many tasks exhibit bounded similarity in their underlying dynamics—highly similar within certain groups (e.g., door-open/close) diverge significantly between unrelated tasks (e.g., door-open & object-catch). To leverage this property, we reconsider the role of modularity in multi-task learning, and propose M3W, a novel approach that applies mixture-of-experts (MoE) to world model instead of policy, enabling both learning and planning. For learning, it uses a SoftMoE-based dynamics model alongside a SparseMoE-based predictor to facilitate knowledge reuse across similar tasks while avoiding gradient conflicts across dissimilar tasks. For planning, it evaluates and optimizes actions using the predicted rollouts from the world model, without relying directly on a explicit policy model, thereby overcoming the limitations of policy-centric methods. As the first MoE-based multi-task world model, M3W demonstrates superior performance, sample efficiency, and multi-task adaptability, as validated on Bi-DexHands with 14 tasks and MA-Mujoco with 24 tasks."
       }
     ]
   },
@@ -418,8 +444,8 @@
       {
         "presenter": "余铭贤",
         "track": 1,
-        "title": "",
-        "abstract": ""
+        "title": "Mobile-Agent-v3: Fundamental Agents for GUI Automation",
+        "abstract": "This paper introduces GUI-Owl, a foundational GUI agent model, and Mobile-Agent-v3, a framework that achieves state-of-the-art performance among open-source models on desktop and mobile benchmarks. GUI-Owl-7B scores 66.4 on AndroidWorld and 29.4 on OSWorld, while Mobile-Agent-v3 further elevates these scores to 73.3 and 37.7, respectively. The system features three key innovations: a cloud-based infrastructure for self-evolving trajectory production across multiple operating systems, diverse foundational capabilities integrating UI grounding and reasoning, and a scalable reinforcement learning framework utilizing Trajectory-aware Relative Policy Optimization (TRPO)."
       },
       {
         "presenter": "沈格格",
@@ -430,8 +456,112 @@
       {
         "presenter": "刘俊杰",
         "track": 3,
-        "title": "",
-        "abstract": ""
+        "title": "Elastic On-Device LLM Service",
+        "abstract": "On-device Large Language Models (LLMs) are transforming mobile AI, catalyzing applications like UI automation with out privacy concerns. Nowadays the common practice is to deploy a single yet powerful LLM as a general task solver for multiple requests. We identify a key system challenge in this paradigm: current LLMs lack the elasticity to serve re quests that have diversified Service-Level Objectives (SLOs) on inference latency. To tackle this, we present ElastiLM, an on-device LLMservicethatelasticizes both the modelandthe promptdimensionofafullLLM.Itincorporates(1)aone-shot neuron-reordering method, which leverages the intrinsic permutation consistency in transformer models to generate high-quality elasticized sub-models with minimal runtime switching overhead; (2) a dual-head tiny language model, which efficiently and effectively refines the prompt and or chestrates the elastification between model and prompt. We implement such an elastic on-device LLM service on mul tiple COTS smartphones, and evaluate ElastiLM on both standalone NLP/mobile-agent datasets and end-to-end syn thesized traces. On diverse SLOs, ElastiLM outperforms 7 strong baselines in (absolute) accuracy by up to 14.83% and 10.45% on average, with <1% TTFT switching overhead, on par memory consumption and <100 offline GPU hours."
+      }
+    ]
+  },
+  {
+    "week": 19,
+    "weekday": 3,
+    "happened": true,
+    "room": "",
+    "presentations": [
+      {
+        "presenter": "余铭贤",
+        "track": 1,
+        "title": "Mobile-Agent-v3: Fundamental Agents for GUI Automation",
+        "abstract": "This paper introduces GUI-Owl, a foundational GUI agent model, and Mobile-Agent-v3, a framework that achieves state-of-the-art performance among open-source models on desktop and mobile benchmarks. GUI-Owl-7B scores 66.4 on AndroidWorld and 29.4 on OSWorld, while Mobile-Agent-v3 further elevates these scores to 73.3 and 37.7, respectively. The system features three key innovations: a cloud-based infrastructure for self-evolving trajectory production across multiple operating systems, diverse foundational capabilities integrating UI grounding and reasoning, and a scalable reinforcement learning framework utilizing Trajectory-aware Relative Policy Optimization (TRPO)."
+      },
+      {
+        "presenter": "沈格格",
+        "track": 1,
+        "title": "Stitching Satellites to the Edge: Pervasive and Efficient Federated LEO Satellite Learning",
+        "abstract": "In the ambitious realm of space AI, the integration of federated learning (FL) with low Earth orbit (LEO) satellite constellations holds immense promise. However, many challenges persist in terms of feasibility, learning efficiency, and convergence. These hurdles stem from the bottleneck in communication, characterized by sporadic and irregular connectivity between LEO satellites and ground stations, coupled with the limited computation capability of satellite edge computing (SEC). This paper proposes a novel FL-SEC framework that empowers LEO satellites to execute large-scale machine learning (ML) tasks onboard efficiently. Its key components include i) personalized learning via divide-and-conquer, which identifies and eliminates redundant satellite images and converts complex multi-class classification problems to simple binary classification, enabling rapid and energy-efficient training of lightweight ML models suitable for IoT/edge devices on satellites; ii) orbital model retraining, which generates an aggregated “orbital model” per orbit and retrains it before sending to the ground station, significantly reducing the required communication rounds. We conducted experiments using Jetson Nano, an edge device closely mimicking the limited compute on LEO satellites, and a real satellite dataset. The results underscore the effectiveness of our approach, highlighting SEC's ability to run lightweight ML models on real and high-resolution satellite imagery. Our approach dramatically reduces FL convergence time by nearly 30 times, and satellite energy consumption down to as low as 1.38 watts, all while maintaining an exceptional accuracy of up to 96%."
+      },
+      {
+        "presenter": "刘俊杰",
+        "track": 1,
+        "title": "Elastic On-Device LLM Service",
+        "abstract": "On-device Large Language Models (LLMs) are transforming mobile AI, catalyzing applications like UI automation with out privacy concerns. Nowadays the common practice is to deploy a single yet powerful LLM as a general task solver for multiple requests. We identify a key system challenge in this paradigm: current LLMs lack the elasticity to serve re quests that have diversified Service-Level Objectives (SLOs) on inference latency. To tackle this, we present ElastiLM, an on-device LLMservicethatelasticizes both the modelandthe promptdimensionofafullLLM.Itincorporates(1)aone-shot neuron-reordering method, which leverages the intrinsic permutation consistency in transformer models to generate high-quality elasticized sub-models with minimal runtime switching overhead; (2) a dual-head tiny language model, which efficiently and effectively refines the prompt and or chestrates the elastification between model and prompt. We implement such an elastic on-device LLM service on mul tiple COTS smartphones, and evaluate ElastiLM on both standalone NLP/mobile-agent datasets and end-to-end syn thesized traces. On diverse SLOs, ElastiLM outperforms 7 strong baselines in (absolute) accuracy by up to 14.83% and 10.45% on average, with <1% TTFT switching overhead, on par memory consumption and <100 offline GPU hours."
+      }
+    ]
+  },
+  {
+    "week": 20,
+    "weekday": 3,
+    "happened": false,
+    "room": "超算507",
+    "presentations": [
+      {
+        "presenter": "陈自强",
+        "track": 1,
+        "title": "A Satellite-Ground Synergistic Large Vision-Language Model System for Earth Observation",
+        "abstract": "Recently, large vision-language models (LVLMs) unleash powerful analysis capabilities for low Earth orbit (LEO) satellite Earth observation images in the data center. However, fast satellite motion, brief satellite-ground station (GS) contact windows, and large size of the images pose a data download challenge. To enable near real-time Earth observation applications (e.g., disaster and extreme weather monitoring), we should explore how to deploy LVLM in LEO satellite networks, and design SpaceVerse, an efficient satellite-ground synergistic LVLM inference system. To this end, firstly, we deploy compact LVLMs on satellites for lightweight tasks, whereas regular LVLMs operate on GSs to handle computationally intensive tasks. Then, we propose a computing and communication co-design framework comprised of a progressive confidence network, and an attention-based multi-scale preprocessing, used to identify on-satellite inferring data, and reduce data redundancy before satellite-GS transmission, separately. We implement, and evaluate SpaceVerse on real-world LEO satellite constellations and datasets, achieving a 31.2% average gain in accuracy and a 51.2% reduction in latency compared to state-of-the-art baselines."
+      },
+      {
+        "presenter": "刘嘉溢",
+        "track": 2,
+        "title": "REMINDRAG: Low-Cost LLM-Guided Knowledge Graph Traversal for Efficient RAG",
+        "abstract": "nowledge graphs (KGs), with their structured representation capabilities, offer promising avenue for enhancing Retrieval Augmented Generation (RAG) systems, leading to the development of KG-RAG systems. Nevertheless, existing methods often struggle to achieve effective synergy between system effectiveness and cost efficiency, leading to neither unsatisfying performance nor excessive LLM prompt tokens and inference time. To this end, this paper proposes REMINDRAG, which employs an LLM-guided graph traversal featuring node exploration, node exploita- tion, and, most notably, memory replay, to improve both system effectiveness and cost efficiency. Specifically, REMINDRAG memorizes traversal experience within KG edge embeddings, mirroring the way LLMs \"memorize\" world knowledge within their parameters, but in a train-free manner. We theoretically and experi- mentally confirm the effectiveness of REMINDRAG, demonstrating its superiority over existing baselines across various benchmark datasets and LLM backbones. Our code is available at https://github.com/kilgrims/ReMindRAG. 1 Introduction Retrieval-Augmented Generation (RAG) [23 ] has become a prominent method for augmenting Large Language Models (LLMs) with external knowledge resources, enabling them to generate more accurate outputs and thereby expanding their practical utility [17, 32]. However, conventional RAG approaches, which primarily employ dense vector retrieval [ 37 , 20 , 1] for identifying relevant text segments, often exhibit limitations when confronted with intricate tasks that necessitate multi- hop inference [49] or the capture of long-range dependencies [24 ]. Knowledge Graphs (KGs), characterized by their structured representation of interconnected entities and relationships, present a compelling alternative. Thus, research efforts are increasingly focused on developing KG-RAG systems, which aims to improve RAG performance using graph-based text representation [ 10 , 5 , 27 ]. Usually, a KG-RAG system operates by initially transforming source documents into graph-based representations2. This often involves leveraging LLMs to extract entities and relationships, which are then represented as nodes and edges within the graph. Information retrieval is subsequently performed by traversing this graph to identify nodes relevant to the query. To achieve this, traditional graph search algorithms, like PageRank [14, 9], and deep learning approaches, like GNN [53 ], could be employed for traversal and answer extraction [31, 8 , 26, 47 ], these methods often fail to capture"
+      },
+      {
+        "presenter": "吴蔚凡",
+        "track": 3,
+        "title": "Taming Throughput-Latency Tradeoff in LLM Inference with Sarathi-Serve",
+        "abstract": "Existing LLM inference systems face a fundamental trade-off between throughput and latency: prioritizing throughput often leads to \"generation stalls,\" where long prefill phases block ongoing decoding tasks. To resolve this, we introduce Sarathi-Serve, a scheduler that employs Chunked-Prefills to split long prompts and Stall-Free Batching to schedule these chunks alongside ongoing decodes. By filling the compute slack in memory-bound decode iterations without interrupting generation, Sarathi-Serve achieves up to 2.6x higher serving capacity for Mistral-7B and 5.6x for Falcon-180B compared to state-of-the-art systems like vLLM."
+      }
+    ]
+  },
+  {
+    "week": 20,
+    "weekday": 3,
+    "happened": true,
+    "room": "",
+    "presentations": [
+      {
+        "presenter": "陈自强",
+        "track": 1,
+        "title": "A Satellite-Ground Synergistic Large Vision-Language Model System for Earth Observation",
+        "abstract": "Recently, large vision-language models (LVLMs) unleash powerful analysis capabilities for low Earth orbit (LEO) satellite Earth observation images in the data center. However, fast satellite motion, brief satellite-ground station (GS) contact windows, and large size of the images pose a data download challenge. To enable near real-time Earth observation applications (e.g., disaster and extreme weather monitoring), we should explore how to deploy LVLM in LEO satellite networks, and design SpaceVerse, an efficient satellite-ground synergistic LVLM inference system. To this end, firstly, we deploy compact LVLMs on satellites for lightweight tasks, whereas regular LVLMs operate on GSs to handle computationally intensive tasks. Then, we propose a computing and communication co-design framework comprised of a progressive confidence network, and an attention-based multi-scale preprocessing, used to identify on-satellite inferring data, and reduce data redundancy before satellite-GS transmission, separately. We implement, and evaluate SpaceVerse on real-world LEO satellite constellations and datasets, achieving a 31.2% average gain in accuracy and a 51.2% reduction in latency compared to state-of-the-art baselines."
+      },
+      {
+        "presenter": "刘嘉溢",
+        "track": 1,
+        "title": "REMINDRAG: Low-Cost LLM-Guided Knowledge Graph Traversal for Efficient RAG",
+        "abstract": "nowledge graphs (KGs), with their structured representation capabilities, offer promising avenue for enhancing Retrieval Augmented Generation (RAG) systems, leading to the development of KG-RAG systems. Nevertheless, existing methods often struggle to achieve effective synergy between system effectiveness and cost efficiency, leading to neither unsatisfying performance nor excessive LLM prompt tokens and inference time. To this end, this paper proposes REMINDRAG, which employs an LLM-guided graph traversal featuring node exploration, node exploita- tion, and, most notably, memory replay, to improve both system effectiveness and cost efficiency. Specifically, REMINDRAG memorizes traversal experience within KG edge embeddings, mirroring the way LLMs \"memorize\" world knowledge within their parameters, but in a train-free manner. We theoretically and experi- mentally confirm the effectiveness of REMINDRAG, demonstrating its superiority over existing baselines across various benchmark datasets and LLM backbones. Our code is available at https://github.com/kilgrims/ReMindRAG. 1 Introduction Retrieval-Augmented Generation (RAG) [23 ] has become a prominent method for augmenting Large Language Models (LLMs) with external knowledge resources, enabling them to generate more accurate outputs and thereby expanding their practical utility [17, 32]. However, conventional RAG approaches, which primarily employ dense vector retrieval [ 37 , 20 , 1] for identifying relevant text segments, often exhibit limitations when confronted with intricate tasks that necessitate multi- hop inference [49] or the capture of long-range dependencies [24 ]. Knowledge Graphs (KGs), characterized by their structured representation of interconnected entities and relationships, present a compelling alternative. Thus, research efforts are increasingly focused on developing KG-RAG systems, which aims to improve RAG performance using graph-based text representation [ 10 , 5 , 27 ]. Usually, a KG-RAG system operates by initially transforming source documents into graph-based representations2. This often involves leveraging LLMs to extract entities and relationships, which are then represented as nodes and edges within the graph. Information retrieval is subsequently performed by traversing this graph to identify nodes relevant to the query. To achieve this, traditional graph search algorithms, like PageRank [14, 9], and deep learning approaches, like GNN [53 ], could be employed for traversal and answer extraction [31, 8 , 26, 47 ], these methods often fail to capture"
+      },
+      {
+        "presenter": "吴蔚凡",
+        "track": 1,
+        "title": "Taming Throughput-Latency Tradeoff in LLM Inference with Sarathi-Serve",
+        "abstract": "Existing LLM inference systems face a fundamental trade-off between throughput and latency: prioritizing throughput often leads to \"generation stalls,\" where long prefill phases block ongoing decoding tasks. To resolve this, we introduce Sarathi-Serve, a scheduler that employs Chunked-Prefills to split long prompts and Stall-Free Batching to schedule these chunks alongside ongoing decodes. By filling the compute slack in memory-bound decode iterations without interrupting generation, Sarathi-Serve achieves up to 2.6x higher serving capacity for Mistral-7B and 5.6x for Falcon-180B compared to state-of-the-art systems like vLLM."
+      }
+    ]
+  },
+  {
+    "week": 21,
+    "weekday": 3,
+    "happened": false,
+    "room": "超算507",
+    "presentations": [
+      {
+        "presenter": "傅天楠",
+        "track": 1,
+        "title": "Teola: Towards End-to-End Optimization of LLM-based \n",
+        "abstract": "Large language model (LLM)-based applications consist of both LLM and non-LLM components, each contributing to the end-to-end latency. Despite great efforts to optimize LLM inference, end-to-end workflow optimization has been overlooked. Existing frameworks employ coarse-grained or chestration with task modules, which confines optimizations to within each module and yields suboptimal scheduling decisions. We propose fine-grained end-to-end orchestration, which utilizes task primitives as the basic units and represents each query’s workflow as a primitive-level dataflow graph. This explicitly exposes a much larger design space, enables opti mizations in parallelization and pipelining across primitives of different modules, and enhances scheduling to improve application-level performance. We build Teola, a novel or chestration framework for LLM-based applications that im plements this scheme. Comprehensive experiments show that Teola can achieve up to 2.09x speedup over existing systems across various popular LLM applications. The code is available at https://github.com/NetX-lab/Ayo."
+      },
+      {
+        "presenter": "黄明君",
+        "track": 2,
+        "title": "General Agentic Memory Via Deep Research",
+        "abstract": "Memory is critical for AI agents, yet widely adopted static memory approaches—which aim to create readily available memory in advance—inevitably suffer from severe information loss. To address this limitation, we propose a novel framework called general agentic memory (GAM). GAM follows the principle of just-in-time (JIT) compilation, focusing on creating optimized contexts for its client at runtime while retaining only simple but useful memory during the offline stage. To achieve this, GAM adopts a dual-component design. The first component, the Memorizer, highlights key historical information using a lightweight memory while preserving complete historical data in a universal page store. The second component, the Researcher, retrieves and integrates relevant information from the page store for online requests, guided by the preconstructed memory. This design enables GAM to effectively leverage the agentic capabilities and test-time scalability of frontier large language models (LLMs), while also supporting end-to-end performance optimization through reinforcement learning. Experimental results demonstrate that GAM achieves substantial improvements across various memory-grounded task completion scenarios compared with existing memory systems."
+      },
+      {
+        "presenter": "朱荣辉",
+        "track": 3,
+        "title": "Boosting Embodied AI Agents through Perception-Geberation Disaggregation and Asynchronous Pipeline Execution",
+        "abstract": "Embodied AI systems operate in dynamic environments, re-quiring seamless integration of perception and generationmodules to process high-frequency input and output de-mands. Traditional sequential computation patterns, whileeffective in ensuring accuracy, face significant limitations inachieving the necessary\"thinking\" frequency for real-worldapplications. In this work, we present AuRAs, an algorithm-system co-designed inference framework to optimize theinference frequency of embodied AI agents. AuRAs disag-gregates the perception and generation and provides con-trolled pipeline parallelism for them to achieve high andstable throughput. Faced with the data staleness problemthat appears when the parallelism is increased, AuRAs es-tablishes a public context for perception and generation toshare, thereby promising the accuracy of embodied agents.Experimental results show that AuRAs improves throughputby 2.54x on average while achieving 102.7% of the origi-nal accuracy, demonstrating its efficacy in overcoming theconstraints of sequential computation and providing highthroughput."
       }
     ]
   }

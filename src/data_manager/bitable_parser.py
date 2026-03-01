@@ -315,7 +315,7 @@ class SMCLabWeeklyReportParser(SMCLabBitableParser):
         group_users_name_list = self._get_group_info()
         appeared_names, not_appeared_names, extra_in_raw = self._check_name_occurrence(simplified_raw_data, group_users_name_list)
         # 将列表转换为逗号分隔的字符串
-        extra_in_str = ", (" + ", ".join(extra_in_raw) + ")" if len(appeared_names) else ""
+        extra_in_str = "," + ", ".join(extra_in_raw) if len(appeared_names) else ""
         if len(appeared_names):
             appeared_str = ", ".join(appeared_names)
         elif extra_in_str:

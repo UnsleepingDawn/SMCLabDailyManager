@@ -239,7 +239,13 @@ class SMCLabDailyManager:
         self.sender.send_last_week_summary(users=users)
 
     def send_this_week_seminar_preview(self,
-                                       users: str | List[str] = "梁涵"):
+                                       users: str | List[str] = "梁涵",
+                                       update_seminar_info: bool = True):
+                                               # 更新组会信息
+        if update_seminar_info:
+            self.seminar_crawler.get_raw_records()
+            self.seminar_parser.save_info_to_excel()
+            self.seminar_manager.update_seminar_schedule()
         self.sender.send_this_week_seminar_preview(users)
 
     def test(self):
