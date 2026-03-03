@@ -179,7 +179,7 @@ class SMCLabMessageSender(SMCLabClient):
         receive_names = users
         receive_ids = [name_account[user] for user in users]
         semester = self._year_semester
-        week = self._this_week if not week else week
+        week = self._this_week if week==None else week
 
         # 加载发送给陈旭老师的模板
         with open(self.weekly_summary_template_path, "r", encoding="utf-8") as f:

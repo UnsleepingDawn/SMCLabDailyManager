@@ -50,10 +50,11 @@ class SMCLabGroupMeetingScheduler:
         Returns:
             学生姓名列表
         """
+        group_meeting_name_list_path = os.path.join(
+            self._sem_data_path, self._year_semester, "group_meeting_name_list.json"
+        )
+
         if from_file:
-            group_meeting_name_list_path = os.path.join(
-                self._sem_data_path, self._year_semester, "group_meeting_name_list.json"
-            )
             if os.path.exists(group_meeting_name_list_path):
                 with open(group_meeting_name_list_path, "r", encoding="utf-8") as f:
                     data = json.load(f)
@@ -62,14 +63,13 @@ class SMCLabGroupMeetingScheduler:
                         f"group_meeting_name_list.json 格式错误：期望列表，实际为 {type(data).__name__}"
                     )
                 self.name_list = data
-                self.logger.info(f"已从文件加载学生名单，共 {len(data)} 人")
-                return self.name_list
-            else:
-                with open(group_meeting_name_list_path, "w", encoding="utf-8") as f:
-                    json.dump([], f, ensure_ascii=False, indent=2)
-                self.logger.info(
-                    f"已创建空的学生名单文件: {group_meeting_name_list_path}"
-                )
+                if data != None and data != []:
+                    self.logger.info(f"已从文件加载学生名单，共 {len(data)} 人")
+                    return self.name_list
+
+            self.logger.info(
+                f"学生名单文件不存在，将从基础数据生成并保存: {group_meeting_name_list_path}"
+            )
 
         if advisor is None:
             advisor = self.advisor
@@ -94,6 +94,15 @@ class SMCLabGroupMeetingScheduler:
         self.logger.info(
             f"已获取 {advisor} 老师的学生名单，共 {len(self.name_list)} 人"
         )
+
+        if from_file:
+            # 将生成的名单保存到文件，便于下次直接加载
+            os.makedirs(os.path.dirname(group_meeting_name_list_path), exist_ok=True)
+            with open(group_meeting_name_list_path, "w", encoding="utf-8") as f:
+                json.dump(self.name_list, f, ensure_ascii=False, indent=2)
+            self.logger.info(
+                f"已将学生名单保存到文件: {group_meeting_name_list_path}"
+            )
         return self.name_list
 
     def fetch_course_schedule(self, semester: str = None) -> dict:
@@ -290,7 +299,11 @@ class SMCLabGroupMeetingScheduler:
 
         # 提前组队
         for group in already_grouped:
-            ids = [name2id[x] for x in group]
+            try:
+                ids = [name2id[x] for x in group]
+            except: 
+                RuntimeError("请手动添加名字到group_meeting_name_list.json")
+
             for g in G:
                 for i in ids[1:]:
                     prob += y[ids[0]][g] == y[i][g]
