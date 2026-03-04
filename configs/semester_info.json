@@ -1,6 +1,7 @@
 {
     "2025-Fall": {
-        "help": "每学期的日期定义为第一周的周一, 可通过 中山大学公众号/小红书 搜索校历查看具体日期",
+        "help1": "每学期的日期定义为第一周的周一, 可通过 中山大学公众号/小红书 搜索校历查看具体日期",
+        "help2": "多维表格的app_token和table_id定义可见飞书官方的开发者文档",
         "start_date": "20250908",
         "default_seminar_weekday": 3,
         "default_seminar_start_time": 1900,
@@ -31,6 +32,33 @@
         }
     },
     "2025-Spring": {
-        "start_date": "20260302"
+        "start_date": "20260302",
+        "default_seminar_weekday": 4,
+        "default_seminar_start_time": 1900,
+        "default_seminar_end_time": 2030,
+        "default_seminar_tecent_id": "639-1064-8754",
+        "default_seminar_tecent_link": "https://meeting.tencent.com/dm/Nji9l79xR7Hl",
+        "bitable":{
+            "weekly_report":{
+                "app_token": "bascnNZHLLxh0ZKJ9zOvhtTaMAb",
+                "table_id": "tblQkxABW6grr3Qn",
+                "url": "https://sysu-smclab.feishu.cn/base/bascnNZHLLxh0ZKJ9zOvhtTaMAb?table=tblQkxABW6grr3Qn&view=vewqm1Sd5B"
+            },
+            "schedule":{
+                "app_token": "EGTXb1D1kaWnYUsTFLsc39rnntg",
+                "table_id": "tblwG25VZFYJAzON",
+                "url": "https://sysu-smclab.feishu.cn/base/EGTXb1D1kaWnYUsTFLsc39rnntg?table=tblwG25VZFYJAzON&view=vewFUQ7STo"
+            },
+            "seminar":{
+                "app_token": "L5ZAbqlF4aG1EQsRszbcAa2JnWc",
+                "table_id": "tbl3n3I1oKuO0KPT",
+                "url": "https://sysu-smclab.feishu.cn/base/L5ZAbqlF4aG1EQsRszbcAa2JnWc?table=tbl3n3I1oKuO0KPT&view=vew4SqBurs"
+            },
+            "seminar_leave":{
+                "app_token": "SAGSb336oa8QfPsJD4TcqCSin8b",
+                "table_id": "tblRmiP9WlXeL5eh",
+                "url": "https://sysu-smclab.feishu.cn/base/SAGSb336oa8QfPsJD4TcqCSin8b?table=tblRmiP9WlXeL5eh&view=vewkFB61av"
+            }
+        }
     }
 }

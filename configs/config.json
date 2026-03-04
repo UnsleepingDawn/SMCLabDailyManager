@@ -50,7 +50,7 @@
     },
     "group_meeting_scheduler": {
         "max_groups_per_period": 4,
-        "default_periods": ["周四上午", "周四下午"]
+        "default_periods": ["周三下午", "周三晚上"]
     },
     "bitable": {
         "weekly_report": {
