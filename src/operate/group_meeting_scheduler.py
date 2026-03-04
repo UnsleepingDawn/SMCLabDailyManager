@@ -174,7 +174,7 @@ class SMCLabGroupMeetingScheduler:
 
     def schedule_group_meeting(
         self,
-        periods: list = None,
+        meeting_periods: list = None,
         max_groups_per_period: int = None,
         name_list: list = None,
         already_grouped: list = None,
@@ -193,8 +193,8 @@ class SMCLabGroupMeetingScheduler:
         Returns:
             调度结果，格式为 {时间段: [[小组1成员], [小组2成员], ...]}
         """
-        if periods is None:
-            periods = self.periods
+        if meeting_periods is None:
+            meeting_periods = self.periods
         if max_groups_per_period is None:
             max_groups_per_period = self.max_groups_per_period
         if name_list is None:
@@ -216,7 +216,7 @@ class SMCLabGroupMeetingScheduler:
             raise ValueError("课程日程为空，请先调用 fetch_course_schedule() 加载日程")
 
         return self._ilp(
-            periods=periods,
+            meeting_periods=meeting_periods,
             max_groups_per_period=max_groups_per_period,
             name_list=name_list,
             schedule=schedule,
@@ -225,14 +225,14 @@ class SMCLabGroupMeetingScheduler:
 
     def _ilp(
         self,
-        periods: list,
+        meeting_periods: list,
         max_groups_per_period: int,
         name_list: list,
         schedule: dict,
         already_grouped: list,
     ):
         I = list(range(len(name_list)))  # 成员集合
-        P = list(range(len(periods)))  # 时段集合
+        P = list(range(len(meeting_periods)))  # 时段集合
         G = list(range(math.ceil(len(name_list) / 2)))  # 潜在的小组集合
 
         name2id = {name: i for i, name in enumerate(name_list)}
@@ -241,9 +241,9 @@ class SMCLabGroupMeetingScheduler:
         # 人在某半天是否有课
         busy = {}
         for i, name in enumerate(name_list):
-            for p, period in enumerate(periods):
-                day, half = period[:2], period[2:]
-                busy[i, p] = name in schedule.get(day, {}).get(half, [])
+            for p, meeting_period in enumerate(meeting_periods):
+                day, period = meeting_period[:2], meeting_period[2:]
+                busy[i, p] = name in schedule.get(day, {}).get(period, [])
 
         prob = pulp.LpProblem("Unified_Group_Meeting", pulp.LpMinimize)
 
@@ -313,7 +313,7 @@ class SMCLabGroupMeetingScheduler:
 
         status = prob.solve(pulp.PULP_CBC_CMD(msg=False))
         if pulp.LpStatus[status] != "Optimal":
-            raise RuntimeError("无可行解")
+            self.logger.info(f"无可行解(状态:{pulp.LpStatus[status]}), 输出次优解")
 
         # 输出
         result = defaultdict(list)
@@ -322,6 +322,6 @@ class SMCLabGroupMeetingScheduler:
                 members = [name_list[i] for i in I if pulp.value(y[i][g]) == 1]
                 for p in P:
                     if pulp.value(x[g][p]) == 1:
-                        result[periods[p]].append(members)
+                        result[meeting_periods[p]].append(members)
 
         return dict(result)

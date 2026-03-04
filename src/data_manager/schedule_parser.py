@@ -3,8 +3,21 @@ import pandas as pd
 from collections import defaultdict
 from pathlib import Path
 
+from openpyxl import load_workbook
+from openpyxl.styles import PatternFill
+
 from ..common.baseparser import SMCLabBaseParser
 from ..config import Config
+
+# 上午/下午/晚上 时段底色（浅绿→深绿）
+PERIOD_FILLS = {
+    "上午": PatternFill(start_color="E8F5E9", end_color="E8F5E9", fill_type="solid"),  # 浅绿
+    "下午": PatternFill(start_color="A5D6A7", end_color="A5D6A7", fill_type="solid"),  # 中绿
+    "晚上": PatternFill(start_color="2E7D32", end_color="2E7D32", fill_type="solid"),  # 深绿
+}
+# 人数单元格：从浅蓝到深蓝的 RGB（用于按值插值）
+COUNT_COLOR_LIGHT = (0xE7, 0xF5, 0xFE)  # #E7F5FE
+COUNT_COLOR_DEEP = (0x87, 0xCE, 0xFA)   # #87CEFA
 
 class SMCLabScheduleParser(SMCLabBaseParser):
     def __init__(self, config: Config = None):
@@ -56,10 +69,23 @@ class SMCLabScheduleParser(SMCLabBaseParser):
                     schedule[day][slot].append(name)
         return schedule
 
+    def _count_fill(self, value: int, value_max: int) -> PatternFill:
+        """按人数在浅蓝到深蓝之间插值得到底色。value_max 为 0 时用浅蓝。"""
+        if value_max <= 0:
+            ratio = 0.0
+        else:
+            ratio = value / value_max
+        r = int(COUNT_COLOR_LIGHT[0] + (COUNT_COLOR_DEEP[0] - COUNT_COLOR_LIGHT[0]) * ratio)
+        g = int(COUNT_COLOR_LIGHT[1] + (COUNT_COLOR_DEEP[1] - COUNT_COLOR_LIGHT[1]) * ratio)
+        b = int(COUNT_COLOR_LIGHT[2] + (COUNT_COLOR_DEEP[2] - COUNT_COLOR_LIGHT[2]) * ratio)
+        hex_color = f"{r:02X}{g:02X}{b:02X}"
+        return PatternFill(start_color=hex_color, end_color=hex_color, fill_type="solid")
+
     def make_schedule_count_xlsx(self):
         output_path = os.path.join(self.sem_path, "schedule_count.xlsx")
         schedule = self._collect_schedule()
         records = []
+        row_periods = []  # 每行对应的时段（上午/下午/晚上）
         for period, sub in self.time_table.items():
             for section, (start, end) in sub.items():
                 row = {"上课节段": f"{period}-{section}", "时间": f"{start}-{end}"}
@@ -67,8 +93,25 @@ class SMCLabScheduleParser(SMCLabBaseParser):
                     names = schedule[day].get(f"{period}-{section}", [])
                     row[day] = len(names)
                 records.append(row)
+                row_periods.append(period)
         df = pd.DataFrame(records)
-        df.to_excel(output_path, index=False)
+        df.to_excel(output_path, index=False, engine="openpyxl")
+
+        # 按值计算人数列的最大值，用于插值
+        count_cols = self.days  # 周一～周五
+        value_max = max((r[day] for r in records for day in count_cols), default=0)
+
+        wb = load_workbook(output_path)
+        ws = wb.active
+        for i, period in enumerate(row_periods):
+            excel_row = i + 2  # 表头占第 1 行
+            period_fill = PERIOD_FILLS[period]
+            ws.cell(row=excel_row, column=1).fill = period_fill  # 上课节段
+            ws.cell(row=excel_row, column=2).fill = period_fill  # 时间
+            for j, day in enumerate(count_cols):
+                cell = ws.cell(row=excel_row, column=3 + j)
+                cell.fill = self._count_fill(records[i][day], value_max)
+        wb.save(output_path)
         self.logger.info("课时人数表已保存: %s", Path(output_path).absolute())
 
     def make_schedule_names_xlsx(self):

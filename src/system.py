@@ -47,6 +47,9 @@ from src.data_manager.excel_manager import (
 from src.message.sender import (
     SMCLabMessageSender
 )
+from src.operate.group_meeting_scheduler import (
+    SMCLabGroupMeetingScheduler
+)
 from src.config import Config
 from src.utils import get_semester_and_week
 
@@ -56,8 +59,8 @@ class SMCLabDailyManager:
             config = Config()
         self.config = config
         
-        self.ensure_directories()
-        self.set_logger()
+        self._ensure_directories()
+        self._set_logger()
 
         _, this_week = get_semester_and_week()
         self._this_week = this_week
@@ -81,8 +84,9 @@ class SMCLabDailyManager:
         self.address_book_parser = SMCLabAddressBookParser(config)
         # 管理模块
         self.seminar_manager = SMCLabSeminarManager(config)
+        self.group_meeting_scheduler = SMCLabGroupMeetingScheduler(config)
 
-    def set_logger(self):
+    def _set_logger(self):
         self.logger = logging.getLogger(name=self.config.logger_name)
         self.logger.setLevel(logging.DEBUG)
         # 删去之前的log文件
@@ -107,7 +111,7 @@ class SMCLabDailyManager:
         self.logger.addHandler(file_handler)
         self.logger.propagate = False
 
-    def ensure_directories(self):
+    def _ensure_directories(self):
         """
         检查并创建必要的文件夹路径。
         依次检查 config.py 中定义的文件夹是否存在，不存在则创建。
@@ -124,7 +128,7 @@ class SMCLabDailyManager:
             if not os.path.exists(directory):
                 os.makedirs(directory, exist_ok=True)
 
-    def update_address_book(self):
+    def get_address_book(self):
         # 下载最新的组会表格
         self.seminar_crawler.get_raw_records()
         # 下载通讯录
@@ -247,6 +251,22 @@ class SMCLabDailyManager:
             self.seminar_parser.save_info_to_excel()
             self.seminar_manager.update_seminar_schedule()
         self.sender.send_this_week_seminar_preview(users)
+
+    def initial_spring_semester(self, 
+                                meeting_periods=["周三上午", "周三下午"],
+                                update_address_book: bool = False,
+                                update_schedule: bool = False,):
+        if update_address_book:
+            self.get_address_book()
+        if update_schedule:
+            self.schedule_crawler.get_raw_records()
+        self.schedule_parser.make_period_summary_json()
+        self.schedule_parser.make_schedule_count_xlsx()
+        schedule = self.group_meeting_scheduler.schedule_group_meeting(meeting_periods)
+        for key in schedule.keys():
+            print(key, ":")
+            for group in schedule[key]:
+                print(group)
 
     def test(self):
         self.schedule_parser.make_period_summary_json()
