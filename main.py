@@ -9,10 +9,10 @@ if __name__ == "__main__":
     # system.test()
     system.send_last_week_summary(users = ["梁涵"],
                                   use_relay=False, 
-                                #   update_seminar_info=True,
-                                #   update_address_book=True,
-                                #   update_all=True,
-                                #   backdoor_delete=True,
+                                  # update_seminar_info=True,
+                                  # update_address_book=True,
+                                  # update_all=True,
+                                  # backdoor_delete=True,
                                   )
     # system.send_this_week_seminar_preview(users = ["梁涵"],
     #                                       update_seminar_info=True,
