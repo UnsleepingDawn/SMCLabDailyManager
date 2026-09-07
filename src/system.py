@@ -146,13 +146,20 @@ class SMCLabDailyManager:
         last_time_updated["last_seminar_crawle"] = now
         self._update_done_last_time(last_time_updated)
 
+    def send_seminar_attendance_byweek(self,
+                                       week: int,
+                                       user: str = "梁涵",
+                                       use_relay: bool = True,
+                                       update_group_info: bool = True):
+        self.attendance_crawler.get_seminar_records_byweek(week, update_group_info)
+        self.seminar_attendance_parser.get_attended_names_byweek(week, use_relay=use_relay)
+        self.sender.send_seminar_attendance_byweek(week, user)
+
     def send_this_week_seminar_attendance(self, 
                                           user: str = "梁涵",
-                                          use_relay: bool =True):
-        self.attendance_crawler.get_this_week_seminar_records()
-        self.seminar_attendance_parser.get_this_week_attended_names(use_relay=use_relay)
-        # 发送消息
-        self.sender.send_this_week_seminar_attendance(user)
+                                          use_relay: bool =True,
+                                          update_group_info: bool = True):
+        self.send_seminar_attendance_byweek(self._this_week, user, use_relay, update_group_info)
 
     def send_last_week_summary(self, 
                                users: str | List[str] = "梁涵",

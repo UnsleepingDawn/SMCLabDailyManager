@@ -443,6 +443,12 @@ class SMCLabSeminarAttendanceParser(SMCLabBaseParser):
             f.write(f"{not_attended_str}")  # 第二行：未出现的姓名
         # 转换为列表并按字母排序返回
 
+    def get_attended_names_byweek(self,
+                                  week: int,
+                                  use_relay: bool = True,
+                                  backdoor_delete: bool = False):
+        return self._get_attended_names_byweek(week, use_relay, backdoor_delete)
+
     def get_last_week_attended_names(self, 
                                      use_relay: bool = False, 
                                      backdoor_delete: bool = False):

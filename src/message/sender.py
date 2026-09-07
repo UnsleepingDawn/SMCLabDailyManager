@@ -65,7 +65,8 @@ class SMCLabMessageSender(SMCLabClient):
     def _fetch_seminar_preview(self, sem: str, week: int):
         def check_seminar_item(seminar_info_item):
             assert seminar_info_item.get("happened", True) == False, "该周组会已经开过"
-            assert seminar_info_item.get("room", None), "请指定开会地点"
+            if not seminar_info_item.get("room", None):
+                seminar_info_item["room"] = "请联系老师指定教室"
             presentations = seminar_info_item.get("presentations", [])
             assert len(presentations) > 0
             count = 1
@@ -233,12 +234,18 @@ class SMCLabMessageSender(SMCLabClient):
         self._send_weekly_summary_byweek(week=self._this_week-1, users=users)
         return
 
+    def send_seminar_attendance_byweek(self,
+                                       week: int,
+                                       user: str):
+        self.logger.info("发送第%s周组会考勤给 %s", week, user)
+        attended_str, not_attended_str = self._fetch_seminar_attendance(self._year_semester, week)
+        message_string = f"{self._year_semester}-第{week}周组会考勤:\n" + f"参会: {attended_str}" + "\n" + f"未参会: {not_attended_str}"
+        self.send_text(user = user, message = message_string)
+        return
+
     def send_this_week_seminar_attendance(self,
                                           user: str):
-        self.logger.info("发送第%s周组会考勤给 %s", self._this_week, user)
-        attended_str, not_attended_str = self._fetch_seminar_attendance(self._year_semester, self._this_week)
-        message_string = f"{self._year_semester}-第{self._this_week}周组会考勤:\n" + f"参会: {attended_str}" + "\n" + f"未参会: {not_attended_str}"
-        self.send_text(user = user, message = message_string)
+        self.send_seminar_attendance_byweek(self._this_week, user)
         return
 
     def send_this_week_seminar_preview(self,
@@ -291,7 +298,7 @@ class SMCLabMessageSender(SMCLabClient):
         # 发送单条文本信息给指定人
         # 参考: https://open.feishu.cn/document/server-docs/im-v1/message-content-description/create_json#45e0953e
         
-        if self.name_account:
+        if not self.name_account:
             self._set_info_manager()
         name_account = self.name_account
         assert user in name_account.keys(), f"没有找到该用户: {user}"
@@ -338,7 +345,7 @@ class SMCLabMessageSender(SMCLabClient):
         # 发送单条信息
         # 参考: https://open.feishu.cn/document/server-docs/im-v1/message-content-description/create_json?appId=cli_a8cd4e246b70d013#7111df05
         
-        if self.name_account:
+        if not self.name_account:
             self._set_info_manager()
         name_account = self.name_account
         assert user in name_account.keys(), f"没有找到该用户: {user}"
